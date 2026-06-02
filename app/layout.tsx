@@ -1,5 +1,13 @@
 import type { Metadata } from 'next'
+import { Noto_Sans_KR } from 'next/font/google'
 import './globals.css'
+
+const notoSansKR = Noto_Sans_KR({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-noto',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'Wakku — 보고자료 HTML Builder',
@@ -8,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={notoSansKR.variable}>
       <body>{children}</body>
     </html>
   )

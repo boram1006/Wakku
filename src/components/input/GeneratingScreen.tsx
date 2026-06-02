@@ -55,13 +55,19 @@ export function PageShell({ children }: { children: React.ReactNode }) {
         style={{
           borderBottom: '1px solid var(--report-border)',
           padding: '0 40px',
-          height: 56,
+          height: 60,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          background: 'rgba(255,255,255,0.88)',
+          backdropFilter: 'blur(16px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
         }}
       >
-        <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em' }}>Wakku</div>
+        <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--report-text)' }}>
+          Wakku
+        </div>
       </div>
       {children}
     </div>

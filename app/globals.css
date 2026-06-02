@@ -1,11 +1,11 @@
 @import "tailwindcss";
 @import "../src/design-system/report-design-system.css";
 
-/* Reset: Tailwind body defaults가 report 스타일을 덮지 않도록 */
 body {
   background: var(--report-bg);
   color: var(--report-text);
-  font-family: var(--font-sans);
+  font-family: var(--font-noto), var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
 /* EditableText hover — 편집 가능한 요소임을 표시 */
@@ -24,24 +24,32 @@ body {
 .report-field-input,
 .report-field-textarea {
   width: 100%;
-  padding: 10px 14px;
+  padding: 11px 15px;
   border: 1.5px solid var(--report-border);
   border-radius: var(--report-radius-sm);
   font-size: 14px;
+  font-weight: 500;
   color: var(--report-text);
-  font-family: var(--font-sans);
-  background: #fff;
+  font-family: var(--font-noto), var(--font-sans);
+  background: var(--report-bg);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
+}
+
+.report-field-input::placeholder,
+.report-field-textarea::placeholder {
+  color: var(--report-text-soft);
+  font-weight: 400;
 }
 
 .report-field-input:focus,
 .report-field-textarea:focus {
   border-color: var(--report-accent);
+  box-shadow: 0 0 0 3px var(--report-accent-soft);
 }
 
 .report-field-textarea {
   resize: vertical;
-  line-height: 1.6;
+  line-height: 1.65;
 }

@@ -47,51 +47,17 @@ export function InputForm({ onSubmit }: Props) {
   }
 
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '64px 40px' }}>
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: '72px 40px 80px' }}>
       {/* 헤더 */}
-      <div style={{ marginBottom: 48 }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            marginBottom: 16,
-            color: 'var(--report-accent)',
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: '0.04em',
-          }}
-        >
-          <span
-            style={{
-              display: 'inline-block',
-              width: 28,
-              height: 2,
-              background: 'var(--report-accent)',
-            }}
-          />
+      <div style={{ marginBottom: 52 }}>
+        <div style={kickerStyle}>
+          <span style={kickerBarStyle} />
           보고자료 생성
         </div>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: 36,
-            fontWeight: 700,
-            lineHeight: 1.2,
-            letterSpacing: '-0.025em',
-            color: 'var(--report-text)',
-          }}
-        >
+        <h1 style={h1Style}>
           기존 자료를 붙여넣으면<br />보고자료 구조를 잡아드립니다
         </h1>
-        <p
-          style={{
-            marginTop: 14,
-            color: 'var(--report-text-muted)',
-            fontSize: 16,
-            lineHeight: 1.6,
-          }}
-        >
+        <p style={subtitleStyle}>
           회의록, 기획서, PRD, PPT 텍스트 등 어떤 형태든 괜찮습니다.
           처음부터 만들지 않고, 가진 자료를 보고자료로 재구성합니다.
         </p>
@@ -105,6 +71,7 @@ export function InputForm({ onSubmit }: Props) {
           onChange={(e) => setTitle(e.target.value)}
           placeholder="예: AI 활용 업무 자동화 중간 보고"
           className="report-field-input"
+          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
         />
       </FieldGroup>
 
@@ -125,51 +92,21 @@ export function InputForm({ onSubmit }: Props) {
       {/* 선택 필드 토글 */}
       <button
         onClick={() => setShowOptional((v) => !v)}
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'var(--report-text-muted)',
-          fontSize: 14,
-          fontWeight: 600,
-          padding: '0 0 24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-        }}
+        style={optionalToggleStyle}
       >
-        <span
-          style={{
-            display: 'inline-block',
-            width: 14,
-            height: 14,
-            border: '1.5px solid var(--report-border-strong)',
-            borderRadius: 3,
-            transition: 'transform 0.15s',
-            transform: showOptional ? 'rotate(45deg)' : 'none',
-            position: 'relative',
-          }}
-        >
-          <span
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              fontSize: 10,
-              fontWeight: 700,
-              color: 'var(--report-text-muted)',
-              lineHeight: 1,
-            }}
-          >
-            +
-          </span>
-        </span>
+        <span style={{
+          fontSize: 16,
+          lineHeight: 1,
+          color: 'var(--report-text-muted)',
+          transition: 'transform 0.15s',
+          display: 'inline-block',
+          transform: showOptional ? 'rotate(45deg)' : 'none',
+        }}>+</span>
         추가 정보 입력 (선택)
       </button>
 
       {showOptional && (
-        <>
+        <div style={{ marginBottom: 8 }}>
           <FieldGroup label="보고 맥락" desc="이 보고의 배경·목적 (선택)">
             <textarea
               value={context}
@@ -200,41 +137,25 @@ export function InputForm({ onSubmit }: Props) {
               className="report-field-input"
             />
           </FieldGroup>
-        </>
+        </div>
       )}
 
       {/* CTA */}
-      <div style={{ paddingTop: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingTop: 8 }}>
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            height: 48,
-            padding: '0 28px',
+            ...ctaButtonStyle,
             background: canSubmit ? 'var(--report-accent)' : 'var(--report-border)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 999,
-            fontSize: 15,
-            fontWeight: 700,
             cursor: canSubmit ? 'pointer' : 'not-allowed',
-            transition: 'background 0.15s',
           }}
         >
           자료 분석 시작
           <span style={{ fontSize: 16 }}>→</span>
         </button>
         {!canSubmit && (
-          <span
-            style={{
-              marginLeft: 14,
-              fontSize: 13,
-              color: 'var(--report-text-soft)',
-            }}
-          >
+          <span style={{ fontSize: 13, color: 'var(--report-text-soft)' }}>
             보고 제목을 입력해주세요
           </span>
         )}
@@ -255,34 +176,95 @@ function FieldGroup({
   children: React.ReactNode
 }) {
   return (
-    <div style={{ marginBottom: 28 }}>
-      <label
-        style={{
-          display: 'block',
-          fontSize: 14,
-          fontWeight: 700,
-          color: 'var(--report-text)',
-          marginBottom: 4,
-        }}
-      >
+    <div style={{ marginBottom: 32 }}>
+      <label style={labelStyle}>
         {label}
-        {required && (
-          <span style={{ color: 'var(--report-accent)', marginLeft: 4 }}>*</span>
-        )}
+        {required && <span style={{ color: 'var(--report-accent)', marginLeft: 4 }}>*</span>}
       </label>
-      {desc && (
-        <p
-          style={{
-            margin: '0 0 8px',
-            fontSize: 13,
-            color: 'var(--report-text-muted)',
-          }}
-        >
-          {desc}
-        </p>
-      )}
+      {desc && <p style={descStyle}>{desc}</p>}
       {children}
     </div>
   )
 }
 
+// ─── 스타일 상수 ──────────────────────────────────────────────────────────────
+
+const kickerStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  marginBottom: 18,
+  color: 'var(--report-accent)',
+  fontSize: 13,
+  fontWeight: 700,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+}
+
+const kickerBarStyle: React.CSSProperties = {
+  display: 'inline-block',
+  width: 24,
+  height: 2,
+  background: 'var(--report-accent)',
+  borderRadius: 2,
+}
+
+const h1Style: React.CSSProperties = {
+  margin: 0,
+  fontSize: 34,
+  fontWeight: 700,
+  lineHeight: 1.25,
+  letterSpacing: '-0.03em',
+  color: 'var(--report-text)',
+}
+
+const subtitleStyle: React.CSSProperties = {
+  marginTop: 14,
+  fontSize: 15,
+  color: 'var(--report-text-muted)',
+  lineHeight: 1.7,
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: 13,
+  fontWeight: 700,
+  color: 'var(--report-text)',
+  marginBottom: 5,
+  letterSpacing: '0.01em',
+}
+
+const descStyle: React.CSSProperties = {
+  margin: '0 0 10px',
+  fontSize: 13,
+  color: 'var(--report-text-muted)',
+  lineHeight: 1.6,
+}
+
+const optionalToggleStyle: React.CSSProperties = {
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  color: 'var(--report-text-muted)',
+  fontSize: 13,
+  fontWeight: 600,
+  padding: '0 0 28px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  letterSpacing: '0.01em',
+}
+
+const ctaButtonStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  height: 48,
+  padding: '0 28px',
+  color: '#fff',
+  border: 'none',
+  borderRadius: 999,
+  fontSize: 15,
+  fontWeight: 700,
+  transition: 'background 0.15s, opacity 0.15s',
+}
