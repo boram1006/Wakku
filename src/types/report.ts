@@ -4,6 +4,7 @@ export type SectionType =
   | 'problem'
   | 'tobe'
   | 'effect'
+  | 'timeline'
 
 export interface ReportCardData {
   label?: string
@@ -21,6 +22,11 @@ export interface ReportStepData {
   desc: string
 }
 
+export interface TimelineRowData {
+  label: string
+  text: string
+}
+
 export interface ReportSection {
   id: string
   type: SectionType
@@ -31,6 +37,7 @@ export interface ReportSection {
   cards?: ReportCardData[]
   steps?: ReportStepData[]
   callout?: string
+  rows?: TimelineRowData[]
 }
 
 export interface Report {

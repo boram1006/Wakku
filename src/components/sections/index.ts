@@ -1,5 +1,6 @@
 export { ScopeSection } from './ScopeSection'
 export { OverviewSection } from './OverviewSection'
 export { ProblemSection } from './ProblemSection'
+export { TimelineSection } from './TimelineSection'
 export { ToBeSection } from './ToBeSection'
 export { EffectSection } from './EffectSection'

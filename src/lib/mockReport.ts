@@ -70,30 +70,44 @@ export const mockReport: Report = {
       isMuted: true,
       cards: [
         {
-          label: '01',
-          title: '재해석',
-          desc: '중간 산출물이 후속 입력값으로 이어지지 않아 사람이 다시 해석합니다.',
+          label: 'Problem 01',
+          title: '재해석이 필요한 중간 산출물',
+          desc: '중간 결과가 다음 단계의 입력값으로 그대로 이어지지 않아 사람이 다시 해석합니다.',
         },
         {
-          label: '02',
-          title: '기준 분산',
-          desc: '판단 기준이 여러 문서와 시스템에 흩어져 있어 일관성이 낮습니다.',
+          label: 'Problem 02',
+          title: '업무 구조와 기준의 분리',
+          desc: '역할별 산출물과 기준이 분리되어 반복 작업과 재작업이 발생합니다.',
         },
         {
-          label: '03',
-          title: '검증 지연',
-          desc: '후행 단계에서 오류가 발견되어 수정 비용이 커집니다.',
+          label: 'Problem 03',
+          title: '데이터화되지 않은 지식',
+          desc: '가이드, 체크리스트, 노하우가 시스템이 읽을 수 있는 형태로 준비되어 있지 않습니다.',
         },
+      ],
+    },
+    {
+      id: 'timeline',
+      type: 'timeline',
+      kicker: '04 · 추진 일정',
+      title: '확정 일정과 검토 예정 일정을\n분리해 정리합니다',
+      subtitle: '단계별 범위는 확정 후 즉시 업데이트합니다.',
+      isMuted: false,
+      rows: [
+        { label: '1단계 · 6월', text: '현황 분석 및 입력 구조 정의. 기준 데이터 수집 범위 확정.' },
+        { label: '2단계 · 7월', text: 'MVP 기능 구현 및 내부 검증. 반복 업무 초안 생성 자동화 적용.' },
+        { label: '3단계 · 8월', text: '운영 적용 및 효과 측정. 산정 기준 문서화 및 피드백 반영.' },
+        { label: '후속 검토', text: '확대 적용 범위 및 조직 R&R은 3단계 완료 후 별도 검토합니다.' },
       ],
     },
     {
       id: 'tobe',
       type: 'tobe',
-      kicker: '04 · 개선 방향',
+      kicker: '05 · 개선 방향',
       title: '단순 자동화가 아니라,\nWorkflow가 이어지는 구조로 바꿉니다',
       subtitle:
         '입력과 산출물이 연결되고, 사람의 판단과 시스템 실행 범위가 분리되도록 구성합니다.',
-      isMuted: false,
+      isMuted: true,
       steps: [
         {
           num: '01',
@@ -117,11 +131,11 @@ export const mockReport: Report = {
     {
       id: 'effect',
       type: 'effect',
-      kicker: '05 · 기대효과',
+      kicker: '06 · 기대효과',
       title: '직접 효과와 간접 효과를 분리해 설명합니다',
       subtitle:
         '단순 절감률뿐 아니라 후속 적용을 위한 조건과 판단 근거도 함께 제시합니다.',
-      isMuted: true,
+      isMuted: false,
       cards: [
         {
           label: '직접 효과',
