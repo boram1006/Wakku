@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useReportStore } from '@/store/reportStore'
 import { useSelectedElementStore } from '@/store/selectedElementStore'
+import { useAgentStore } from '@/store/agentStore'
 import { ReportNav } from '@/components/ds'
 import { PageRenderer } from '@/components/PageRenderer'
 import { ViewportSwitcher } from '@/components/layout/ViewportSwitcher'
@@ -18,6 +20,8 @@ const VIEWPORT_CLASS: Record<string, string> = {
 export function ReportViewer() {
   const { report, viewport } = useReportStore()
   const { target, clear } = useSelectedElementStore()
+  const reset = useAgentStore((s) => s.reset)
+  const router = useRouter()
 
   // Apply viewport class to body
   useEffect(() => {
@@ -56,6 +60,23 @@ export function ReportViewer() {
           transition: 'right 0.2s ease',
         }}
       >
+        <button
+          onClick={() => { reset(); router.push('/') }}
+          style={{
+            height: 28,
+            padding: '0 12px',
+            background: 'none',
+            border: '1.5px solid var(--report-border)',
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 700,
+            color: 'var(--report-text-muted)',
+            cursor: 'pointer',
+            marginRight: 8,
+          }}
+        >
+          새 보고서
+        </button>
         <span
           style={{
             fontSize: 12,

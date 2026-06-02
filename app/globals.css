@@ -19,3 +19,29 @@ body {
   outline: 2px dashed rgba(253, 49, 46, 0.35);
   outline-offset: 3px;
 }
+
+/* InputForm / AgentQuestions 공용 입력 필드 */
+.report-field-input,
+.report-field-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--report-border);
+  border-radius: var(--report-radius-sm);
+  font-size: 14px;
+  color: var(--report-text);
+  font-family: var(--font-sans);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.report-field-input:focus,
+.report-field-textarea:focus {
+  border-color: var(--report-accent);
+}
+
+.report-field-textarea {
+  resize: vertical;
+  line-height: 1.6;
+}

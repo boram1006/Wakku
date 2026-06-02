@@ -104,9 +104,7 @@ export function InputForm({ onSubmit }: Props) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="예: AI 활용 업무 자동화 중간 보고"
-          style={inputStyle}
-          onFocus={focusStyle}
-          onBlur={blurStyle}
+          className="report-field-input"
         />
       </FieldGroup>
 
@@ -120,9 +118,7 @@ export function InputForm({ onSubmit }: Props) {
           onChange={(e) => setSource(e.target.value)}
           placeholder={PLACEHOLDER_SOURCE}
           rows={12}
-          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }}
-          onFocus={focusStyle}
-          onBlur={blurStyle}
+          className="report-field-textarea"
         />
       </FieldGroup>
 
@@ -180,9 +176,8 @@ export function InputForm({ onSubmit }: Props) {
               onChange={(e) => setContext(e.target.value)}
               placeholder="예: Q2 성과 보고 / 임원진 공유 / 다음 단계 예산 승인 요청"
               rows={2}
-              style={{ ...inputStyle, resize: 'none', lineHeight: 1.6 }}
-              onFocus={focusStyle}
-              onBlur={blurStyle}
+              className="report-field-textarea"
+              style={{ resize: 'none' }}
             />
           </FieldGroup>
 
@@ -192,9 +187,7 @@ export function InputForm({ onSubmit }: Props) {
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
               placeholder="예: 다음 단계 추진 승인 / 리소스 확보 요청"
-              style={inputStyle}
-              onFocus={focusStyle}
-              onBlur={blurStyle}
+              className="report-field-input"
             />
           </FieldGroup>
 
@@ -204,9 +197,7 @@ export function InputForm({ onSubmit }: Props) {
               value={avoid}
               onChange={(e) => setAvoid(e.target.value)}
               placeholder="예: 기술 구현 세부 스펙, 조직 개편 관련 내용"
-              style={inputStyle}
-              onFocus={focusStyle}
-              onBlur={blurStyle}
+              className="report-field-input"
             />
           </FieldGroup>
         </>
@@ -252,8 +243,6 @@ export function InputForm({ onSubmit }: Props) {
   )
 }
 
-// ─── 스타일 헬퍼 ─────────────────────────────────────────────────────────────
-
 function FieldGroup({
   label,
   desc,
@@ -297,24 +286,3 @@ function FieldGroup({
   )
 }
 
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '10px 14px',
-  border: '1.5px solid var(--report-border)',
-  borderRadius: 'var(--report-radius-sm)',
-  fontSize: 14,
-  color: 'var(--report-text)',
-  fontFamily: 'var(--font-sans)',
-  background: '#fff',
-  outline: 'none',
-  transition: 'border-color 0.15s',
-  boxSizing: 'border-box' as const,
-}
-
-function focusStyle(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
-  e.target.style.borderColor = '#FD312E'
-}
-
-function blurStyle(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
-  e.target.style.borderColor = 'var(--report-border)'
-}

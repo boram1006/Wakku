@@ -211,21 +211,8 @@ export function AgentQuestions({
                   onChange={(e) => onAnswer(q.id, e.target.value)}
                   placeholder={q.hint}
                   rows={3}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    border: '1.5px solid var(--report-border)',
-                    borderRadius: 'var(--report-radius-sm)',
-                    fontSize: 14,
-                    fontFamily: 'var(--font-sans)',
-                    color: 'var(--report-text)',
-                    outline: 'none',
-                    resize: 'none',
-                    lineHeight: 1.6,
-                    boxSizing: 'border-box' as const,
-                  }}
-                  onFocus={(e) => { e.target.style.borderColor = '#FD312E' }}
-                  onBlur={(e) => { e.target.style.borderColor = 'var(--report-border)' }}
+                  className="report-field-textarea"
+                  style={{ resize: 'none' }}
                 />
               ) : (
                 <input
@@ -233,19 +220,7 @@ export function AgentQuestions({
                   value={answers[q.id] ?? ''}
                   onChange={(e) => onAnswer(q.id, e.target.value)}
                   placeholder={q.hint}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    border: '1.5px solid var(--report-border)',
-                    borderRadius: 'var(--report-radius-sm)',
-                    fontSize: 14,
-                    fontFamily: 'var(--font-sans)',
-                    color: 'var(--report-text)',
-                    outline: 'none',
-                    boxSizing: 'border-box' as const,
-                  }}
-                  onFocus={(e) => { e.target.style.borderColor = '#FD312E' }}
-                  onBlur={(e) => { e.target.style.borderColor = 'var(--report-border)' }}
+                  className="report-field-input"
                 />
               )}
               <div
