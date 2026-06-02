@@ -212,9 +212,9 @@ const kickerBarStyle: React.CSSProperties = {
 const h1Style: React.CSSProperties = {
   margin: 0,
   fontSize: 34,
-  fontWeight: 700,
+  fontWeight: 500,
   lineHeight: 1.25,
-  letterSpacing: '-0.03em',
+  letterSpacing: '-0.02em',
   color: 'var(--report-text)',
 }
 
