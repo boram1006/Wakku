@@ -2,12 +2,13 @@ import type { ReportSection } from '@/types/report'
 import {
   ReportSection as DS,
   ReportWrap,
-  ReportHead,
   ReportFlow,
   ReportStep,
   ReportArrow,
   ReportCallout,
 } from '@/components/ds'
+import { EditableText } from '@/components/editor/EditableText'
+import { EditableHead } from '@/components/editor/EditableHead'
 
 interface Props {
   section: ReportSection
@@ -19,15 +20,27 @@ export function ToBeSection({ section }: Props) {
   return (
     <DS id={section.id} muted={section.isMuted}>
       <ReportWrap>
-        <ReportHead
-          kicker={section.kicker}
-          title={section.title}
-          subtitle={section.subtitle}
-        />
+        <EditableHead section={section} />
         <ReportFlow>
-          {steps.flatMap((step, i) => {
+          {steps.flatMap((_, i) => {
             const items = [
-              <ReportStep key={step.num} num={step.num} title={step.title} desc={step.desc} />,
+              <div key={`step-${i}`} className="report-step">
+                <EditableText
+                  target={{ type: 'step', sectionId: section.id, stepIdx: i, field: 'num', label: `단계 ${i + 1} 번호`, multiline: false }}
+                  as="div"
+                  className="report-step-num"
+                />
+                <EditableText
+                  target={{ type: 'step', sectionId: section.id, stepIdx: i, field: 'title', label: `단계 ${i + 1} 제목`, multiline: false }}
+                  as="div"
+                  className="report-step-title"
+                />
+                <EditableText
+                  target={{ type: 'step', sectionId: section.id, stepIdx: i, field: 'desc', label: `단계 ${i + 1} 설명`, multiline: true }}
+                  as="div"
+                  className="report-step-desc"
+                />
+              </div>,
             ]
             if (i < steps.length - 1) {
               items.push(<ReportArrow key={`arrow-${i}`} />)
@@ -36,7 +49,12 @@ export function ToBeSection({ section }: Props) {
           })}
         </ReportFlow>
         {section.callout && (
-          <ReportCallout style={{ marginTop: 28 }}>{section.callout}</ReportCallout>
+          <ReportCallout style={{ marginTop: 28 }}>
+            <EditableText
+              target={{ type: 'section', sectionId: section.id, field: 'callout', label: '결론 문구', multiline: true }}
+              as="span"
+            />
+          </ReportCallout>
         )}
       </ReportWrap>
     </DS>

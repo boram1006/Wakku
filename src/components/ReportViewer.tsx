@@ -2,10 +2,12 @@
 
 import { useEffect } from 'react'
 import { useReportStore } from '@/store/reportStore'
+import { useSelectedElementStore } from '@/store/selectedElementStore'
 import { ReportNav } from '@/components/ds'
 import { PageRenderer } from '@/components/PageRenderer'
 import { ViewportSwitcher } from '@/components/layout/ViewportSwitcher'
 import { ExportBar } from '@/components/layout/ExportBar'
+import { InspectorPanel } from '@/components/editor/InspectorPanel'
 
 const VIEWPORT_CLASS: Record<string, string> = {
   '1920': 'report-viewport-1920',
@@ -15,8 +17,9 @@ const VIEWPORT_CLASS: Record<string, string> = {
 
 export function ReportViewer() {
   const { report, viewport } = useReportStore()
+  const { target, clear } = useSelectedElementStore()
 
-  // viewport class를 <body>에 반영
+  // Apply viewport class to body
   useEffect(() => {
     const cls = VIEWPORT_CLASS[viewport]
     document.body.classList.remove(...Object.values(VIEWPORT_CLASS))
@@ -31,14 +34,16 @@ export function ReportViewer() {
     label: s.kicker.split(' · ')[1] ?? s.kicker,
   }))
 
+  const panelOpen = Boolean(target)
+
   return (
     <>
-      {/* 뷰포트 전환 바 */}
+      {/* Viewport switcher bar */}
       <div
         style={{
           position: 'fixed',
           top: 72,
-          right: 24,
+          right: panelOpen ? 336 : 24,
           zIndex: 100,
           display: 'flex',
           gap: 8,
@@ -48,6 +53,7 @@ export function ReportViewer() {
           borderRadius: 'var(--report-radius-md)',
           padding: '8px 12px',
           alignItems: 'center',
+          transition: 'right 0.2s ease',
         }}
       >
         <span
@@ -65,12 +71,37 @@ export function ReportViewer() {
 
       <ReportNav brand={report.brand} links={navLinks} />
 
-      <main>
+      {/* Backdrop click to deselect */}
+      {panelOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 190,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
+      <main
+        style={{
+          paddingRight: panelOpen ? 320 : 0,
+          transition: 'padding-right 0.2s ease',
+        }}
+        onClick={(e) => {
+          // Deselect when clicking the main area (not an editable element)
+          const target = e.target as HTMLElement
+          if (!target.closest('.editable-text') && !target.closest('[data-inspector]')) {
+            clear()
+          }
+        }}
+      >
         {report.sections.map((section) => (
           <PageRenderer key={section.id} section={section} />
         ))}
       </main>
 
+      <InspectorPanel />
       <ExportBar />
     </>
   )

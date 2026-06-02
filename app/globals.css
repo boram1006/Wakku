@@ -7,3 +7,15 @@ body {
   color: var(--report-text);
   font-family: var(--font-sans);
 }
+
+/* EditableText hover — 편집 가능한 요소임을 표시 */
+.editable-text {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: outline 0.1s ease, background 0.1s ease;
+}
+
+.editable-text:hover {
+  outline: 2px dashed rgba(253, 49, 46, 0.35);
+  outline-offset: 3px;
+}
