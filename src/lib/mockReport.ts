@@ -1,0 +1,141 @@
+import type { Report } from '@/types/report'
+
+export const mockReport: Report = {
+  brand: 'Sample Report',
+  sections: [
+    {
+      id: 'scope',
+      type: 'scope',
+      kicker: '01 · 보고 범위',
+      title: '진행 과제 현황과\n후속 판단 지점을 분리해 보고합니다',
+      subtitle:
+        '오늘은 현재 진행 중인 과제의 현황과 데모를 중심으로 보고하고, 추가 요청 범위는 별도 검토 대상으로 정리합니다.',
+      isMuted: true,
+      cards: [
+        {
+          label: '오늘 보고',
+          labelAccent: true,
+          title: '진행 현황 및 결과',
+          desc: '현재까지의 실행 결과와 확인된 효과를 공유합니다.',
+          emphasis: true,
+        },
+        {
+          label: '후속 검토',
+          title: '확대 적용 범위',
+          desc: '추가 요청은 범위, 일정, 책임 기준을 분리해 검토합니다.',
+        },
+        {
+          label: '판단 지점',
+          title: '다음 단계 추진 여부',
+          desc: '효과와 리스크를 기준으로 후속 추진 방향을 결정합니다.',
+        },
+      ],
+    },
+    {
+      id: 'overview',
+      type: 'overview',
+      kicker: '02 · 개요',
+      title: '세부 설명에 앞서,\n핵심 수치와 추진 방향만 먼저 봅니다',
+      subtitle: '아래 수치는 프로젝트 1건 기준으로 산정한 예시값입니다.',
+      isMuted: false,
+      cards: [
+        {
+          kpiNum: '42',
+          kpiUnit: 'h',
+          title: '작업시간 절감',
+          desc: '적용 구간 기준의 직접 절감 효과입니다.',
+        },
+        {
+          kpiNum: '38',
+          kpiUnit: '%',
+          title: '개선 대상 절감률',
+          desc: '개선 대상 업무 기준으로 환산한 값입니다.',
+          emphasis: true,
+        },
+        {
+          kpiNum: '12',
+          kpiUnit: '%',
+          title: '전체 기준 환산',
+          desc: '전체 업무량 기준의 보수적 환산값입니다.',
+        },
+      ],
+    },
+    {
+      id: 'problem',
+      type: 'problem',
+      kicker: '03 · 문제 정의',
+      title: '현재 문제는 업무량보다,\n다음 단계로 이어지지 않는 산출물 구조입니다',
+      subtitle:
+        '단계가 많다는 사실보다, 사람이 다시 해석해야 하는 구조가 병목을 만듭니다.',
+      isMuted: true,
+      cards: [
+        {
+          label: '01',
+          title: '재해석',
+          desc: '중간 산출물이 후속 입력값으로 이어지지 않아 사람이 다시 해석합니다.',
+        },
+        {
+          label: '02',
+          title: '기준 분산',
+          desc: '판단 기준이 여러 문서와 시스템에 흩어져 있어 일관성이 낮습니다.',
+        },
+        {
+          label: '03',
+          title: '검증 지연',
+          desc: '후행 단계에서 오류가 발견되어 수정 비용이 커집니다.',
+        },
+      ],
+    },
+    {
+      id: 'tobe',
+      type: 'tobe',
+      kicker: '04 · 개선 방향',
+      title: '단순 자동화가 아니라,\nWorkflow가 이어지는 구조로 바꿉니다',
+      subtitle:
+        '입력과 산출물이 연결되고, 사람의 판단과 시스템 실행 범위가 분리되도록 구성합니다.',
+      isMuted: false,
+      steps: [
+        {
+          num: '01',
+          title: '입력 구조 정리',
+          desc: '업무 요청과 기준을 시스템이 읽을 수 있게 분리합니다.',
+        },
+        {
+          num: '02',
+          title: '중간 산출물 생성',
+          desc: '검토 가능한 초안을 빠르게 확보합니다.',
+        },
+        {
+          num: '03',
+          title: '검토·수정·확정',
+          desc: '현업 판단이 필요한 영역은 사람이 검증합니다.',
+        },
+      ],
+      callout:
+        '이 구조가 작동하려면 기능 구현과 함께 기준, 데이터, 운영 방식이 함께 준비되어야 합니다.',
+    },
+    {
+      id: 'effect',
+      type: 'effect',
+      kicker: '05 · 기대효과',
+      title: '직접 효과와 간접 효과를 분리해 설명합니다',
+      subtitle:
+        '단순 절감률뿐 아니라 후속 적용을 위한 조건과 판단 근거도 함께 제시합니다.',
+      isMuted: true,
+      cards: [
+        {
+          label: '직접 효과',
+          labelAccent: true,
+          title: '시간·리드타임·반복 업무 절감',
+          desc: '현재 적용 범위에서 바로 기대할 수 있는 효과입니다. 반드시 산정 기준을 함께 표시합니다.',
+          emphasis: true,
+        },
+        {
+          label: '간접 효과',
+          title: '후속 전개 조건 확보',
+          desc: '운영 기준, 데이터 구조, 표준화 방식 등 다음 단계 의사결정에 필요한 조건을 확보합니다.',
+        },
+      ],
+    },
+  ],
+}
