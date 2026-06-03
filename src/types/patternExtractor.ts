@@ -131,6 +131,10 @@ export interface NatureEntry {
   canonicalFlow: string[]
   canonicalPageRoles: StorylinePageRole[]
   typicalRequestedAction: RequestedAction
+  commonEvidenceTypes: EvidenceType[]
+  commonInteractionPatterns: InteractionPattern[]
+  whenToUse: string[]
+  whenNotToUse: string[]
   examplePatterns: ReportPattern[]
   frequency: number
   tags: string[]
