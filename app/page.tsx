@@ -8,8 +8,9 @@ import { AgentQuestions } from '@/components/input/AgentQuestions'
 import { GeneratingScreen, PageShell } from '@/components/input/GeneratingScreen'
 import { StorylineStep } from '@/components/input/StorylineStep'
 import { MockStorylineAgent } from '@/agent/mockStorylineAgent'
-import type { ProjectInput, AnalysisResult } from '@/types/agent'
-import type { ReportData } from '@/types/report'
+import { generateStorylineQuestions } from '@/agent/storylineQuestions'
+import { generatePagesFromStoryline } from '@/agent/storylinePageGenerator'
+import type { ProjectInput, AnalysisResult, AgentAnswers } from '@/types/agent'
 import { useEffect } from 'react'
 
 const storylineAgent = new MockStorylineAgent()
@@ -50,31 +51,45 @@ export default function Home() {
     setStep('storyline')
   }
 
-  // Storyline selected → questions (only what analysis couldn't infer, max 3)
-  const handleStorylineContinue = () => {
-    setStep('questions')
-  }
+  // Client-side page generation — brief generating screen for UX
+  function generateAndLoad(currentAnswers: AgentAnswers) {
+    const selectedStoryline = storylines.find((s) => s.id === selectedStorylineId)
+    if (!selectedStoryline || !input) return
 
-  // Questions answered → generate report
-  const handleGenerate = async () => {
-    if (!input || !analysis) return
     setStep('generating')
 
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input, analysis, answers }),
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const report: ReportData = await res.json()
-      loadReport(report)
-      setStep('editor')
-      router.push('/editor')
-    } catch (e) {
-      console.error('generate failed:', e)
+    setTimeout(() => {
+      try {
+        const pages = generatePagesFromStoryline(selectedStoryline, input, currentAnswers)
+        loadReport({ brand: input.reportTitle, pages })
+        setStep('editor')
+      } catch (e) {
+        console.error('page generation failed:', e)
+        setStep('storyline')
+      }
+    }, 600)
+  }
+
+  // Storyline confirmed → generate storyline-specific questions
+  // If 0 questions: skip directly to generating
+  const handleStorylineContinue = () => {
+    const selectedStoryline = storylines.find((s) => s.id === selectedStorylineId)
+    if (!selectedStoryline || !input) return
+
+    const qs = generateStorylineQuestions(selectedStoryline, input)
+    const base = analysis ?? { detectedLayouts: [], detectedKpis: [], detectedProblems: [], questions: [] }
+    setAnalysis({ ...base, questions: qs })
+
+    if (qs.length === 0) {
+      generateAndLoad(answers)
+    } else {
       setStep('questions')
     }
+  }
+
+  // Questions answered → generate
+  const handleGenerate = () => {
+    generateAndLoad(answers)
   }
 
   if (step === 'analysis') {
