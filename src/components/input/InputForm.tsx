@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { ProjectInput } from '@/types/agent'
 
-const PLACEHOLDER_SOURCE = `예시 — 아래 내용을 지우고 분석할 자료를 붙여넣으세요.
+const PLACEHOLDER_SOURCE = `예시 — 아래 내용을 지우고 참고할 자료를 붙여넣으세요.
 
 [회의록 / 기획서 / PRD / PPT 텍스트 등]
 
@@ -38,7 +38,7 @@ export function InputForm({ onSubmit }: Props) {
     if (!canSubmit) return
     onSubmit({
       reportTitle: title.trim(),
-      reportContext: context.trim() || undefined,
+      currentSituation: context.trim() || undefined,
       reportGoal: goal.trim() || undefined,
       sourceText: source.trim() || undefined,
       avoidPoints: avoid.trim() || undefined,
@@ -77,8 +77,42 @@ export function InputForm({ onSubmit }: Props) {
           </div>
 
           <div className="wk-field">
-            <label className="wk-field-label">원본 자료</label>
-            <span className="wk-field-help">분석할 자료를 그대로 붙여넣으세요. 회의록 · 기획서 · PRD · PPT 텍스트 등 형태 무관.</span>
+            <label className="wk-field-label">보고 맥락</label>
+            <textarea
+              className="wk-textarea"
+              placeholder="예: Q2 성과 보고 / 임원진 공유 / 다음 단계 예산 승인 요청"
+              value={context}
+              onChange={(e) => setContext(e.target.value)}
+              style={{ minHeight: 80, resize: 'none' }}
+            />
+          </div>
+
+          <div className="wk-field">
+            <label className="wk-field-label">핵심 목표</label>
+            <input
+              className="wk-input"
+              placeholder="예: 다음 단계 추진 승인 / 리소스 확보"
+              value={goal}
+              onChange={(e) => setGoal(e.target.value)}
+            />
+          </div>
+
+          <div className="wk-field">
+            <label className="wk-field-label">피해야 할 내용</label>
+            <input
+              className="wk-input"
+              placeholder="예: 기술 구현 세부 스펙, 조직 개편 관련 내용"
+              value={avoid}
+              onChange={(e) => setAvoid(e.target.value)}
+            />
+          </div>
+
+          <div className="wk-field">
+            <label className="wk-field-label">
+              참고 자료{' '}
+              <span style={{ fontWeight: 500, color: 'var(--color-neutral-400)' }}>(선택)</span>
+            </label>
+            <span className="wk-field-help">자료가 없어도 생성 가능합니다. 회의록 · 기획서 · PRD · PPT 텍스트 등 형태 무관.</span>
             <textarea
               className="wk-textarea"
               placeholder={PLACEHOLDER_SOURCE}
@@ -86,44 +120,6 @@ export function InputForm({ onSubmit }: Props) {
               onChange={(e) => setSource(e.target.value)}
             />
           </div>
-
-          <details className="wk-disclosure">
-            <summary>
-              <span className="pm">+</span>
-              추가 정보 입력{' '}
-              <span style={{ color: 'var(--color-neutral-400, var(--color-neutral-300))', fontWeight: 500 }}>(선택)</span>
-            </summary>
-            <div className="wk-opt-grid">
-              <div className="wk-field">
-                <label className="wk-field-label">보고 맥락</label>
-                <textarea
-                  className="wk-textarea"
-                  placeholder="예: Q2 성과 보고 / 임원진 공유 / 다음 단계 예산 승인 요청"
-                  value={context}
-                  onChange={(e) => setContext(e.target.value)}
-                  style={{ minHeight: 80, resize: 'none' }}
-                />
-              </div>
-              <div className="wk-field">
-                <label className="wk-field-label">핵심 목표</label>
-                <input
-                  className="wk-input"
-                  placeholder="예: 다음 단계 추진 승인 / 리소스 확보"
-                  value={goal}
-                  onChange={(e) => setGoal(e.target.value)}
-                />
-              </div>
-              <div className="wk-field full">
-                <label className="wk-field-label">피해야 할 내용</label>
-                <input
-                  className="wk-input"
-                  placeholder="예: 기술 구현 세부 스펙, 조직 개편 관련 내용"
-                  value={avoid}
-                  onChange={(e) => setAvoid(e.target.value)}
-                />
-              </div>
-            </div>
-          </details>
         </div>
 
         {/* CTA */}

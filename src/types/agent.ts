@@ -2,7 +2,8 @@ import type { LayoutType } from './report'
 
 export interface ProjectInput {
   reportTitle: string
-  reportContext?: string
+  /** 현재 상황 / 배경 / 왜 이 보고가 필요한지 */
+  currentSituation?: string
   reportGoal?: string
   sourceText?: string
   avoidPoints?: string
@@ -24,4 +25,4 @@ export interface AnalysisResult {
 
 export type AgentAnswers = Record<string, string>
 
-export type AgentStep = 'input' | 'questions' | 'generating' | 'editor'
+export type AgentStep = 'input' | 'analysis' | 'storyline' | 'questions' | 'generating' | 'editor'

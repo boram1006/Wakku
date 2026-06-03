@@ -6,80 +6,125 @@ import { useReportStore } from '@/store/reportStore'
 import { InputForm } from '@/components/input/InputForm'
 import { AgentQuestions } from '@/components/input/AgentQuestions'
 import { GeneratingScreen, PageShell } from '@/components/input/GeneratingScreen'
-import type { ProjectInput } from '@/types/agent'
-import type { AnalysisResult } from '@/types/agent'
-import type { ReportData } from '@/types/report'
+import { StorylineStep } from '@/components/input/StorylineStep'
+import { MockStorylineAgent } from '@/agent/mockStorylineAgent'
+import { generateStorylineQuestions } from '@/agent/storylineQuestions'
+import { generatePagesFromStoryline } from '@/agent/storylinePageGenerator'
+import type { ProjectInput, AnalysisResult, AgentAnswers } from '@/types/agent'
 import { useEffect } from 'react'
+
+const storylineAgent = new MockStorylineAgent()
 
 export default function Home() {
   const router = useRouter()
-  const { step, input, analysis, answers, setStep, setInput, setAnalysis, setAnswer } =
-    useAgentStore()
+  const {
+    step, input, analysis, answers, storylines, selectedStorylineId,
+    setStep, setInput, setAnalysis, setAnswer, setStorylines, setSelectedStorylineId,
+  } = useAgentStore()
   const loadReport = useReportStore((s) => s.loadReport)
 
   useEffect(() => {
     if (step === 'editor') router.push('/editor')
   }, [step, router])
 
+  // Step 1 → analysis loading → storyline selection
   const handleInputSubmit = async (data: ProjectInput) => {
     setInput(data)
-    setStep('questions') // 분석 중 UI (questions 화면에서 로딩 표시)
+    setStep('analysis')
 
+    let result: AnalysisResult = { detectedLayouts: [], detectedKpis: [], detectedProblems: [], questions: [] }
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
-      const result: AnalysisResult = await res.json()
-      setAnalysis(result)
+      result = await res.json()
     } catch (e) {
       console.error('analyze failed:', e)
-      // 실패 시 빈 분석 결과로 진행
-      setAnalysis({ detectedLayouts: [], detectedKpis: [], detectedProblems: [], questions: [] })
+    }
+    setAnalysis(result)
+
+    const candidates = await storylineAgent.generateStorylines(data, result)
+    setStorylines(candidates)
+    setSelectedStorylineId(candidates[0]?.id ?? null)
+    setStep('storyline')
+  }
+
+  // Client-side page generation — brief generating screen for UX
+  function generateAndLoad(currentAnswers: AgentAnswers) {
+    const selectedStoryline = storylines.find((s) => s.id === selectedStorylineId)
+    if (!selectedStoryline || !input) return
+
+    setStep('generating')
+
+    setTimeout(() => {
+      try {
+        const pages = generatePagesFromStoryline(selectedStoryline, input, currentAnswers)
+        loadReport({ brand: input.reportTitle, pages })
+        setStep('editor')
+      } catch (e) {
+        console.error('page generation failed:', e)
+        setStep('storyline')
+      }
+    }, 600)
+  }
+
+  // Storyline confirmed → generate storyline-specific questions
+  // If 0 questions: skip directly to generating
+  const handleStorylineContinue = () => {
+    const selectedStoryline = storylines.find((s) => s.id === selectedStorylineId)
+    if (!selectedStoryline || !input) return
+
+    const qs = generateStorylineQuestions(selectedStoryline, input)
+    const base = analysis ?? { detectedLayouts: [], detectedKpis: [], detectedProblems: [], questions: [] }
+    setAnalysis({ ...base, questions: qs })
+
+    if (qs.length === 0) {
+      generateAndLoad(answers)
+    } else {
+      setStep('questions')
     }
   }
 
-  const handleGenerate = async () => {
-    if (!input || !analysis) return
-    setStep('generating')
+  // Questions answered → generate
+  const handleGenerate = () => {
+    generateAndLoad(answers)
+  }
 
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input, analysis, answers }),
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const report: ReportData = await res.json()
-      loadReport(report)
-      setStep('editor')
-      router.push('/editor')
-    } catch (e) {
-      console.error('generate failed:', e)
-      setStep('questions') // 실패 시 질문 화면으로 돌아감
-    }
+  if (step === 'analysis') {
+    return <GeneratingScreen heading="자료를 분석하고 있습니다" title={input?.reportTitle ?? ''} />
   }
 
   if (step === 'generating') {
-    return <GeneratingScreen title={input?.reportTitle ?? ''} />
+    return <GeneratingScreen heading="보고자료를 생성하고 있습니다" title={input?.reportTitle ?? ''} />
   }
 
-  // questions 단계이지만 analysis가 아직 없으면 분석 중
-  if (step === 'questions' && input && !analysis) {
-    return <GeneratingScreen title={`"${input.reportTitle}" 분석 중…`} />
+  if (step === 'storyline' && input) {
+    return (
+      <PageShell step={2}>
+        <StorylineStep
+          reportTitle={input.reportTitle}
+          storylines={storylines}
+          selectedId={selectedStorylineId}
+          onSelect={setSelectedStorylineId}
+          onConfirm={handleStorylineContinue}
+          onBack={() => setStep('input')}
+        />
+      </PageShell>
+    )
   }
 
   if (step === 'questions' && input && analysis) {
     return (
-      <PageShell step={2}>
+      <PageShell step={3}>
         <AgentQuestions
           reportTitle={input.reportTitle}
           analysis={analysis}
           answers={answers}
           onAnswer={setAnswer}
           onGenerate={handleGenerate}
-          onBack={() => setStep('input')}
+          onBack={() => setStep('storyline')}
         />
       </PageShell>
     )
