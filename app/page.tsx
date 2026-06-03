@@ -7,13 +7,13 @@ import { InputForm } from '@/components/input/InputForm'
 import { AgentQuestions } from '@/components/input/AgentQuestions'
 import { GeneratingScreen, PageShell } from '@/components/input/GeneratingScreen'
 import { StorylineStep } from '@/components/input/StorylineStep'
-import { MockStorylineAgent } from '@/agent/mockStorylineAgent'
+import { LlmStorylineAgent } from '@/agent/storylineAgent'
 import { generateStorylineQuestions } from '@/agent/storylineQuestions'
 import { generatePagesFromStoryline } from '@/agent/storylinePageGenerator'
 import type { ProjectInput, AnalysisResult, AgentAnswers } from '@/types/agent'
 import { useEffect } from 'react'
 
-const storylineAgent = new MockStorylineAgent()
+const storylineAgent = new LlmStorylineAgent()
 
 export default function Home() {
   const router = useRouter()

@@ -5,7 +5,7 @@ import { RULES_TEXT } from './storylineRules'
 const OUTPUT_SCHEMA = `[
   {
     "id": "string",
-    "name": "string  // 예: '실행성과 강조형'",
+    "name": "string  // 설득 논리를 한 문장으로. 예: '현재 병목을 먼저 공감시키는 구조'",
     "type": "string  // enum: decision | roi | problem-solution | execution | demo | alignment | risk-control | scope-clarification",
     "oneLineSummary": "string  // 이 스토리라인의 핵심을 한 문장으로",
     "recommendedReason": "string  // 왜 이 전략이 이 보고에 맞는지. 불확실한 추론이 있다면 명시",
