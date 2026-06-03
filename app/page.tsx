@@ -6,41 +6,51 @@ import { useReportStore } from '@/store/reportStore'
 import { InputForm } from '@/components/input/InputForm'
 import { AgentQuestions } from '@/components/input/AgentQuestions'
 import { GeneratingScreen, PageShell } from '@/components/input/GeneratingScreen'
+import { StorylineStep } from '@/components/input/StorylineStep'
+import { MockStorylineAgent } from '@/agent/mockStorylineAgent'
 import type { ProjectInput, AnalysisResult } from '@/types/agent'
 import type { ReportData } from '@/types/report'
 import { useEffect } from 'react'
 
+const storylineAgent = new MockStorylineAgent()
+
 export default function Home() {
   const router = useRouter()
-  const { step, input, analysis, answers, setStep, setInput, setAnalysis, setAnswer } =
-    useAgentStore()
+  const {
+    step, input, analysis, answers, storylines, selectedStorylineId,
+    setStep, setInput, setAnalysis, setAnswer, setStorylines, setSelectedStorylineId,
+  } = useAgentStore()
   const loadReport = useReportStore((s) => s.loadReport)
 
   useEffect(() => {
     if (step === 'editor') router.push('/editor')
   }, [step, router])
 
-  // Step 1 → analysis loading → storyline selection placeholder
+  // Step 1 → analysis loading → storyline selection
   const handleInputSubmit = async (data: ProjectInput) => {
     setInput(data)
     setStep('analysis')
 
+    let result: AnalysisResult = { detectedLayouts: [], detectedKpis: [], detectedProblems: [], questions: [] }
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
-      const result: AnalysisResult = await res.json()
-      setAnalysis(result)
+      result = await res.json()
     } catch (e) {
       console.error('analyze failed:', e)
-      setAnalysis({ detectedLayouts: [], detectedKpis: [], detectedProblems: [], questions: [] })
     }
+    setAnalysis(result)
+
+    const candidates = await storylineAgent.generateStorylines(data, result)
+    setStorylines(candidates)
+    setSelectedStorylineId(candidates[0]?.id ?? null)
     setStep('storyline')
   }
 
-  // Storyline selected → questions (max 3, only what analysis couldn't infer)
+  // Storyline selected → questions (only what analysis couldn't infer, max 3)
   const handleStorylineContinue = () => {
     setStep('questions')
   }
@@ -75,33 +85,17 @@ export default function Home() {
     return <GeneratingScreen heading="보고자료를 생성하고 있습니다" title={input?.reportTitle ?? ''} />
   }
 
-  // Storyline selection placeholder — real UI TBD
-  if (step === 'storyline') {
+  if (step === 'storyline' && input) {
     return (
       <PageShell step={2}>
-        <div style={{ maxWidth: 640, margin: '80px auto', padding: '0 24px', textAlign: 'center' }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-neutral-900)', marginBottom: 12 }}>
-            스토리라인 후보를 생성했습니다
-          </div>
-          <div style={{ fontSize: 14, color: 'var(--color-neutral-500)', marginBottom: 40 }}>
-            스토리라인 선택 UI는 준비 중입니다.
-          </div>
-          <button
-            onClick={handleStorylineContinue}
-            style={{
-              padding: '10px 28px',
-              fontSize: 14,
-              fontWeight: 600,
-              background: 'var(--color-primary)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              cursor: 'pointer',
-            }}
-          >
-            계속
-          </button>
-        </div>
+        <StorylineStep
+          reportTitle={input.reportTitle}
+          storylines={storylines}
+          selectedId={selectedStorylineId}
+          onSelect={setSelectedStorylineId}
+          onConfirm={handleStorylineContinue}
+          onBack={() => setStep('input')}
+        />
       </PageShell>
     )
   }
