@@ -10,6 +10,7 @@ import { PageRenderer } from '@/components/PageRenderer'
 import { ViewportSwitcher } from '@/components/layout/ViewportSwitcher'
 import { ExportBar } from '@/components/layout/ExportBar'
 import { InspectorPanel } from '@/components/editor/InspectorPanel'
+import { PageStructurePanel } from '@/components/editor/PageStructurePanel'
 
 const VIEWPORT_CLASS: Record<string, string> = {
   '1920': 'report-viewport-1920',
@@ -17,8 +18,10 @@ const VIEWPORT_CLASS: Record<string, string> = {
   '1200': 'report-viewport-1200',
 }
 
+const STRUCTURE_PANEL_W = 272
+
 export function ReportViewer() {
-  const { brand, pages, viewport } = useReportStore()
+  const { brand, pages, viewport, editMode } = useReportStore()
   const { path, clear } = useSelectedElementStore()
   const reset = useAgentStore((s) => s.reset)
   const router = useRouter()
@@ -37,15 +40,19 @@ export function ReportViewer() {
     label: p.sectionLabel,
   }))
 
-  const panelOpen = Boolean(path)
+  const inspectorOpen = Boolean(path)
+  const structureOpen = editMode
 
   return (
     <>
+      {structureOpen && <PageStructurePanel />}
+
+      {/* Floating toolbar */}
       <div
         style={{
           position: 'fixed',
           top: 72,
-          right: panelOpen ? 336 : 24,
+          right: inspectorOpen ? 336 : 24,
           zIndex: 100,
           display: 'flex',
           gap: 8,
@@ -92,8 +99,9 @@ export function ReportViewer() {
 
       <main
         style={{
-          paddingRight: panelOpen ? 320 : 0,
-          transition: 'padding-right 0.2s ease',
+          paddingLeft: structureOpen ? STRUCTURE_PANEL_W : 0,
+          paddingRight: inspectorOpen ? 320 : 0,
+          transition: 'padding-left 0.2s ease, padding-right 0.2s ease',
         }}
         onClick={(e) => {
           const t = e.target as HTMLElement
