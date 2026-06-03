@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import type { ProjectInput, AnalysisResult, AgentAnswers, AgentStep } from '@/types/agent'
 import type { Storyline } from '@/types/storyline'
 
@@ -28,15 +29,34 @@ const INITIAL: Pick<AgentStore, 'step' | 'input' | 'analysis' | 'answers' | 'sto
   selectedStorylineId: null,
 }
 
-export const useAgentStore = create<AgentStore>((set) => ({
-  ...INITIAL,
+const safeSessionStorage = {
+  getItem: (name: string): string | null =>
+    typeof window !== 'undefined' ? sessionStorage.getItem(name) : null,
+  setItem: (name: string, value: string): void => {
+    if (typeof window !== 'undefined') sessionStorage.setItem(name, value)
+  },
+  removeItem: (name: string): void => {
+    if (typeof window !== 'undefined') sessionStorage.removeItem(name)
+  },
+}
 
-  setStep: (step) => set({ step }),
-  setInput: (input) => set({ input }),
-  setAnalysis: (analysis) => set({ analysis }),
-  setAnswer: (id, value) =>
-    set((s) => ({ answers: { ...s.answers, [id]: value } })),
-  setStorylines: (storylines) => set({ storylines }),
-  setSelectedStorylineId: (selectedStorylineId) => set({ selectedStorylineId }),
-  reset: () => set(INITIAL),
-}))
+export const useAgentStore = create<AgentStore>()(
+  persist(
+    (set) => ({
+      ...INITIAL,
+
+      setStep: (step) => set({ step }),
+      setInput: (input) => set({ input }),
+      setAnalysis: (analysis) => set({ analysis }),
+      setAnswer: (id, value) =>
+        set((s) => ({ answers: { ...s.answers, [id]: value } })),
+      setStorylines: (storylines) => set({ storylines }),
+      setSelectedStorylineId: (selectedStorylineId) => set({ selectedStorylineId }),
+      reset: () => set(INITIAL),
+    }),
+    {
+      name: 'wakku-agent',
+      storage: createJSONStorage(() => safeSessionStorage),
+    }
+  )
+)
