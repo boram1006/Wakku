@@ -102,8 +102,8 @@ export function ReportViewer() {
           }
         }}
       >
-        {pages.map((page) => (
-          <PageRenderer key={page.id} page={page} />
+        {pages.map((page, index) => (
+          <PageRenderer key={page.id} page={page} pageIndex={index} />
         ))}
       </main>
 

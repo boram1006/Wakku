@@ -1,18 +1,23 @@
 import type { ReportPage } from '@/types/report'
-import { ReportSection, ReportWrap, ReportGrid, ReportCard, ReportLabel } from '@/components/ds'
+import { ReportCard, ReportGrid, ReportLabel, ReportSection, ReportWrap } from '@/components/ds'
 import { EditableText } from '@/components/editor/EditableText'
 import { EditableHead } from '@/components/editor/EditableHead'
 
-export function ProblemSection({ page }: { page: ReportPage }) {
-  const cards = page.blocks.filter((b) => b.type === 'card')
+interface Props {
+  page: ReportPage
+  pageIndex: number
+}
+
+export function ProblemCardsPageTemplate({ page, pageIndex }: Props) {
+  const cards = page.blocks.filter((block) => block.type === 'card')
 
   return (
-    <ReportSection id={page.id} muted={page.isMuted}>
+    <ReportSection id={page.id} muted={pageIndex % 2 === 0}>
       <ReportWrap>
         <EditableHead page={page} />
         <ReportGrid cols={3}>
           {cards.map((block) => (
-            <ReportCard key={block.id} emphasis={block.emphasis}>
+            <ReportCard key={block.id}>
               <ReportLabel>
                 <EditableText
                   path={{ pageId: page.id, field: 'block.meta', blockId: block.id }}

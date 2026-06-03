@@ -10,36 +10,51 @@ export type LayoutType =
   | 'discussion-cards'
   | 'rr'
 
-export type BlockType = 'text' | 'card' | 'kpi' | 'list' | 'timeline' | 'flow'
-
 export interface ReportBlock {
   id: string
-  type: BlockType
+  type: 'text' | 'card' | 'kpi' | 'list' | 'timeline' | 'flow'
   title?: string
   body?: string
-  /** kpi: 숫자값 ("42") */
   value?: string
-  /** kpi: 단위 ("h"), card/flow: 레이블, timeline: 기간 레이블 */
   meta?: string
   items?: string[]
-  /** 강조 카드 여부 */
-  emphasis?: boolean
-  /** 레이블 accent 색상 */
-  accent?: boolean
 }
 
 export interface ReportPage {
   id: string
-  sectionNumber: string   // "01", "02", …
-  sectionLabel: string    // "보고 범위", "개요", …
+  sectionNumber: string
+  sectionLabel: string
   title: string
   subtitle?: string
   layoutType: LayoutType
-  isMuted?: boolean
   blocks: ReportBlock[]
 }
 
 export interface ReportData {
   brand: string
   pages: ReportPage[]
+}
+
+export type EditableField =
+  | 'sectionLabel'
+  | 'title'
+  | 'subtitle'
+  | 'block.title'
+  | 'block.body'
+  | 'block.value'
+  | 'block.meta'
+  | 'block.items'
+
+export interface EditablePath {
+  pageId: string
+  field: EditableField
+  blockId?: string
+  itemIndex?: number
+}
+
+export function pathId(path: EditablePath): string {
+  let id = `${path.pageId}:${path.field}`
+  if (path.blockId) id += `:${path.blockId}`
+  if (path.itemIndex !== undefined) id += `:${path.itemIndex}`
+  return id
 }

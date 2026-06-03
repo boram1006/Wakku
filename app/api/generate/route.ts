@@ -8,11 +8,11 @@ const client = new Anthropic()
 const LAYOUT_GUIDE: Record<string, string> = {
   scope: `layoutType: "scope" — 보고 배경/목적/범위
   blocks: 2~4개, type: "card"
-  각 block: { id, type:"card", meta:"레이블", title:"...", body:"...", emphasis?:true, accent?:true }`,
+  각 block: { id, type:"card", meta:"레이블", title:"...", body:"..." }`,
 
   'overview-kpi': `layoutType: "overview-kpi" — KPI/핵심 지표
   blocks: 3개, type: "kpi"
-  각 block: { id, type:"kpi", value:"42", meta:"h", title:"제목", body:"설명", emphasis?:true }`,
+  각 block: { id, type:"kpi", value:"42", meta:"h", title:"제목", body:"설명" }`,
 
   'problem-cards': `layoutType: "problem-cards" — 현황/문제점
   blocks: 3개, type: "card"
@@ -29,7 +29,7 @@ const LAYOUT_GUIDE: Record<string, string> = {
 
   'effect-split': `layoutType: "effect-split" — 기대효과
   blocks: 2개, type: "card"
-  block[0]: { id, type:"card", meta:"직접 효과", title:"...", body:"...", emphasis:true, accent:true }
+  block[0]: { id, type:"card", meta:"직접 효과", title:"...", body:"..." }
   block[1]: { id, type:"card", meta:"간접 효과", title:"...", body:"..." }`,
 }
 
@@ -70,7 +70,6 @@ ${layoutsGuide}
 - title은 간결하게 (20자 이내), body는 구체적으로 (50~100자)
 - subtitle은 페이지 핵심을 한 줄로
 - sectionNumber: "01", "02", ... (순서대로)
-- isMuted: true/false 번갈아 (첫 페이지 true)
 
 ## 응답 형식 (JSON만, 다른 텍스트 없음)
 {
@@ -83,7 +82,6 @@ ${layoutsGuide}
       "title": "...",
       "subtitle": "...",
       "layoutType": "scope",
-      "isMuted": true,
       "blocks": [...]
     }
   ]

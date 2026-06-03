@@ -1,27 +1,32 @@
 import type { ReportPage } from '@/types/report'
 import {
-  ScopeSection,
-  OverviewSection,
-  ProblemSection,
-  TimelineSection,
-  ToBeSection,
-  EffectSection,
+  EffectSplitPageTemplate,
+  OverviewKPIPageTemplate,
+  ProblemCardsPageTemplate,
+  ScopePageTemplate,
+  TimelinePageTemplate,
+  ToBeFlowPageTemplate,
 } from '@/components/sections'
 
-export function PageRenderer({ page }: { page: ReportPage }) {
+interface PageRendererProps {
+  page: ReportPage
+  pageIndex: number
+}
+
+export function PageRenderer({ page, pageIndex }: PageRendererProps) {
   switch (page.layoutType) {
     case 'scope':
-      return <ScopeSection page={page} />
+      return <ScopePageTemplate page={page} pageIndex={pageIndex} />
     case 'overview-kpi':
-      return <OverviewSection page={page} />
+      return <OverviewKPIPageTemplate page={page} pageIndex={pageIndex} />
     case 'problem-cards':
-      return <ProblemSection page={page} />
+      return <ProblemCardsPageTemplate page={page} pageIndex={pageIndex} />
     case 'timeline':
-      return <TimelineSection page={page} />
+      return <TimelinePageTemplate page={page} pageIndex={pageIndex} />
     case 'to-be-flow':
-      return <ToBeSection page={page} />
+      return <ToBeFlowPageTemplate page={page} pageIndex={pageIndex} />
     case 'effect-split':
-      return <EffectSection page={page} />
+      return <EffectSplitPageTemplate page={page} pageIndex={pageIndex} />
     default:
       return null
   }
