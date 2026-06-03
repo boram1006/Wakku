@@ -2,6 +2,7 @@ import type { ProjectInput, AgentAnswers } from '@/types/agent'
 import type { Storyline, StorylinePageRole } from '@/types/storyline'
 import type { LayoutType, ReportBlock, ReportPage } from '@/types/report'
 import { defaultBlocks } from '@/lib/pageDefaults'
+import { buildNarrativePlan } from './narrativePlan'
 
 const uid = () => Math.random().toString(36).slice(2, 9)
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -37,20 +38,6 @@ function extractKpis(text: string) {
   return [...new Map(out.map((k) => [k.raw, k])).values()].slice(0, 6)
 }
 
-// ── Section labels ─────────────────────────────────────────────────────────────
-
-const SECTION_LABEL: Record<LayoutType, string> = {
-  cover: 'Cover',
-  scope: '보고 범위',
-  'overview-kpi': '개요',
-  'problem-cards': '문제 정의',
-  'execution-plan': '실행 계획',
-  'effect-split': '기대효과',
-  'to-be-flow': '개선 방향',
-  timeline: '추진 일정',
-  'discussion-cards': '논의 사항',
-  rr: '역할/책임',
-}
 
 // ── Title templates ────────────────────────────────────────────────────────────
 
@@ -401,25 +388,25 @@ function buildBlocks(
 // ── Main export ───────────────────────────────────────────────────────────────
 
 /**
- * 선택된 Storyline의 pagePlan을 기반으로 ReportPage[]를 생성합니다.
- * currentSituation / reportGoal / sourceText / answers를 활용해
- * 각 페이지 블록에 의미 있는 기본 텍스트를 채웁니다.
+ * Storyline → NarrativePlan → ReportPage[] 두 단계로 생성합니다.
+ *
+ * NarrativePlan: 보고 성격 / 설득 흐름 / 필요 페이지 / 제외 주제
+ * ReportPage:    NarrativePlan의 sectionLabel + 블록 콘텐츠
  */
 export function generatePagesFromStoryline(
   storyline: Storyline,
   input: ProjectInput,
   answers: AgentAnswers
 ): ReportPage[] {
-  return storyline.pagePlan.map((plan, index) => {
-    const layoutType = plan.suggestedLayoutType
-    return {
-      id: uid(),
-      sectionNumber: pad(index + 1),
-      sectionLabel: SECTION_LABEL[layoutType] ?? plan.role,
-      title: makeTitle(plan.role, input),
-      subtitle: plan.message,
-      layoutType,
-      blocks: buildBlocks(plan.role, layoutType, input, answers, storyline),
-    }
-  })
+  const plan = buildNarrativePlan(storyline)
+
+  return plan.pages.map((page, index) => ({
+    id: uid(),
+    sectionNumber: pad(index + 1),
+    sectionLabel: page.sectionLabel,
+    title: makeTitle(page.role, input),
+    subtitle: page.purpose,
+    layoutType: page.layoutType,
+    blocks: buildBlocks(page.role, page.layoutType, input, answers, storyline),
+  }))
 }
