@@ -105,8 +105,10 @@ export class MockPatternExtractor implements PatternExtractor {
 }
 
 // ── Classifier ────────────────────────────────────────────────────────────────
+// MVP: persuasionFlow 단어 겹침(overlap)으로 유사도를 계산하는 규칙 기반 분류기.
+// Beta 단계에서 실제 임베딩 코사인 유사도(EmbeddingClassifier)로 교체 예정.
 
-export class EmbeddingClassifier implements ReportClassifier {
+export class FlowSimilarityClassifier implements ReportClassifier {
   classify(pattern: ReportPattern, library: NatureLibrary): ClassificationResult {
     const scores = library.entries.map((entry) => {
       const overlap = pattern.persuasionFlow.filter((step) =>

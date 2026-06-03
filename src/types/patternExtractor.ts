@@ -134,7 +134,7 @@ export interface NatureEntry {
   examplePatterns: ReportPattern[]
   frequency: number
   tags: string[]
-  embedding?: number[]
+  embedding?: number[]   // Beta: 실제 임베딩 벡터 (현재 미사용)
 }
 
 export interface NatureLibrary {
