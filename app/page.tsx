@@ -47,7 +47,7 @@ export default function Home() {
 
   if (step === 'questions' && input && analysis) {
     return (
-      <PageShell>
+      <PageShell step={2}>
         <AgentQuestions
           reportTitle={input.reportTitle}
           analysis={analysis}
@@ -61,7 +61,7 @@ export default function Home() {
   }
 
   return (
-    <PageShell>
+    <PageShell step={1}>
       <InputForm onSubmit={handleInputSubmit} />
     </PageShell>
   )

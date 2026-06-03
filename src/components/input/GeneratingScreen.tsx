@@ -2,30 +2,13 @@
 
 export function GeneratingScreen({ title }: { title: string }) {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 24,
-        background: 'var(--report-bg)',
-      }}
-    >
+    <div style={{ minHeight: '100vh', background: 'var(--color-canvas)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
       <Spinner />
       <div style={{ textAlign: 'center' }}>
-        <div
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: 'var(--report-text)',
-            marginBottom: 8,
-          }}
-        >
+        <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-neutral-900)', marginBottom: 8, letterSpacing: 'var(--tracking-tight)' }}>
           보고자료를 생성하고 있습니다
         </div>
-        <div style={{ fontSize: 14, color: 'var(--report-text-muted)' }}>{title}</div>
+        <div style={{ fontSize: 14, color: 'var(--color-neutral-500)' }}>{title}</div>
       </div>
     </div>
   )
@@ -33,42 +16,38 @@ export function GeneratingScreen({ title }: { title: string }) {
 
 function Spinner() {
   return (
-    <div
-      style={{
-        width: 40,
-        height: 40,
-        border: '3px solid var(--report-border)',
-        borderTopColor: 'var(--report-accent)',
-        borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite',
-      }}
-    >
+    <div style={{ width: 36, height: 36, border: '3px solid var(--color-neutral-100)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }
 
-export function PageShell({ children }: { children: React.ReactNode }) {
+export function PageShell({ children, step }: { children: React.ReactNode; step?: 1 | 2 | 3 }) {
+  const s = step ?? 1
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--report-bg)' }}>
-      <div
-        style={{
-          borderBottom: '1px solid var(--report-border)',
-          padding: '0 40px',
-          height: 60,
-          display: 'flex',
-          alignItems: 'center',
-          background: 'rgba(255,255,255,0.88)',
-          backdropFilter: 'blur(16px)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-        }}
-      >
-        <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--report-text)' }}>
-          Wakku
+    <div style={{ minHeight: '100vh', background: 'var(--color-canvas)' }}>
+      <header className="wk-header">
+        <a className="wk-brand" href="/">
+          <span className="mark">W</span>
+          <span className="name">Wakku</span>
+        </a>
+        <div className="wk-steps">
+          <div className={`wk-step${s === 1 ? ' is-active' : s > 1 ? ' is-done' : ''}`}>
+            <span className="dot">1</span>
+            <span className="lbl">자료 입력</span>
+          </div>
+          <span className="wk-step-sep" />
+          <div className={`wk-step${s === 2 ? ' is-active' : s > 2 ? ' is-done' : ''}`}>
+            <span className="dot">2</span>
+            <span className="lbl">분석 확인</span>
+          </div>
+          <span className="wk-step-sep" />
+          <div className={`wk-step${s === 3 ? ' is-active' : ''}`}>
+            <span className="dot">3</span>
+            <span className="lbl">보고자료 생성</span>
+          </div>
         </div>
-      </div>
+      </header>
       {children}
     </div>
   )
