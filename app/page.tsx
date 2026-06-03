@@ -3,11 +3,12 @@
 import { useRouter } from 'next/navigation'
 import { useAgentStore } from '@/store/agentStore'
 import { useReportStore } from '@/store/reportStore'
-import { analyzeInput, generateReport } from '@/agent/mockAgent'
 import { InputForm } from '@/components/input/InputForm'
 import { AgentQuestions } from '@/components/input/AgentQuestions'
 import { GeneratingScreen, PageShell } from '@/components/input/GeneratingScreen'
 import type { ProjectInput } from '@/types/agent'
+import type { AnalysisResult } from '@/types/agent'
+import type { Report } from '@/types/report'
 import { useEffect } from 'react'
 
 export default function Home() {
@@ -16,33 +17,57 @@ export default function Home() {
     useAgentStore()
   const loadReport = useReportStore((s) => s.loadReport)
 
-  // 이미 생성된 경우 editor로
   useEffect(() => {
     if (step === 'editor') router.push('/editor')
   }, [step, router])
 
-  const handleInputSubmit = (data: ProjectInput) => {
+  const handleInputSubmit = async (data: ProjectInput) => {
     setInput(data)
-    const result = analyzeInput(data)
-    setAnalysis(result)
-    setStep('questions')
+    setStep('questions') // 분석 중 UI (questions 화면에서 로딩 표시)
+
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      const result: AnalysisResult = await res.json()
+      setAnalysis(result)
+    } catch (e) {
+      console.error('analyze failed:', e)
+      // 실패 시 빈 분석 결과로 진행
+      setAnalysis({ detectedSections: [], detectedKpis: [], detectedProblems: [], questions: [] })
+    }
   }
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!input || !analysis) return
     setStep('generating')
 
-    // Mock 딜레이로 "생성 중" 느낌
-    setTimeout(() => {
-      const report = generateReport(input, analysis, answers)
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input, analysis, answers }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const report: Report = await res.json()
       loadReport(report)
       setStep('editor')
       router.push('/editor')
-    }, 900)
+    } catch (e) {
+      console.error('generate failed:', e)
+      setStep('questions') // 실패 시 질문 화면으로 돌아감
+    }
   }
 
   if (step === 'generating') {
     return <GeneratingScreen title={input?.reportTitle ?? ''} />
+  }
+
+  // questions 단계이지만 analysis가 아직 없으면 분석 중
+  if (step === 'questions' && input && !analysis) {
+    return <GeneratingScreen title={`"${input.reportTitle}" 분석 중…`} />
   }
 
   if (step === 'questions' && input && analysis) {
@@ -66,4 +91,3 @@ export default function Home() {
     </PageShell>
   )
 }
-
