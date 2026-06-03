@@ -82,7 +82,7 @@ function makeExecution(input: ProjectInput): Storyline {
 
   return {
     id: `mock-execution-${uid()}`,
-    name: '실행성과 강조형',
+    name: '실행한 결과가 다음 단계의 근거다',
     type: 'execution',
     oneLineSummary: `지금까지 실행한 것과 확인된 효과를 중심으로 다음 단계의 근거를 만든다`,
     recommendedReason: `currentSituation에 진행 경과가 포함되어 있어 실행 결과 기반 설득 구조가 적합합니다. KPI 수치가 없다면 effect 페이지 내용을 정성적으로 보완하세요.`,
@@ -143,7 +143,7 @@ function makeDecision(input: ProjectInput): Storyline {
 
   return {
     id: `mock-decision-${uid()}`,
-    name: '의사결정 요청형',
+    name: '선택지를 정리해 오늘 결정을 이끌어내는 구조',
     type: 'decision',
     oneLineSummary: `선택 가능한 방향을 제시하고, 오늘 결정해야 할 항목을 명확히 요청한다`,
     recommendedReason: `reportGoal에 승인/결정 관련 표현이 포함되어 있어 의사결정 구조가 적합합니다. 선택지가 2개 이상 없다면 decision 페이지를 추천안 단일 설명으로 조정하세요.`,
@@ -196,7 +196,7 @@ function makeScopeClarification(input: ProjectInput): Storyline {
 
   return {
     id: `mock-scope-${uid()}`,
-    name: '범위/오해 방지형',
+    name: '범위를 먼저 확정해 불필요한 오해를 차단하는 구조',
     type: 'scope-clarification',
     oneLineSummary: `이번 보고의 범위와 포함하지 않는 것을 먼저 정리해 불필요한 오해를 차단한다`,
     recommendedReason: `currentSituation에 범위 논의나 역할 분리 필요성이 감지됩니다. 보고 전에 상대방이 범위를 오해할 가능성이 높을 때 효과적입니다.`,
@@ -257,7 +257,7 @@ function makeRoi(input: ProjectInput): Storyline {
 
   return {
     id: `mock-roi-${uid()}`,
-    name: 'ROI/효과 강조형',
+    name: '현재 비효율을 수치로 보여주고 효과로 납득시키는 구조',
     type: 'roi',
     oneLineSummary: `현재 비효율의 규모를 수치로 보여주고, 개선 후 직간접 효과로 납득시킨다`,
     recommendedReason: `입력에 절감/향상 관련 수치가 포함되어 있어 ROI 구조가 효과적입니다. 숫자 기준이 없다면 overview-kpi 페이지에 "산정 기준 추가 필요" 명시를 권장합니다.`,
@@ -317,7 +317,7 @@ function makeDemo(input: ProjectInput): Storyline {
 
   return {
     id: `mock-demo-${uid()}`,
-    name: '데모 중심형',
+    name: '설명보다 데모로 검증 결과를 먼저 보여주는 구조',
     type: 'demo',
     oneLineSummary: `설명보다 먼저 "오늘 무엇을 확인할 것인가"를 제시하고, 결과로 납득시킨다`,
     recommendedReason: `reportGoal에 데모/시연이 포함되어 있어 확인 중심 구조가 적합합니다. 결과물 스크린샷이나 수치가 없으면 evidence 페이지를 질적 설명으로 대체하세요.`,
@@ -377,7 +377,7 @@ function makeAlignment(input: ProjectInput): Storyline {
 
   return {
     id: `mock-alignment-${uid()}`,
-    name: '전사 전략 정렬형',
+    name: '전사 전략 → 현재 실행 → 확장 가능성으로 이어지는 구조',
     type: 'alignment',
     oneLineSummary: `상위 전략과 현재 과제를 연결해 이 보고의 전사적 의미를 먼저 포지셔닝한다`,
     recommendedReason: `currentSituation에 전사 전략 또는 상위 로드맵 맥락이 포함되어 있어 정렬형 구조가 적합합니다. 연결 근거가 추론이라면 recommendedReason에 명시하세요.`,
