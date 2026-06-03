@@ -4,9 +4,38 @@ import type { StorylineAgent } from './storylineAgent'
 
 const uid = () => Math.random().toString(36).slice(2, 9)
 
-// ── Keyword Scoring ───────────────────────────────────────────────────────────
+// ── Diversity Groups ──────────────────────────────────────────────────────────
+// 3개 카드가 서로 다른 설득 시작점을 갖도록 그룹에서 한 개씩 선택
 
-const KEYWORD_PATTERNS: Record<string, RegExp> = {
+const DIVERSITY_GROUPS: [StorylineType[], StorylineType[], StorylineType[]] = [
+  ['execution', 'roi'],                // 결과/효과 먼저
+  ['decision', 'scope-clarification'], // 판단/명확화 먼저
+  ['alignment', 'demo'],               // 맥락·포지셔닝/검증 먼저
+]
+
+// ── Goal-Driven Primary Type ──────────────────────────────────────────────────
+
+const GOAL_SIGNALS: Array<[RegExp, StorylineType]> = [
+  [/승인|확정|결정|판단|선택지/, 'decision'],
+  [/효과|roi|수치|절감|비용|향상/, 'roi'],
+  [/데모|시연|검증|poc/, 'demo'],
+  [/전사|전략\s*정렬|상위\s*전략|연계/, 'alignment'],
+  [/범위|오해|역할|r&r|분리|명확화/, 'scope-clarification'],
+  [/실행\s*성과|진행\s*현황|중간\s*보고|완료/, 'execution'],
+]
+
+function goalDrivenType(goal: string): StorylineType | null {
+  if (!goal.trim()) return null
+  const g = goal.toLowerCase()
+  for (const [pattern, type] of GOAL_SIGNALS) {
+    if (pattern.test(g)) return type
+  }
+  return null
+}
+
+// ── Keyword Scoring (secondary — from situation/title only) ───────────────────
+
+const KEYWORD_PATTERNS: Partial<Record<StorylineType, RegExp>> = {
   demo:                  /데모|시연|시뮬|prototype|프로토타입/i,
   roi:                   /roi|효과|시간\s*절감|비용\s*절감|kpi|수치|향상|절감/i,
   decision:              /의사결정|승인\s*요청|결정\s*필요|선택지|판단\s*요청/i,
@@ -15,24 +44,100 @@ const KEYWORD_PATTERNS: Record<string, RegExp> = {
   execution:             /실행\s*성과|진행\s*현황|poc\s*결과|중간\s*성과|완료|단계별\s*결과/i,
 }
 
-const DEFAULT_PRIORITY: StorylineType[] = [
-  'execution',
-  'roi',
-  'decision',
-  'scope-clarification',
-  'alignment',
-  'demo',
-]
-
-function selectTopThree(inputText: string): StorylineType[] {
-  const scores: Record<string, number> = {}
-  for (const [type, pattern] of Object.entries(KEYWORD_PATTERNS)) {
-    const matches = inputText.match(new RegExp(pattern.source, 'gi'))
+function scoreTypes(text: string): Partial<Record<StorylineType, number>> {
+  const scores: Partial<Record<StorylineType, number>> = {}
+  for (const [type, pattern] of Object.entries(KEYWORD_PATTERNS) as [StorylineType, RegExp][]) {
+    const matches = text.match(new RegExp(pattern.source, 'gi'))
     scores[type] = matches?.length ?? 0
   }
-  return [...DEFAULT_PRIORITY]
-    .sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0))
-    .slice(0, 3)
+  return scores
+}
+
+function bestFromGroup(
+  group: StorylineType[],
+  scores: Partial<Record<StorylineType, number>>,
+  exclude: StorylineType[]
+): StorylineType {
+  return group
+    .filter((t) => !exclude.includes(t))
+    .sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0))[0]!
+}
+
+// ── Top-Three Selection ───────────────────────────────────────────────────────
+
+function selectTopThree(input: ProjectInput): StorylineType[] {
+  // Priority 1: goal drives card 1
+  const primary = goalDrivenType(input.reportGoal ?? '')
+
+  // Score from situation + title only (NOT goal — avoids keyword dominance from sourceText)
+  const secondaryText = [
+    input.currentSituation ?? '',
+    input.reportTitle,
+  ].join(' ')
+  const scores = scoreTypes(secondaryText)
+
+  // Card 1: primary from goal, else best from group 0
+  const card1 = primary ?? bestFromGroup(DIVERSITY_GROUPS[0], scores, [])
+
+  // Find which diversity group card1 belongs to
+  const card1GroupIdx = DIVERSITY_GROUPS.findIndex((g) => g.includes(card1))
+
+  // Card 2: best from next group (cycling through all 3)
+  const group2Idx = (card1GroupIdx + 1) % DIVERSITY_GROUPS.length
+  const card2 = bestFromGroup(DIVERSITY_GROUPS[group2Idx], scores, [card1])
+
+  // Card 3: best from the remaining group
+  const group3Idx = (card1GroupIdx + 2) % DIVERSITY_GROUPS.length
+  const card3 = bestFromGroup(DIVERSITY_GROUPS[group3Idx], scores, [card1, card2])
+
+  return [card1, card2, card3]
+}
+
+// ── Reason Builder ────────────────────────────────────────────────────────────
+
+function buildReason(type: StorylineType, input: ProjectInput): string {
+  const goal = input.reportGoal?.trim()
+  const situation = input.currentSituation?.trim()
+
+  const goalSnippet = goal ? `"${goal.slice(0, 40)}${goal.length > 40 ? '…' : ''}"` : null
+  const sitSnippet = situation
+    ? `"${situation.slice(0, 40)}${situation.length > 40 ? '…' : ''}"`
+    : null
+
+  switch (type) {
+    case 'execution':
+      return goalSnippet
+        ? `핵심 목표(${goalSnippet})에 실행 성과와 단계별 결과 중심 설득이 적합합니다. KPI 수치가 없으면 effect 페이지를 정성 기술로 보완하세요.`
+        : `현재 상황${sitSnippet ? `(${sitSnippet})` : ''}에 진행 경과가 포함되어 있어 실행 결과 기반 구조를 선택했습니다.`
+
+    case 'roi':
+      return goalSnippet
+        ? `핵심 목표(${goalSnippet})에 비효율 규모·개선 효과 수치 기반 설득이 맞습니다. 정량 기준이 없으면 overview-kpi 페이지에 "산정 기준 추가 필요"를 명시하세요.`
+        : `입력에 효율화·수치 관련 맥락이 감지되어 ROI 구조를 선택했습니다.`
+
+    case 'decision':
+      return goalSnippet
+        ? `핵심 목표(${goalSnippet})에 승인·결정 요청이 포함되어 있어 선택지 제시 → 오늘 결정 구조가 적합합니다.`
+        : '보고 대상에게 오늘 결정이 필요한 항목이 있는 경우 효과적인 구조입니다.'
+
+    case 'scope-clarification':
+      return sitSnippet
+        ? `보고 맥락(${sitSnippet})에서 범위 혼선이나 역할 분리 필요성이 감지됩니다. 오해를 차단하고 시작하는 구조가 적합합니다.`
+        : '다루는 것/다루지 않는 것을 먼저 확정해 불필요한 질문을 차단할 때 효과적입니다.'
+
+    case 'alignment':
+      return sitSnippet
+        ? `보고 맥락(${sitSnippet})에 전사 전략·상위 로드맵 맥락이 포함되어 있어 포지셔닝 → 기여 구조가 적합합니다.`
+        : '전사 관점에서 이 과제의 위치를 먼저 잡아야 할 때 효과적인 구조입니다.'
+
+    case 'demo':
+      return goalSnippet
+        ? `핵심 목표(${goalSnippet})에 시연·검증이 포함되어 있어 결과 먼저 보여주는 구조가 적합합니다.`
+        : '구현 결과를 설명보다 먼저 보여주고 싶을 때 효과적인 구조입니다.'
+
+    default:
+      return '입력 맥락을 종합해 이 구조를 선택했습니다.'
+  }
 }
 
 // ── Template Factories ────────────────────────────────────────────────────────
@@ -85,7 +190,7 @@ function makeExecution(input: ProjectInput): Storyline {
     name: '실행한 결과가 다음 단계의 근거다',
     type: 'execution',
     oneLineSummary: `지금까지 실행한 것과 확인된 효과를 중심으로 다음 단계의 근거를 만든다`,
-    recommendedReason: `currentSituation에 진행 경과가 포함되어 있어 실행 결과 기반 설득 구조가 적합합니다. KPI 수치가 없다면 effect 페이지 내용을 정성적으로 보완하세요.`,
+    recommendedReason: buildReason('execution', input),
     keyMessage: `우리가 실행한 것은 실험이 아닌 구조 검증이었고, 그 결과는 다음 단계를 정당화합니다.`,
     narrativeFlow: [
       '지금까지 무엇을 실행했는가 (범위 확정)',
@@ -146,7 +251,7 @@ function makeDecision(input: ProjectInput): Storyline {
     name: '선택지를 정리해 오늘 결정을 이끌어내는 구조',
     type: 'decision',
     oneLineSummary: `선택 가능한 방향을 제시하고, 오늘 결정해야 할 항목을 명확히 요청한다`,
-    recommendedReason: `reportGoal에 승인/결정 관련 표현이 포함되어 있어 의사결정 구조가 적합합니다. 선택지가 2개 이상 없다면 decision 페이지를 추천안 단일 설명으로 조정하세요.`,
+    recommendedReason: buildReason('decision', input),
     keyMessage: `지금 이 결정이 늦어지면 다음 단계 전체가 미뤄집니다. 오늘 확정이 필요한 항목은 하나입니다.`,
     narrativeFlow: [
       '지금 결정이 필요한 이유 (타이밍 근거)',
@@ -199,7 +304,7 @@ function makeScopeClarification(input: ProjectInput): Storyline {
     name: '범위를 먼저 확정해 불필요한 오해를 차단하는 구조',
     type: 'scope-clarification',
     oneLineSummary: `이번 보고의 범위와 포함하지 않는 것을 먼저 정리해 불필요한 오해를 차단한다`,
-    recommendedReason: `currentSituation에 범위 논의나 역할 분리 필요성이 감지됩니다. 보고 전에 상대방이 범위를 오해할 가능성이 높을 때 효과적입니다.`,
+    recommendedReason: buildReason('scope-clarification', input),
     keyMessage: `이번 보고는 X를 다룹니다. Y는 이번 범위가 아니며, Z는 후속 검토 대상입니다.`,
     narrativeFlow: [
       '이번 보고 범위 확정',
@@ -260,7 +365,7 @@ function makeRoi(input: ProjectInput): Storyline {
     name: '현재 비효율을 수치로 보여주고 효과로 납득시키는 구조',
     type: 'roi',
     oneLineSummary: `현재 비효율의 규모를 수치로 보여주고, 개선 후 직간접 효과로 납득시킨다`,
-    recommendedReason: `입력에 절감/향상 관련 수치가 포함되어 있어 ROI 구조가 효과적입니다. 숫자 기준이 없다면 overview-kpi 페이지에 "산정 기준 추가 필요" 명시를 권장합니다.`,
+    recommendedReason: buildReason('roi', input),
     keyMessage: `지금 구조를 바꾸면 측정 가능한 효과가 생기고, 그 조건은 이미 확보되어 있습니다.`,
     narrativeFlow: [
       '현재 비효율 구조의 규모 (정량화)',
@@ -320,7 +425,7 @@ function makeDemo(input: ProjectInput): Storyline {
     name: '설명보다 데모로 검증 결과를 먼저 보여주는 구조',
     type: 'demo',
     oneLineSummary: `설명보다 먼저 "오늘 무엇을 확인할 것인가"를 제시하고, 결과로 납득시킨다`,
-    recommendedReason: `reportGoal에 데모/시연이 포함되어 있어 확인 중심 구조가 적합합니다. 결과물 스크린샷이나 수치가 없으면 evidence 페이지를 질적 설명으로 대체하세요.`,
+    recommendedReason: buildReason('demo', input),
     keyMessage: `이 기능이 실제로 동작합니다. 오늘 확인한 것은 가능성이 아니라 실증입니다.`,
     narrativeFlow: [
       '무엇을 확인할 것인가 (확인 기준 먼저)',
@@ -380,7 +485,7 @@ function makeAlignment(input: ProjectInput): Storyline {
     name: '전사 전략 → 현재 실행 → 확장 가능성으로 이어지는 구조',
     type: 'alignment',
     oneLineSummary: `상위 전략과 현재 과제를 연결해 이 보고의 전사적 의미를 먼저 포지셔닝한다`,
-    recommendedReason: `currentSituation에 전사 전략 또는 상위 로드맵 맥락이 포함되어 있어 정렬형 구조가 적합합니다. 연결 근거가 추론이라면 recommendedReason에 명시하세요.`,
+    recommendedReason: buildReason('alignment', input),
     keyMessage: `이 과제는 전사 방향과 독립적이지 않습니다. 선행 실행의 의미는 전사 확장 가능성에 있습니다.`,
     narrativeFlow: [
       '상위 전략/로드맵 맥락 (포지셔닝)',
@@ -395,13 +500,15 @@ function makeAlignment(input: ProjectInput): Storyline {
 
 // ── Template Registry ─────────────────────────────────────────────────────────
 
-const FACTORIES: Record<string, (input: ProjectInput) => Storyline> = {
+const FACTORIES: Record<StorylineType, (input: ProjectInput) => Storyline> = {
   execution:             makeExecution,
   decision:              makeDecision,
   'scope-clarification': makeScopeClarification,
   roi:                   makeRoi,
   demo:                  makeDemo,
   alignment:             makeAlignment,
+  'problem-solution':    makeExecution,  // fallback
+  'risk-control':        makeDecision,   // fallback
 }
 
 // ── Mock Agent ────────────────────────────────────────────────────────────────
@@ -411,27 +518,13 @@ export class MockStorylineAgent implements StorylineAgent {
     input: ProjectInput,
     _analysis?: AnalysisResult
   ): Promise<Storyline[]> {
-    const combined = [
-      input.reportTitle,
-      input.currentSituation,
-      input.reportGoal,
-      input.sourceText,
-    ].join(' ')
-
-    const selected = selectTopThree(combined)
+    const selected = selectTopThree(input)
     return selected.map((type) => FACTORIES[type]!(input))
   }
 }
 
-// ── Dev helper: 콘솔에서 Storyline 후보 확인 ─────────────────────────────────
+// ── Dev helper ────────────────────────────────────────────────────────────────
 
-/**
- * 개발/디버그용 헬퍼. 브라우저 콘솔 또는 Node.js에서 바로 실행 가능.
- *
- * @example
- * import { previewStorylines } from '@/agent/mockStorylineAgent'
- * previewStorylines({ reportTitle: 'AI 자동화 중간 보고', currentSituation: '임원 승인 요청' })
- */
 export async function previewStorylines(
   input: Partial<ProjectInput> & Pick<ProjectInput, 'reportTitle'>
 ): Promise<Storyline[]> {
@@ -448,7 +541,7 @@ export async function previewStorylines(
   result.forEach((s, i) => {
     console.log(`  ${i + 1}. [${s.type}] ${s.name}`)
     console.log(`     summary: ${s.oneLineSummary}`)
-    console.log(`     keyMessage: ${s.keyMessage}`)
+    console.log(`     reason:  ${s.recommendedReason}`)
     console.log(`     pages: ${s.pagePlan.map((p) => `${p.role}(${p.suggestedLayoutType})`).join(' → ')}`)
   })
   return result
