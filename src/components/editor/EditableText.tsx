@@ -2,8 +2,8 @@
 
 import { useSelectedElementStore } from '@/store/selectedElementStore'
 import { useReportStore } from '@/store/reportStore'
-import type { EditablePath } from '@/types/editor'
-import { pathId } from '@/types/editor'
+import type { EditablePath } from '@/types/report'
+import { pathId } from '@/types/report'
 import type { CSSProperties, MouseEvent } from 'react'
 
 interface Props {

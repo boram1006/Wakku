@@ -1,18 +1,23 @@
 import type { ReportPage } from '@/types/report'
-import { ReportSection, ReportWrap, ReportFlow, ReportStep, ReportArrow, ReportCallout } from '@/components/ds'
+import { ReportArrow, ReportCallout, ReportFlow, ReportSection, ReportStep, ReportWrap } from '@/components/ds'
 import { EditableText } from '@/components/editor/EditableText'
 import { EditableHead } from '@/components/editor/EditableHead'
 
-export function ToBeSection({ page }: { page: ReportPage }) {
-  const steps = page.blocks.filter((b) => b.type === 'flow')
-  const callout = page.blocks.find((b) => b.type === 'text')
+interface Props {
+  page: ReportPage
+  pageIndex: number
+}
+
+export function ToBeFlowPageTemplate({ page, pageIndex }: Props) {
+  const steps = page.blocks.filter((block) => block.type === 'flow')
+  const callout = page.blocks.find((block) => block.type === 'text')
 
   return (
-    <ReportSection id={page.id} muted={page.isMuted}>
+    <ReportSection id={page.id} muted={pageIndex % 2 === 0}>
       <ReportWrap>
         <EditableHead page={page} />
         <ReportFlow>
-          {steps.flatMap((block, i) => {
+          {steps.flatMap((block, index) => {
             const items = [
               <ReportStep key={block.id}>
                 <EditableText
@@ -36,9 +41,11 @@ export function ToBeSection({ page }: { page: ReportPage }) {
                 />
               </ReportStep>,
             ]
-            if (i < steps.length - 1) {
-              items.push(<ReportArrow key={`arrow-${i}`} />)
+
+            if (index < steps.length - 1) {
+              items.push(<ReportArrow key={`arrow-${index}`} />)
             }
+
             return items
           })}
         </ReportFlow>

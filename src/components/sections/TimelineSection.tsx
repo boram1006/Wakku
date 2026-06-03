@@ -1,13 +1,18 @@
 import type { ReportPage } from '@/types/report'
-import { ReportSection, ReportWrap, ReportCard } from '@/components/ds'
+import { ReportCard, ReportSection, ReportWrap } from '@/components/ds'
 import { EditableText } from '@/components/editor/EditableText'
 import { EditableHead } from '@/components/editor/EditableHead'
 
-export function TimelineSection({ page }: { page: ReportPage }) {
-  const rows = page.blocks.filter((b) => b.type === 'timeline')
+interface Props {
+  page: ReportPage
+  pageIndex: number
+}
+
+export function TimelinePageTemplate({ page, pageIndex }: Props) {
+  const rows = page.blocks.filter((block) => block.type === 'timeline')
 
   return (
-    <ReportSection id={page.id} muted={page.isMuted}>
+    <ReportSection id={page.id} muted={pageIndex % 2 === 0}>
       <ReportWrap>
         <EditableHead page={page} />
         <ReportCard>

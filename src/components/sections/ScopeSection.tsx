@@ -1,19 +1,24 @@
 import type { ReportPage } from '@/types/report'
-import { ReportSection, ReportWrap, ReportGrid, ReportCard, ReportLabel } from '@/components/ds'
+import { ReportCard, ReportGrid, ReportLabel, ReportSection, ReportWrap } from '@/components/ds'
 import { EditableText } from '@/components/editor/EditableText'
 import { EditableHead } from '@/components/editor/EditableHead'
 
-export function ScopeSection({ page }: { page: ReportPage }) {
-  const cards = page.blocks.filter((b) => b.type === 'card')
+interface Props {
+  page: ReportPage
+  pageIndex: number
+}
+
+export function ScopePageTemplate({ page, pageIndex }: Props) {
+  const cards = page.blocks.filter((block) => block.type === 'card')
 
   return (
-    <ReportSection id={page.id} muted={page.isMuted}>
+    <ReportSection id={page.id} muted={pageIndex % 2 === 0}>
       <ReportWrap>
         <EditableHead page={page} />
         <ReportGrid cols={3}>
-          {cards.map((block) => (
-            <ReportCard key={block.id} emphasis={block.emphasis}>
-              <ReportLabel accent={block.accent}>
+          {cards.map((block, index) => (
+            <ReportCard key={block.id} emphasis={index === 0}>
+              <ReportLabel accent={index === 0}>
                 <EditableText
                   path={{ pageId: page.id, field: 'block.meta', blockId: block.id }}
                   label="레이블"

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { EditablePath } from '@/types/editor'
-import { pathId } from '@/types/editor'
+import type { EditablePath } from '@/types/report'
+import { pathId } from '@/types/report'
 
 interface SelectedElementStore {
   path: EditablePath | null

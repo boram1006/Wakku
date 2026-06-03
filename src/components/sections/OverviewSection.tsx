@@ -1,18 +1,23 @@
 import type { ReportPage } from '@/types/report'
-import { ReportSection, ReportWrap, ReportGrid, ReportCard } from '@/components/ds'
+import { ReportCard, ReportGrid, ReportSection, ReportWrap } from '@/components/ds'
 import { EditableText } from '@/components/editor/EditableText'
 import { EditableHead } from '@/components/editor/EditableHead'
 
-export function OverviewSection({ page }: { page: ReportPage }) {
-  const kpis = page.blocks.filter((b) => b.type === 'kpi')
+interface Props {
+  page: ReportPage
+  pageIndex: number
+}
+
+export function OverviewKPIPageTemplate({ page, pageIndex }: Props) {
+  const kpis = page.blocks.filter((block) => block.type === 'kpi')
 
   return (
-    <ReportSection id={page.id} muted={page.isMuted}>
+    <ReportSection id={page.id} muted={pageIndex % 2 === 0}>
       <ReportWrap>
         <EditableHead page={page} />
         <ReportGrid cols={3}>
-          {kpis.map((block) => (
-            <ReportCard key={block.id} emphasis={block.emphasis}>
+          {kpis.map((block, index) => (
+            <ReportCard key={block.id} emphasis={index === 1}>
               <div>
                 <EditableText
                   path={{ pageId: page.id, field: 'block.value', blockId: block.id }}
