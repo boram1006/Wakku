@@ -31,7 +31,7 @@ function extractByPattern(lines: string[], pattern: RegExp): string[] {
 }
 
 function detectLayouts(input: ProjectInput): LayoutType[] {
-  const text = [input.sourceText, input.reportContext, input.reportGoal].join('\n')
+  const text = [input.sourceText, input.currentSituation, input.reportGoal].join('\n')
   const layouts: LayoutType[] = ['scope', 'overview-kpi']
 
   if (HAS_PROBLEM.test(text)) layouts.push('problem-cards')
@@ -77,7 +77,7 @@ function buildQuestions(input: ProjectInput, kpis: string[]) {
 }
 
 export function analyzeInput(input: ProjectInput): AnalysisResult {
-  const text = [input.sourceText, input.reportContext, input.reportGoal].join('\n')
+  const text = [input.sourceText, input.currentSituation, input.reportGoal].join('\n')
   const lines = extractLines(text)
   const kpis = extractKpis(text)
 
@@ -139,7 +139,7 @@ export function generateReport(
       sectionNumber: nextSectionNumber(),
       sectionLabel: '보고 범위',
       title: `${input.reportTitle}\n보고 범위와 판단 지점을 정리합니다`,
-      subtitle: input.reportContext ?? '오늘 보고할 내용과 후속 검토 대상을 먼저 구분합니다.',
+      subtitle: input.currentSituation ?? '오늘 보고할 내용과 후속 검토 대상을 먼저 구분합니다.',
       layoutType: 'scope',
       blocks,
     })
