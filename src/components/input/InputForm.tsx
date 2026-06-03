@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import type { ProjectInput } from '@/types/agent'
 
 const PLACEHOLDER_SOURCE = `예시 — 아래 내용을 지우고 참고할 자료를 붙여넣으세요.
@@ -33,6 +33,12 @@ export function InputForm({ onSubmit }: Props) {
   const [avoid, setAvoid] = useState('')
 
   const canSubmit = title.trim().length > 0
+
+  const autoResize = useCallback((el: HTMLTextAreaElement | null) => {
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [])
 
   const handleSubmit = () => {
     if (!canSubmit) return
@@ -82,28 +88,33 @@ export function InputForm({ onSubmit }: Props) {
               className="wk-textarea"
               placeholder="예: Q2 성과 보고 / 임원진 공유 / 다음 단계 예산 승인 요청"
               value={context}
-              onChange={(e) => setContext(e.target.value)}
+              ref={autoResize}
+              onChange={(e) => { setContext(e.target.value); autoResize(e.target) }}
               style={{ minHeight: 80, resize: 'none' }}
             />
           </div>
 
           <div className="wk-field">
             <label className="wk-field-label">핵심 목표</label>
-            <input
-              className="wk-input"
-              placeholder="예: 다음 단계 추진 승인 / 리소스 확보"
+            <textarea
+              className="wk-textarea"
+              placeholder="이번 보고를 통해 무엇을 설득하거나 결정받고 싶은지 입력하세요."
               value={goal}
-              onChange={(e) => setGoal(e.target.value)}
+              ref={autoResize}
+              onChange={(e) => { setGoal(e.target.value); autoResize(e.target) }}
+              style={{ minHeight: 100, resize: 'none' }}
             />
           </div>
 
           <div className="wk-field">
             <label className="wk-field-label">피해야 할 내용</label>
-            <input
-              className="wk-input"
-              placeholder="예: 기술 구현 세부 스펙, 조직 개편 관련 내용"
+            <textarea
+              className="wk-textarea"
+              placeholder="보고에서 강조하지 말아야 할 내용, 아직 확정되지 않은 내용, 과장되면 안 되는 내용을 입력하세요."
               value={avoid}
-              onChange={(e) => setAvoid(e.target.value)}
+              ref={autoResize}
+              onChange={(e) => { setAvoid(e.target.value); autoResize(e.target) }}
+              style={{ minHeight: 100, resize: 'none' }}
             />
           </div>
 
