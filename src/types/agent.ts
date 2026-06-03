@@ -25,4 +25,4 @@ export interface AnalysisResult {
 
 export type AgentAnswers = Record<string, string>
 
-export type AgentStep = 'input' | 'questions' | 'generating' | 'editor'
+export type AgentStep = 'input' | 'analysis' | 'storyline' | 'questions' | 'generating' | 'editor'

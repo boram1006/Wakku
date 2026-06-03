@@ -1,12 +1,12 @@
 'use client'
 
-export function GeneratingScreen({ title }: { title: string }) {
+export function GeneratingScreen({ heading, title }: { heading?: string; title: string }) {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-canvas)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
       <Spinner />
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-neutral-900)', marginBottom: 8, letterSpacing: 'var(--tracking-tight)' }}>
-          보고자료를 생성하고 있습니다
+          {heading ?? '보고자료를 생성하고 있습니다'}
         </div>
         <div style={{ fontSize: 14, color: 'var(--color-neutral-500)' }}>{title}</div>
       </div>
