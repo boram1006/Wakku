@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useReportStore } from '@/store/reportStore'
 import type { LayoutType } from '@/types/report'
@@ -17,14 +17,6 @@ export function PageStructurePanel() {
   const selectPage = useReportStore((s) => s.selectPage)
 
   const [showAddMenu, setShowAddMenu] = useState(false)
-  const [localTitle, setLocalTitle] = useState('')
-
-  // Sync title input when selected page changes
-  useEffect(() => {
-    if (!selectedPageId) { setLocalTitle(''); return }
-    const page = pages.find((p) => p.id === selectedPageId)
-    setLocalTitle(page?.title.replace(/\n/g, ' ') ?? '')
-  }, [selectedPageId]) // intentionally omit pages to avoid resetting while typing
 
   const handleSelectPage = (pageId: string) => {
     selectPage(pageId)
@@ -56,14 +48,6 @@ export function PageStructurePanel() {
     e.stopPropagation()
     if (index === pages.length - 1) return
     movePage(index, index + 1)
-  }
-
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setLocalTitle(value)
-    if (selectedPageId) {
-      updatePage(selectedPageId, { title: value })
-    }
   }
 
   const handleLayoutChange = (pageId: string, layoutType: LayoutType) => {
@@ -188,8 +172,8 @@ export function PageStructurePanel() {
                     <div style={detailLabelStyle}>제목</div>
                     <input
                       className="wk-input"
-                      value={localTitle}
-                      onChange={handleTitleChange}
+                      value={page.title.replace(/\n/g, ' ')}
+                      onChange={(e) => updatePage(page.id, { title: e.target.value })}
                       placeholder="페이지 제목"
                     />
                   </div>
