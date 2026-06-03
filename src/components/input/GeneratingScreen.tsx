@@ -25,7 +25,7 @@ function Spinner() {
 export function PageShell({ children, step }: { children: React.ReactNode; step?: 1 | 2 | 3 }) {
   const s = step ?? 1
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-canvas)' }}>
+    <div className="wk-page">
       <header className="wk-header">
         <a className="wk-brand" href="/">
           <span className="mark">W</span>

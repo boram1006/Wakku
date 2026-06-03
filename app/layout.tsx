@@ -12,7 +12,7 @@ const inter = Inter({
 const notoSansKR = Noto_Sans_KR({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-kr',
+  variable: '--font-noto',
   display: 'swap',
 })
 
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" className={`${inter.variable} ${notoSansKR.variable}`}>
+    <html lang="ko" className={`${inter.variable} ${notoSansKR.variable}`} style={{ '--font-kr': 'var(--font-noto), var(--font-inter), "Noto Sans KR", sans-serif' } as React.CSSProperties}>
       <body>{children}</body>
     </html>
   )

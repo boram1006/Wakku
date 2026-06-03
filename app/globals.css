@@ -4,7 +4,7 @@
 /* ── 폰트 변수 ──────────────────────────────────────────────────────────────── */
 :root {
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-kr:   var(--font-kr), var(--font-inter), "Noto Sans KR", sans-serif;
+  /* --font-kr은 layout.tsx html 인라인 스타일로 주입 (순환참조 방지) */
 
   /* tracking */
   --tracking-tight:   -0.02em;
@@ -57,6 +57,12 @@ body {
   color: var(--report-text);
   font-family: var(--font-kr);
   -webkit-font-smoothing: antialiased;
+}
+
+/* 입력/분석 페이지는 gray canvas 배경 */
+.wk-page {
+  min-height: 100vh;
+  background: var(--color-canvas);
 }
 
 /* ── EditableText ───────────────────────────────────────────────────────────── */
