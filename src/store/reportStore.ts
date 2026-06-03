@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { EditablePath, LayoutType, ReportBlock, ReportData, ReportPage } from '@/types/report'
 import type { DensityPreset, ViewportPreset } from '@/types/editor'
 import { mockReport } from '@/lib/mockReport'
+import { renumberPages, defaultBlocks } from '@/lib/pageDefaults'
 
 interface ReportStore {
   brand: string
@@ -9,6 +10,7 @@ interface ReportStore {
   editMode: boolean
   viewport: ViewportPreset
   density: DensityPreset
+  selectedPageId: string | null
 
   setPages: (pages: ReportPage[]) => void
   updatePage: (pageId: string, patch: Partial<Omit<ReportPage, 'id' | 'blocks'>>) => void
@@ -25,6 +27,7 @@ interface ReportStore {
   setEditMode: (value: boolean) => void
   setViewport: (value: ViewportPreset) => void
   setDensity: (value: DensityPreset) => void
+  selectPage: (id: string | null) => void
   loadReport: (data: ReportData) => void
 }
 
@@ -34,6 +37,7 @@ export const useReportStore = create<ReportStore>((set, get) => ({
   editMode: true,
   viewport: '1920',
   density: 'default',
+  selectedPageId: null,
 
   setPages: (pages) => set({ pages }),
 
@@ -73,10 +77,20 @@ export const useReportStore = create<ReportStore>((set, get) => ({
       ),
     })),
 
-  addPage: (page) => set((state) => ({ pages: [...state.pages, page] })),
+  addPage: (page) =>
+    set((state) => ({
+      pages: renumberPages([...state.pages, page]),
+      selectedPageId: page.id,
+    })),
 
   removePage: (pageId) =>
-    set((state) => ({ pages: state.pages.filter((page) => page.id !== pageId) })),
+    set((state) => {
+      if (state.pages.length <= 1) return state
+      const pages = renumberPages(state.pages.filter((page) => page.id !== pageId))
+      const selectedPageId =
+        state.selectedPageId === pageId ? (pages[0]?.id ?? null) : state.selectedPageId
+      return { pages, selectedPageId }
+    }),
 
   movePage: (fromIndex, toIndex) =>
     set((state) => {
@@ -84,12 +98,15 @@ export const useReportStore = create<ReportStore>((set, get) => ({
       const [moved] = pages.splice(fromIndex, 1)
       if (!moved) return { pages }
       pages.splice(toIndex, 0, moved)
-      return { pages }
+      return { pages: renumberPages(pages) }
     }),
 
+  // Resets blocks to layoutType defaults; preserves title/subtitle/sectionLabel
   changeLayoutType: (pageId, layoutType) =>
     set((state) => ({
-      pages: state.pages.map((page) => (page.id === pageId ? { ...page, layoutType } : page)),
+      pages: state.pages.map((page) =>
+        page.id === pageId ? { ...page, layoutType, blocks: defaultBlocks(layoutType) } : page
+      ),
     })),
 
   getValueByPath: (path) => {
@@ -152,5 +169,6 @@ export const useReportStore = create<ReportStore>((set, get) => ({
   setEditMode: (value) => set({ editMode: value }),
   setViewport: (value) => set({ viewport: value }),
   setDensity: (value) => set({ density: value }),
-  loadReport: (data) => set({ brand: data.brand, pages: data.pages }),
+  selectPage: (id) => set({ selectedPageId: id }),
+  loadReport: (data) => set({ brand: data.brand, pages: data.pages, selectedPageId: null }),
 }))
