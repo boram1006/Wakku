@@ -220,26 +220,33 @@ export function StorylineStep({
                   }}>
                     예상 페이지 구성
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {storyline.pagePlan.map((page, i) => (
-                      <span key={page.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <div key={page.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                         <span style={{
+                          flexShrink: 0,
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: 4,
-                          padding: '3px 8px',
+                          gap: 3,
+                          padding: '2px 7px',
                           borderRadius: 'var(--radius-full)',
                           background: 'var(--color-neutral-100)',
                           font: '500 11px/16px var(--font-sans)',
                           color: 'var(--color-neutral-700)',
+                          whiteSpace: 'nowrap',
                         }}>
                           <span style={{ fontWeight: 700, color: 'var(--color-neutral-400)', fontSize: 10 }}>{i + 1}</span>
                           {PAGE_ROLE_LABEL[page.role] ?? page.role}
                         </span>
-                        {i < storyline.pagePlan.length - 1 && (
-                          <span style={{ fontSize: 10, color: 'var(--color-neutral-300)', lineHeight: 1 }}>›</span>
-                        )}
-                      </span>
+                        <span style={{
+                          font: '400 12px/18px var(--font-kr)',
+                          color: 'var(--color-neutral-600)',
+                          letterSpacing: 'var(--tracking-tight)',
+                          paddingTop: 1,
+                        }}>
+                          {page.message}
+                        </span>
+                      </div>
                     ))}
                   </div>
                 </div>
