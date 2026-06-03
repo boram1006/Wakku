@@ -8,7 +8,7 @@ import { AgentQuestions } from '@/components/input/AgentQuestions'
 import { GeneratingScreen, PageShell } from '@/components/input/GeneratingScreen'
 import type { ProjectInput } from '@/types/agent'
 import type { AnalysisResult } from '@/types/agent'
-import type { Report } from '@/types/report'
+import type { ReportData } from '@/types/report'
 import { useEffect } from 'react'
 
 export default function Home() {
@@ -36,7 +36,7 @@ export default function Home() {
     } catch (e) {
       console.error('analyze failed:', e)
       // 실패 시 빈 분석 결과로 진행
-      setAnalysis({ detectedSections: [], detectedKpis: [], detectedProblems: [], questions: [] })
+      setAnalysis({ detectedLayouts: [], detectedKpis: [], detectedProblems: [], questions: [] })
     }
   }
 
@@ -51,7 +51,7 @@ export default function Home() {
         body: JSON.stringify({ input, analysis, answers }),
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const report: Report = await res.json()
+      const report: ReportData = await res.json()
       loadReport(report)
       setStep('editor')
       router.push('/editor')

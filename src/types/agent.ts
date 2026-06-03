@@ -1,4 +1,4 @@
-import type { SectionType } from './report'
+import type { LayoutType } from './report'
 
 export interface ProjectInput {
   reportTitle: string
@@ -16,7 +16,7 @@ export interface AgentQuestion {
 }
 
 export interface AnalysisResult {
-  detectedSections: SectionType[]
+  detectedLayouts: LayoutType[]
   detectedKpis: string[]
   detectedProblems: string[]
   questions: AgentQuestion[]

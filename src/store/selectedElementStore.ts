@@ -1,26 +1,26 @@
 import { create } from 'zustand'
-import type { SelectionTarget } from '@/types/editor'
-import { selectionId } from '@/types/editor'
+import type { EditablePath } from '@/types/editor'
+import { pathId } from '@/types/editor'
 
 interface SelectedElementStore {
-  target: SelectionTarget | null
+  path: EditablePath | null
   selectedId: string | null
+  label: string
+  multiline: boolean
 
-  select: (target: SelectionTarget) => void
+  select: (path: EditablePath, label: string, multiline?: boolean) => void
   clear: () => void
-  isSelected: (target: SelectionTarget) => boolean
 }
 
-export const useSelectedElementStore = create<SelectedElementStore>((set, get) => ({
-  target: null,
+export const useSelectedElementStore = create<SelectedElementStore>((set) => ({
+  path: null,
   selectedId: null,
+  label: '',
+  multiline: false,
 
-  select: (target) =>
-    set({ target, selectedId: selectionId(target) }),
+  select: (path, label, multiline = false) =>
+    set({ path, selectedId: pathId(path), label, multiline }),
 
   clear: () =>
-    set({ target: null, selectedId: null }),
-
-  isSelected: (target) =>
-    get().selectedId === selectionId(target),
+    set({ path: null, selectedId: null, label: '', multiline: false }),
 }))

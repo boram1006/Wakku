@@ -1,29 +1,36 @@
-import type { ReportSection } from '@/types/report'
+import type { ReportPage } from '@/types/report'
 import { EditableText } from './EditableText'
 
 interface Props {
-  section: ReportSection
+  page: ReportPage
 }
 
-export function EditableHead({ section }: Props) {
+export function EditableHead({ page }: Props) {
   return (
     <header className="report-head">
       <div>
+        <div className="report-kicker">
+          {page.sectionNumber} · <EditableText
+            path={{ pageId: page.id, field: 'sectionLabel' }}
+            label="섹션 이름"
+            as="span"
+          />
+        </div>
         <EditableText
-          target={{ type: 'section', sectionId: section.id, field: 'kicker', label: '섹션 번호', multiline: false }}
-          as="div"
-          className="report-kicker"
-        />
-        <EditableText
-          target={{ type: 'section', sectionId: section.id, field: 'title', label: '페이지 제목', multiline: true }}
+          path={{ pageId: page.id, field: 'title' }}
+          label="페이지 제목"
           as="h2"
           className="report-title"
+          multiline
         />
-        <EditableText
-          target={{ type: 'section', sectionId: section.id, field: 'subtitle', label: '부제목', multiline: true }}
-          as="p"
-          className="report-subtitle"
-        />
+        {page.subtitle !== undefined && (
+          <EditableText
+            path={{ pageId: page.id, field: 'subtitle' }}
+            label="부제목"
+            as="p"
+            className="report-subtitle"
+          />
+        )}
       </div>
     </header>
   )

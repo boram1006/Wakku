@@ -1,51 +1,43 @@
-import type { ReportSection } from '@/types/report'
-import {
-  ReportSection as DS,
-  ReportWrap,
-  ReportGrid,
-  ReportCard,
-  ReportLabel,
-} from '@/components/ds'
+import type { ReportPage } from '@/types/report'
+import { ReportSection, ReportWrap, ReportGrid, ReportCard, ReportLabel } from '@/components/ds'
 import { EditableText } from '@/components/editor/EditableText'
 import { EditableHead } from '@/components/editor/EditableHead'
 
-interface Props {
-  section: ReportSection
-}
-
-export function ProblemSection({ section }: Props) {
-  const cards = section.cards ?? []
+export function ProblemSection({ page }: { page: ReportPage }) {
+  const cards = page.blocks.filter((b) => b.type === 'card')
 
   return (
-    <DS id={section.id} muted={section.isMuted}>
+    <ReportSection id={page.id} muted={page.isMuted}>
       <ReportWrap>
-        <EditableHead section={section} />
+        <EditableHead page={page} />
         <ReportGrid cols={3}>
-          {cards.map((card, i) => (
-            <ReportCard key={i} emphasis={card.emphasis}>
-              {card.label && (
-                <ReportLabel>
-                  <EditableText
-                    target={{ type: 'card', sectionId: section.id, cardIdx: i, field: 'label', label: `문제 ${i + 1} 레이블`, multiline: false }}
-                    as="span"
-                  />
-                </ReportLabel>
-              )}
+          {cards.map((block) => (
+            <ReportCard key={block.id} emphasis={block.emphasis}>
+              <ReportLabel>
+                <EditableText
+                  path={{ pageId: page.id, field: 'block.meta', blockId: block.id }}
+                  label="레이블"
+                  as="span"
+                />
+              </ReportLabel>
               <EditableText
-                target={{ type: 'card', sectionId: section.id, cardIdx: i, field: 'title', label: `문제 ${i + 1} 제목`, multiline: false }}
+                path={{ pageId: page.id, field: 'block.title', blockId: block.id }}
+                label="문제 제목"
                 as="h3"
                 className="report-card-title"
                 style={{ marginTop: 14 }}
               />
               <EditableText
-                target={{ type: 'card', sectionId: section.id, cardIdx: i, field: 'desc', label: `문제 ${i + 1} 본문`, multiline: true }}
+                path={{ pageId: page.id, field: 'block.body', blockId: block.id }}
+                label="문제 본문"
                 as="p"
                 className="report-card-desc"
+                multiline
               />
             </ReportCard>
           ))}
         </ReportGrid>
       </ReportWrap>
-    </DS>
+    </ReportSection>
   )
 }

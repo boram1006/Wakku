@@ -4,11 +4,11 @@ import type { AnalysisResult, AgentAnswers } from '@/types/agent'
 
 const SECTION_LABEL: Record<string, string> = {
   scope: '보고 범위',
-  overview: '개요/KPI',
-  problem: '현황/문제',
-  tobe: '개선 방향',
+  'overview-kpi': '개요/KPI',
+  'problem-cards': '현황/문제',
+  'to-be-flow': '개선 방향',
   timeline: '추진 일정',
-  effect: '기대효과',
+  'effect-split': '기대효과',
 }
 
 interface Props {
@@ -21,7 +21,7 @@ interface Props {
 }
 
 export function AgentQuestions({ reportTitle, analysis, answers, onAnswer, onGenerate, onBack }: Props) {
-  const { detectedSections, detectedKpis, questions } = analysis
+  const { detectedLayouts, detectedKpis, questions } = analysis
 
   return (
     <main style={{ display: 'flex', justifyContent: 'center', padding: '72px 32px 120px' }}>
@@ -45,10 +45,10 @@ export function AgentQuestions({ reportTitle, analysis, answers, onAnswer, onGen
         {/* 감지된 구조 카드 */}
         <div className="wk-struct-card" style={{ marginBottom: 44 }}>
           <div className="wk-card-label">
-            감지된 페이지 구조 <span className="n">{detectedSections.length}페이지</span>
+            감지된 페이지 구조 <span className="n">{detectedLayouts.length}페이지</span>
           </div>
           <div className="wk-struct">
-            {detectedSections.map((s, i) => (
+            {detectedLayouts.map((s, i) => (
               <span key={s} className="wk-page-chip">
                 <span className="idx">{String(i + 1).padStart(2, '0')}</span>
                 <span className="nm">{SECTION_LABEL[s] ?? s}</span>

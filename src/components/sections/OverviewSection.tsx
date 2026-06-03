@@ -1,53 +1,49 @@
-import type { ReportSection } from '@/types/report'
-import {
-  ReportSection as DS,
-  ReportWrap,
-  ReportGrid,
-  ReportCard,
-} from '@/components/ds'
+import type { ReportPage } from '@/types/report'
+import { ReportSection, ReportWrap, ReportGrid, ReportCard } from '@/components/ds'
 import { EditableText } from '@/components/editor/EditableText'
 import { EditableHead } from '@/components/editor/EditableHead'
 
-interface Props {
-  section: ReportSection
-}
-
-export function OverviewSection({ section }: Props) {
-  const cards = section.cards ?? []
+export function OverviewSection({ page }: { page: ReportPage }) {
+  const kpis = page.blocks.filter((b) => b.type === 'kpi')
 
   return (
-    <DS id={section.id} muted={section.isMuted}>
+    <ReportSection id={page.id} muted={page.isMuted}>
       <ReportWrap>
-        <EditableHead section={section} />
+        <EditableHead page={page} />
         <ReportGrid cols={3}>
-          {cards.map((card, i) => (
-            <ReportCard key={i} emphasis={card.emphasis}>
+          {kpis.map((block) => (
+            <ReportCard key={block.id} emphasis={block.emphasis}>
               <div>
                 <EditableText
-                  target={{ type: 'card', sectionId: section.id, cardIdx: i, field: 'kpiNum', label: `KPI ${i + 1} 숫자`, multiline: false }}
+                  path={{ pageId: page.id, field: 'block.value', blockId: block.id }}
+                  label="KPI 숫자"
                   as="span"
                   className="report-num"
                 />
                 <EditableText
-                  target={{ type: 'card', sectionId: section.id, cardIdx: i, field: 'kpiUnit', label: `KPI ${i + 1} 단위`, multiline: false }}
+                  path={{ pageId: page.id, field: 'block.meta', blockId: block.id }}
+                  label="KPI 단위"
                   as="span"
                   className="report-unit"
                 />
               </div>
               <EditableText
-                target={{ type: 'card', sectionId: section.id, cardIdx: i, field: 'title', label: `KPI ${i + 1} 제목`, multiline: false }}
+                path={{ pageId: page.id, field: 'block.title', blockId: block.id }}
+                label="KPI 제목"
                 as="h3"
                 className="report-card-title"
               />
               <EditableText
-                target={{ type: 'card', sectionId: section.id, cardIdx: i, field: 'desc', label: `KPI ${i + 1} 설명`, multiline: true }}
+                path={{ pageId: page.id, field: 'block.body', blockId: block.id }}
+                label="KPI 설명"
                 as="p"
                 className="report-card-desc"
+                multiline
               />
             </ReportCard>
           ))}
         </ReportGrid>
       </ReportWrap>
-    </DS>
+    </ReportSection>
   )
 }

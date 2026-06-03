@@ -1,4 +1,4 @@
-import type { ReportSection } from '@/types/report'
+import type { ReportPage } from '@/types/report'
 import {
   ScopeSection,
   OverviewSection,
@@ -8,24 +8,20 @@ import {
   EffectSection,
 } from '@/components/sections'
 
-interface Props {
-  section: ReportSection
-}
-
-export function PageRenderer({ section }: Props) {
-  switch (section.type) {
+export function PageRenderer({ page }: { page: ReportPage }) {
+  switch (page.layoutType) {
     case 'scope':
-      return <ScopeSection section={section} />
-    case 'overview':
-      return <OverviewSection section={section} />
-    case 'problem':
-      return <ProblemSection section={section} />
+      return <ScopeSection page={page} />
+    case 'overview-kpi':
+      return <OverviewSection page={page} />
+    case 'problem-cards':
+      return <ProblemSection page={page} />
     case 'timeline':
-      return <TimelineSection section={section} />
-    case 'tobe':
-      return <ToBeSection section={section} />
-    case 'effect':
-      return <EffectSection section={section} />
+      return <TimelineSection page={page} />
+    case 'to-be-flow':
+      return <ToBeSection page={page} />
+    case 'effect-split':
+      return <EffectSection page={page} />
     default:
       return null
   }

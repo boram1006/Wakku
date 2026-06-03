@@ -1,7 +1,7 @@
-import type { Report } from '@/types/report'
+import type { ReportData } from '@/types/report'
 
-// TODO: Phase 3 — serialize Report state to standalone HTML string
-export function exportToHtml(_report: Report): string {
+// TODO: Phase 5 — serialize ReportData state to standalone HTML string
+export function exportToHtml(_report: ReportData): string {
   return ''
 }
 

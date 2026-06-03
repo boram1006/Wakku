@@ -1,40 +1,35 @@
-import type { ReportSection } from '@/types/report'
-import {
-  ReportSection as DS,
-  ReportWrap,
-  ReportCard,
-} from '@/components/ds'
+import type { ReportPage } from '@/types/report'
+import { ReportSection, ReportWrap, ReportCard } from '@/components/ds'
 import { EditableText } from '@/components/editor/EditableText'
 import { EditableHead } from '@/components/editor/EditableHead'
 
-interface Props {
-  section: ReportSection
-}
-
-export function TimelineSection({ section }: Props) {
-  const rows = section.rows ?? []
+export function TimelineSection({ page }: { page: ReportPage }) {
+  const rows = page.blocks.filter((b) => b.type === 'timeline')
 
   return (
-    <DS id={section.id} muted={section.isMuted}>
+    <ReportSection id={page.id} muted={page.isMuted}>
       <ReportWrap>
-        <EditableHead section={section} />
+        <EditableHead page={page} />
         <ReportCard>
-          {rows.map((_, i) => (
-            <div key={i} className="report-split-row">
+          {rows.map((block) => (
+            <div key={block.id} className="report-split-row">
               <EditableText
-                target={{ type: 'row', sectionId: section.id, rowIdx: i, field: 'label', label: `일정 ${i + 1} 구분`, multiline: false }}
+                path={{ pageId: page.id, field: 'block.meta', blockId: block.id }}
+                label="기간 레이블"
                 as="div"
                 className="report-row-label"
               />
               <EditableText
-                target={{ type: 'row', sectionId: section.id, rowIdx: i, field: 'text', label: `일정 ${i + 1} 내용`, multiline: true }}
+                path={{ pageId: page.id, field: 'block.body', blockId: block.id }}
+                label="일정 내용"
                 as="div"
                 className="report-row-text"
+                multiline
               />
             </div>
           ))}
         </ReportCard>
       </ReportWrap>
-    </DS>
+    </ReportSection>
   )
 }

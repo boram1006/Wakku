@@ -1,49 +1,25 @@
-import type { ReportCardData, ReportStepData, TimelineRowData } from './report'
+export type EditableField =
+  | 'sectionLabel'
+  | 'title'
+  | 'subtitle'
+  | 'block.title'
+  | 'block.body'
+  | 'block.value'
+  | 'block.meta'
+  | 'block.items'
 
-export type SelectionTarget =
-  | {
-      type: 'section'
-      sectionId: string
-      field: 'kicker' | 'title' | 'subtitle' | 'callout'
-      label: string
-      multiline: boolean
-    }
-  | {
-      type: 'card'
-      sectionId: string
-      cardIdx: number
-      field: keyof ReportCardData
-      label: string
-      multiline: boolean
-    }
-  | {
-      type: 'step'
-      sectionId: string
-      stepIdx: number
-      field: keyof ReportStepData
-      label: string
-      multiline: boolean
-    }
-  | {
-      type: 'row'
-      sectionId: string
-      rowIdx: number
-      field: keyof TimelineRowData
-      label: string
-      multiline: boolean
-    }
+export interface EditablePath {
+  pageId: string
+  field: EditableField
+  blockId?: string
+  itemIndex?: number
+}
 
-export function selectionId(target: SelectionTarget): string {
-  switch (target.type) {
-    case 'section':
-      return `section:${target.sectionId}:${target.field}`
-    case 'card':
-      return `card:${target.sectionId}:${target.cardIdx}:${target.field}`
-    case 'step':
-      return `step:${target.sectionId}:${target.stepIdx}:${target.field}`
-    case 'row':
-      return `row:${target.sectionId}:${target.rowIdx}:${target.field}`
-  }
+export function pathId(path: EditablePath): string {
+  let id = `${path.pageId}:${path.field}`
+  if (path.blockId) id += `:${path.blockId}`
+  if (path.itemIndex !== undefined) id += `:${path.itemIndex}`
+  return id
 }
 
 export type ViewportPreset = '1920' | '1440' | '1200'

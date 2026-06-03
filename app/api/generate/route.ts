@@ -1,44 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import type { ProjectInput, AnalysisResult, AgentAnswers } from '@/types/agent'
-import type { Report } from '@/types/report'
+import type { ReportData } from '@/types/report'
 
 const client = new Anthropic()
 
-const SECTION_GUIDE: Record<string, string> = {
-  scope: `type: "scope" — 보고 배경/목적/범위
-  - kicker: "01 · 보고 범위"
-  - cards: 2~4개. 각 카드는 보고 배경, 목적, 범위, 핵심 전달 메시지 등으로 구성
-  - cards[0]: emphasis: true (가장 핵심 메시지)
-  - callout 없음`,
+const LAYOUT_GUIDE: Record<string, string> = {
+  scope: `layoutType: "scope" — 보고 배경/목적/범위
+  blocks: 2~4개, type: "card"
+  각 block: { id, type:"card", meta:"레이블", title:"...", body:"...", emphasis?:true, accent?:true }`,
 
-  overview: `type: "overview" — KPI/핵심 지표
-  - kicker: "02 · 개요/KPI"
-  - cards: 3~4개. KPI 카드 형태 (kpiNum + kpiUnit 필수)
-  - 예: { kpiNum: "42", kpiUnit: "h", title: "반복업무 절감", desc: "..." }
-  - cards[0]: emphasis: true`,
+  'overview-kpi': `layoutType: "overview-kpi" — KPI/핵심 지표
+  blocks: 3개, type: "kpi"
+  각 block: { id, type:"kpi", value:"42", meta:"h", title:"제목", body:"설명", emphasis?:true }`,
 
-  problem: `type: "problem" — 현황/문제점
-  - kicker: "03 · 현황/문제"
-  - cards: 3~4개. 각 카드는 구체적 문제 하나씩
-  - callout: 문제를 한 문장으로 요약하는 핵심 인사이트`,
+  'problem-cards': `layoutType: "problem-cards" — 현황/문제점
+  blocks: 3개, type: "card"
+  각 block: { id, type:"card", meta:"Problem 01", title:"...", body:"..." }`,
 
-  tobe: `type: "tobe" — 개선 방향
-  - kicker: "04 · 개선 방향"
-  - steps: 3~4개. 단계별 개선 액션
-  - 예: { num: "01", title: "구조 재설계", desc: "..." }
-  - callout: 개선 후 기대되는 핵심 변화`,
+  'to-be-flow': `layoutType: "to-be-flow" — 개선 방향
+  blocks: 3개 flow + 1개 text(callout)
+  flow block: { id, type:"flow", meta:"01", title:"...", body:"..." }
+  callout block: { id, type:"text", body:"결론 문구" }`,
 
-  timeline: `type: "timeline" — 추진 일정
-  - kicker: "05 · 추진 일정"
-  - rows: 3~5개. 각 row는 기간 + 내용
-  - 예: { label: "6월", text: "현황 분석 및 구조 정의" }`,
+  timeline: `layoutType: "timeline" — 추진 일정
+  blocks: 3~5개, type: "timeline"
+  각 block: { id, type:"timeline", meta:"1단계 · 6월", body:"내용" }`,
 
-  effect: `type: "effect" — 기대효과
-  - kicker: "06 · 기대효과"
-  - cards: 3~4개. 기대효과 카드
-  - cards[0]: emphasis: true, kpiNum + kpiUnit 포함
-  - callout: 최종 임팩트 한 문장`,
+  'effect-split': `layoutType: "effect-split" — 기대효과
+  blocks: 2개, type: "card"
+  block[0]: { id, type:"card", meta:"직접 효과", title:"...", body:"...", emphasis:true, accent:true }
+  block[1]: { id, type:"card", meta:"간접 효과", title:"...", body:"..." }`,
 }
 
 export async function POST(req: NextRequest) {
@@ -53,11 +45,11 @@ export async function POST(req: NextRequest) {
     .map(([k, v]) => `  - ${k}: ${v}`)
     .join('\n')
 
-  const sectionsGuide = analysis.detectedSections
-    .map((s, i) => `${i + 1}. ${s}:\n${SECTION_GUIDE[s] ?? ''}`)
+  const layoutsGuide = analysis.detectedLayouts
+    .map((l, i) => `${i + 1}. ${l}:\n${LAYOUT_GUIDE[l] ?? ''}`)
     .join('\n\n')
 
-  const prompt = `당신은 사내 보고자료 작성 전문가입니다. 아래 정보를 바탕으로 실제 보고자료 JSON을 생성합니다.
+  const prompt = `당신은 사내 보고자료 작성 전문가입니다. 아래 정보를 바탕으로 ReportData JSON을 생성합니다.
 
 ## 입력 정보
 - 보고 제목: ${input.reportTitle}
@@ -70,34 +62,30 @@ ${input.sourceText ?? '(없음)'}
 ## 추가 답변
 ${answersText || '(없음)'}
 
-## 생성할 섹션 구조
-${sectionsGuide}
+## 생성할 페이지 구조
+${layoutsGuide}
 
 ## 작성 원칙
 - 모든 텍스트는 원본 자료와 답변에서 실제 내용을 뽑아 작성 (지어내지 말 것)
-- title은 간결하게 (20자 이내)
-- desc는 구체적으로 (50~100자)
-- subtitle은 섹션 핵심을 한 줄로
-- kicker 형식: "01 · 섹션명" (번호는 순서대로)
-- 각 섹션 isMuted: 짝수 인덱스 false, 홀수 인덱스 true
+- title은 간결하게 (20자 이내), body는 구체적으로 (50~100자)
+- subtitle은 페이지 핵심을 한 줄로
+- sectionNumber: "01", "02", ... (순서대로)
+- isMuted: true/false 번갈아 (첫 페이지 true)
 
 ## 응답 형식 (JSON만, 다른 텍스트 없음)
 {
   "brand": "${input.reportTitle}",
-  "sections": [
+  "pages": [
     {
-      "id": "sec-scope",
-      "type": "scope",
-      "kicker": "01 · 보고 범위",
+      "id": "scope",
+      "sectionNumber": "01",
+      "sectionLabel": "보고 범위",
       "title": "...",
       "subtitle": "...",
-      "isMuted": false,
-      "cards": [
-        { "title": "...", "desc": "...", "emphasis": true },
-        ...
-      ]
-    },
-    ...
+      "layoutType": "scope",
+      "isMuted": true,
+      "blocks": [...]
+    }
   ]
 }`
 
@@ -109,10 +97,9 @@ ${sectionsGuide}
     })
 
     const text = message.content[0].type === 'text' ? message.content[0].text : ''
-    // JSON 블록만 추출 (마크다운 코드블록 대응)
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('JSON not found in response')
-    const report: Report = JSON.parse(jsonMatch[0])
+    const report: ReportData = JSON.parse(jsonMatch[0])
     return NextResponse.json(report)
   } catch (e) {
     console.error('generate error:', e)

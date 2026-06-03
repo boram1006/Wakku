@@ -1,46 +1,40 @@
-import type { ReportSection } from '@/types/report'
-import {
-  ReportSection as DS,
-  ReportWrap,
-  ReportFlow,
-  ReportStep,
-  ReportArrow,
-  ReportCallout,
-} from '@/components/ds'
+import type { ReportPage } from '@/types/report'
+import { ReportSection, ReportWrap, ReportFlow, ReportStep, ReportArrow, ReportCallout } from '@/components/ds'
 import { EditableText } from '@/components/editor/EditableText'
 import { EditableHead } from '@/components/editor/EditableHead'
 
-interface Props {
-  section: ReportSection
-}
-
-export function ToBeSection({ section }: Props) {
-  const steps = section.steps ?? []
+export function ToBeSection({ page }: { page: ReportPage }) {
+  const steps = page.blocks.filter((b) => b.type === 'flow')
+  const callout = page.blocks.find((b) => b.type === 'text')
 
   return (
-    <DS id={section.id} muted={section.isMuted}>
+    <ReportSection id={page.id} muted={page.isMuted}>
       <ReportWrap>
-        <EditableHead section={section} />
+        <EditableHead page={page} />
         <ReportFlow>
-          {steps.flatMap((_, i) => {
+          {steps.flatMap((block, i) => {
             const items = [
-              <div key={`step-${i}`} className="report-step">
+              <ReportStep key={block.id}>
                 <EditableText
-                  target={{ type: 'step', sectionId: section.id, stepIdx: i, field: 'num', label: `단계 ${i + 1} 번호`, multiline: false }}
+                  path={{ pageId: page.id, field: 'block.meta', blockId: block.id }}
+                  label="단계 번호"
                   as="div"
                   className="report-step-num"
                 />
                 <EditableText
-                  target={{ type: 'step', sectionId: section.id, stepIdx: i, field: 'title', label: `단계 ${i + 1} 제목`, multiline: false }}
+                  path={{ pageId: page.id, field: 'block.title', blockId: block.id }}
+                  label="단계 제목"
                   as="div"
                   className="report-step-title"
                 />
                 <EditableText
-                  target={{ type: 'step', sectionId: section.id, stepIdx: i, field: 'desc', label: `단계 ${i + 1} 설명`, multiline: true }}
+                  path={{ pageId: page.id, field: 'block.body', blockId: block.id }}
+                  label="단계 설명"
                   as="div"
                   className="report-step-desc"
+                  multiline
                 />
-              </div>,
+              </ReportStep>,
             ]
             if (i < steps.length - 1) {
               items.push(<ReportArrow key={`arrow-${i}`} />)
@@ -48,15 +42,17 @@ export function ToBeSection({ section }: Props) {
             return items
           })}
         </ReportFlow>
-        {section.callout && (
+        {callout && (
           <ReportCallout style={{ marginTop: 28 }}>
             <EditableText
-              target={{ type: 'section', sectionId: section.id, field: 'callout', label: '결론 문구', multiline: true }}
+              path={{ pageId: page.id, field: 'block.body', blockId: callout.id }}
+              label="결론 문구"
               as="span"
+              multiline
             />
           </ReportCallout>
         )}
       </ReportWrap>
-    </DS>
+    </ReportSection>
   )
 }

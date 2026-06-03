@@ -99,14 +99,12 @@ export function ReportFlow({ children, className }: FlowProps) {
 
 // ─── ReportStep ───────────────────────────────────────────────────────────────
 
-interface StepProps { num: string; title: string; desc: string; className?: string }
+interface StepProps { children: React.ReactNode; className?: string }
 
-export function ReportStep({ num, title, desc, className }: StepProps) {
+export function ReportStep({ children, className }: StepProps) {
   return (
     <div className={cn('report-step', className)}>
-      <div className="report-step-num">{num}</div>
-      <div className="report-step-title">{title}</div>
-      <div className="report-step-desc">{desc}</div>
+      {children}
     </div>
   )
 }

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import type { ProjectInput } from '@/types/agent'
-import type { AnalysisResult } from '@/types/agent'
-import type { SectionType } from '@/types/report'
+import type { ProjectInput, AnalysisResult } from '@/types/agent'
 
 const client = new Anthropic()
 
@@ -21,13 +19,13 @@ ${input.avoidPoints ? `- 피해야 할 내용: ${input.avoidPoints}` : ''}
 다음을 분석해 JSON으로 응답하세요. JSON 외에 다른 텍스트는 절대 출력하지 마세요.
 
 분석 기준:
-1. detectedSections: 원본 자료에서 감지된 보고서 섹션. 아래 중 해당하는 것만 포함 (순서 유지):
+1. detectedLayouts: 원본 자료에서 감지된 보고서 레이아웃. 아래 중 해당하는 것만 포함 (순서 유지):
    - "scope": 보고 배경, 목적, 범위, 개요
-   - "overview": KPI, 핵심 성과지표, 수치 중심 현황
-   - "problem": 현황, 문제점, 이슈, 병목
-   - "tobe": 개선 방향, 해결책, To-Be
+   - "overview-kpi": KPI, 핵심 성과지표, 수치 중심 현황
+   - "problem-cards": 현황, 문제점, 이슈, 병목
+   - "to-be-flow": 개선 방향, 해결책, To-Be
    - "timeline": 추진 일정, 로드맵, 단계별 계획
-   - "effect": 기대효과, 예상 성과, ROI
+   - "effect-split": 기대효과, 예상 성과, ROI
 
 2. detectedKpis: 원본 자료에서 발견된 구체적 수치/지표 (예: "42h", "38%", "매출 12억"). 최대 5개.
 
@@ -37,7 +35,7 @@ ${input.avoidPoints ? `- 피해야 할 내용: ${input.avoidPoints}` : ''}
 
 응답 형식:
 {
-  "detectedSections": ["scope", "problem", ...],
+  "detectedLayouts": ["scope", "problem-cards", ...],
   "detectedKpis": ["42h", "38%"],
   "detectedProblems": [],
   "questions": [
@@ -53,13 +51,14 @@ ${input.avoidPoints ? `- 피해야 할 내용: ${input.avoidPoints}` : ''}
     })
 
     const text = message.content[0].type === 'text' ? message.content[0].text : ''
-    const result: AnalysisResult = JSON.parse(text.trim())
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error('JSON not found')
+    const result: AnalysisResult = JSON.parse(jsonMatch[0])
     return NextResponse.json(result)
   } catch (e) {
     console.error('analyze error:', e)
-    // fallback to basic detection
     const fallback: AnalysisResult = {
-      detectedSections: ['scope', 'problem', 'tobe'] as SectionType[],
+      detectedLayouts: ['scope', 'problem-cards', 'to-be-flow'],
       detectedKpis: [],
       detectedProblems: [],
       questions: [],

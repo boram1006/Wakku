@@ -18,12 +18,11 @@ const VIEWPORT_CLASS: Record<string, string> = {
 }
 
 export function ReportViewer() {
-  const { report, viewport } = useReportStore()
-  const { target, clear } = useSelectedElementStore()
+  const { brand, pages, viewport } = useReportStore()
+  const { path, clear } = useSelectedElementStore()
   const reset = useAgentStore((s) => s.reset)
   const router = useRouter()
 
-  // Apply viewport class to body
   useEffect(() => {
     const cls = VIEWPORT_CLASS[viewport]
     document.body.classList.remove(...Object.values(VIEWPORT_CLASS))
@@ -33,16 +32,15 @@ export function ReportViewer() {
     }
   }, [viewport])
 
-  const navLinks = report.sections.map((s) => ({
-    href: `#${s.id}`,
-    label: s.kicker.split(' · ')[1] ?? s.kicker,
+  const navLinks = pages.map((p) => ({
+    href: `#${p.id}`,
+    label: p.sectionLabel,
   }))
 
-  const panelOpen = Boolean(target)
+  const panelOpen = Boolean(path)
 
   return (
     <>
-      {/* Viewport switcher bar */}
       <div
         style={{
           position: 'fixed',
@@ -90,19 +88,7 @@ export function ReportViewer() {
         <ViewportSwitcher />
       </div>
 
-      <ReportNav brand={report.brand} links={navLinks} />
-
-      {/* Backdrop click to deselect */}
-      {panelOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 190,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
+      <ReportNav brand={brand} links={navLinks} />
 
       <main
         style={{
@@ -110,15 +96,14 @@ export function ReportViewer() {
           transition: 'padding-right 0.2s ease',
         }}
         onClick={(e) => {
-          // Deselect when clicking the main area (not an editable element)
-          const target = e.target as HTMLElement
-          if (!target.closest('.editable-text') && !target.closest('[data-inspector]')) {
+          const t = e.target as HTMLElement
+          if (!t.closest('.editable-text') && !t.closest('[data-inspector]')) {
             clear()
           }
         }}
       >
-        {report.sections.map((section) => (
-          <PageRenderer key={section.id} section={section} />
+        {pages.map((page) => (
+          <PageRenderer key={page.id} page={page} />
         ))}
       </main>
 
