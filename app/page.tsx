@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
 
 export default function Home() {
-  redirect('/report/create/input')
+  redirect('/report/refactor')
 }

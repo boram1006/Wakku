@@ -136,13 +136,23 @@ export function InputForm({ onSubmit }: Props) {
         {/* CTA */}
         <div className="wk-actions">
           <span className="hint">붙여넣은 자료는 분석에만 사용되며 별도로 저장되지 않습니다.</span>
-          <button
-            className="wk-btn wk-btn-primary"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-          >
-            자료 분석하기 ›
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <a
+              href="/report/refactor"
+              style={{ font: '500 14px/1 var(--font-kr)', color: 'var(--color-neutral-400)', textDecoration: 'none', letterSpacing: 'var(--tracking-tight)', whiteSpace: 'nowrap' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-primary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-neutral-400)')}
+            >
+              이미 HTML이 있다면 →
+            </a>
+            <button
+              className="wk-btn wk-btn-primary"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+            >
+              자료 분석하기 ›
+            </button>
+          </div>
         </div>
 
       </div>

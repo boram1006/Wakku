@@ -1,12 +1,13 @@
 /*
-  Report HTML Design System v1.1
+  Report HTML Design System v1.2
   Purpose: clean internal reporting pages with clear message hierarchy.
   Usage: include this CSS in your HTML or paste into a <style> tag.
 
-  v1.1 notes:
+  v1.2 notes:
   - Keeps AX Report Basic visual identity.
-  - Improves presentation readability for meeting room / executive reporting screens.
-  - Adds density presets and viewport presets without changing existing class names.
+  - Uses only 400/500/600/700 font weights. Do not use 800/900.
+  - Adds HTML-first interaction primitives for report-friendly toggles, reveals, and comparisons.
+  - Keeps density presets and viewport presets without changing existing class names.
 */
 
 :root {
@@ -43,7 +44,13 @@
   --report-grid-gap-sm: 24px;
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard, "Noto Sans KR", sans-serif;
+
+  --report-weight-regular: 400;
+  --report-weight-medium: 500;
+  --report-weight-semibold: 600;
+  --report-weight-bold: 700;
 }
+
 
 * { box-sizing: border-box; }
 
@@ -78,7 +85,7 @@ body {
 
 .report-brand {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
   letter-spacing: -0.01em;
 }
 
@@ -92,7 +99,7 @@ body {
   color: var(--report-text-muted);
   text-decoration: none;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--report-weight-semibold);
 }
 
 .report-nav-links a.is-active,
@@ -128,7 +135,7 @@ body {
   margin-bottom: 14px;
   color: var(--report-accent);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
   letter-spacing: 0.02em;
 }
 
@@ -145,7 +152,7 @@ body {
   font-size: 46px;
   line-height: 1.14;
   letter-spacing: -0.035em;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
 }
 
 .report-subtitle {
@@ -178,7 +185,7 @@ body {
   margin: 0;
   font-size: 22px;
   line-height: 1.34;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
   letter-spacing: -0.02em;
 }
 
@@ -193,7 +200,7 @@ body {
 .report-num {
   font-size: 64px;
   line-height: 1;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
   letter-spacing: -0.04em;
   color: var(--report-accent);
 }
@@ -201,7 +208,7 @@ body {
 .report-unit {
   margin-left: 4px;
   font-size: 22px;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
   color: var(--report-text);
 }
 
@@ -214,7 +221,7 @@ body {
   background: var(--report-bg-muted);
   color: var(--report-text-muted);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
 }
 
 .report-label.is-accent {
@@ -236,7 +243,7 @@ body {
 
 .report-row-label {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
   color: var(--report-text-muted);
 }
 
@@ -265,14 +272,14 @@ body {
 .report-step-num {
   color: var(--report-accent);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
   margin-bottom: 10px;
 }
 
 .report-step-title {
   font-size: 19px;
   line-height: 1.38;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
   letter-spacing: -0.02em;
 }
 
@@ -288,7 +295,7 @@ body {
   align-items: center;
   color: var(--report-text-soft);
   font-size: 22px;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
 }
 
 .report-callout {
@@ -298,7 +305,7 @@ body {
   padding: 20px 22px;
   font-size: 18px;
   line-height: 1.62;
-  font-weight: 500;
+  font-weight: var(--report-weight-medium);
 }
 
 .report-button {
@@ -313,7 +320,7 @@ body {
   color: var(--report-text);
   border-radius: 999px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--report-weight-bold);
   cursor: pointer;
 }
 
@@ -326,7 +333,141 @@ body {
 
 .report-muted { color: var(--report-text-muted); }
 .report-accent { color: var(--report-accent); }
-.report-strong { font-weight: 700; }
+.report-strong { font-weight: var(--report-weight-bold); }
+
+
+/* HTML-first interaction primitives
+   Use these only when they support the reporting flow:
+   - As-Is / To-Be comparison
+   - scope separation
+   - summary-to-detail evidence
+   - step-by-step reveal for demos or process explanation
+   Keep JS minimal and state class based: .is-active, .is-open, .is-hidden.
+*/
+.report-tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--report-border);
+  border-radius: 999px;
+  background: var(--report-bg-muted);
+}
+
+.report-tab {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--report-text-muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: var(--report-weight-bold);
+  cursor: pointer;
+}
+
+.report-tab.is-active,
+.report-tab[aria-selected="true"] {
+  background: var(--report-surface);
+  color: var(--report-accent);
+  box-shadow: var(--report-shadow-soft);
+}
+
+.report-panel { margin-top: 20px; }
+.report-panel.is-hidden,
+.report-hidden { display: none !important; }
+
+.report-disclosure {
+  border: 1px solid var(--report-border);
+  border-radius: var(--report-radius-lg);
+  background: var(--report-surface);
+  box-shadow: var(--report-shadow-soft);
+  overflow: hidden;
+}
+
+.report-disclosure-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 0 20px;
+  border: 0;
+  background: var(--report-surface);
+  color: var(--report-text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: var(--report-weight-bold);
+  text-align: left;
+  cursor: pointer;
+}
+
+.report-disclosure-toggle::after {
+  content: "+";
+  color: var(--report-accent);
+  font-size: 22px;
+  line-height: 1;
+  font-weight: var(--report-weight-bold);
+}
+
+.report-disclosure.is-open .report-disclosure-toggle::after { content: "–"; }
+
+.report-disclosure-body {
+  display: none;
+  padding: 0 20px 20px;
+  color: var(--report-text-muted);
+  font-size: 16px;
+  line-height: 1.62;
+}
+
+.report-disclosure.is-open .report-disclosure-body { display: block; }
+
+.report-compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--report-grid-gap);
+  align-items: stretch;
+}
+
+.report-compare-side {
+  border: 1px solid var(--report-border);
+  border-radius: var(--report-radius-lg);
+  background: var(--report-surface);
+  padding: var(--report-card-pad);
+}
+
+.report-compare-side.is-after {
+  border-color: var(--report-accent-line);
+  background: linear-gradient(180deg, var(--report-accent-soft), #fff 72%);
+}
+
+.report-reveal-group { display: grid; gap: 14px; }
+
+.report-reveal-item {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.report-reveal-item.is-hidden {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+}
+
+.report-interaction-note {
+  margin-top: 14px;
+  color: var(--report-text-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1200px) {
+  .report-compare { grid-template-columns: 1fr; }
+}
 
 /* Density presets
    Apply to body or a report root element:

@@ -1,5 +1,5 @@
 import type { ProjectInput, AgentQuestion } from '@/types/agent'
-import type { Storyline } from '@/types/storyline'
+import type { Storyline, StorylinePageRole } from '@/types/storyline'
 
 const uid = () => Math.random().toString(36).slice(2, 9)
 
@@ -11,6 +11,10 @@ function combined(input: ProjectInput): string {
 
 function hasNumber(text: string): boolean {
   return /(\d+\.?\d*)\s*(%|h|시간|건|개|명|만원|억)/.test(text)
+}
+
+function avoidBlocks(input: ProjectInput, pattern: RegExp): boolean {
+  return pattern.test(input.avoidPoints ?? '')
 }
 
 /**
@@ -25,6 +29,7 @@ export function generateStorylineQuestions(
   const qs: AgentQuestion[] = []
   const add = (q: AgentQuestion) => { if (qs.length < 3) qs.push(q) }
 
+  // Type-based primary question
   switch (storyline.type) {
     case 'execution':
       if (!hasNumber(text))
@@ -90,15 +95,28 @@ export function generateStorylineQuestions(
         })
       break
 
-    case 'alignment':
-      if (!/전사\s*전략|로드맵|상위\s*전략|OKR/.test(text))
-        add({
-          id: uid(),
-          question: '이 과제가 연결되는 전사 전략이나 상위 로드맵을 알려주세요.',
-          hint: '예: 2024 디지털 전환 로드맵 3단계, OKR 운영 효율화 목표',
-          multiline: false,
-        })
+    case 'alignment': {
+      if (!/전사\s*전략|로드맵|상위\s*전략|OKR/.test(text)) {
+        // avoidPoints가 전략 언급을 제한하는 경우 → 부드러운 옵션 질문으로 대체
+        const restrictsStrategy = avoidBlocks(input, /전사|전략|로드맵|OKR|상위/)
+        add(
+          restrictsStrategy
+            ? {
+                id: uid(),
+                question: '본 보고에서 간단히 언급할 상위 전략 연결 문구가 있다면 입력해주세요. 없다면 비워두셔도 됩니다.',
+                hint: '예: 운영 효율화 방향에 부합, 올해 핵심 과제 중 하나',
+                multiline: false,
+              }
+            : {
+                id: uid(),
+                question: '이 과제가 연결되는 전사 전략이나 상위 로드맵을 알려주세요.',
+                hint: '예: 2024 디지털 전환 로드맵 3단계, OKR 운영 효율화 목표',
+                multiline: false,
+              }
+        )
+      }
       break
+    }
 
     case 'problem-solution':
       if (!/핵심\s*문제|근본\s*원인|구조적/.test(text))
@@ -121,5 +139,57 @@ export function generateStorylineQuestions(
       break
   }
 
+  // Role-based supplement questions from pagePlan
+  addRoleBasedQuestions(storyline.pagePlan.map((p) => p.role), text, qs, add)
+
   return qs
+}
+
+function addRoleBasedQuestions(
+  roles: StorylinePageRole[],
+  text: string,
+  qs: AgentQuestion[],
+  add: (q: AgentQuestion) => void
+) {
+  // evidence role: ask for supporting data if none present
+  if (
+    roles.includes('evidence') &&
+    !hasNumber(text) &&
+    qs.every((q) => !/수치|데이터|근거/.test(q.question))
+  ) {
+    add({
+      id: uid(),
+      question: '제시할 근거 데이터나 수치가 있다면 알려주세요.',
+      hint: '예: 처리 건수, 소요 시간, 오류율 등',
+      multiline: false,
+    })
+  }
+
+  // next-step role: ask for follow-up plan if not mentioned
+  if (
+    roles.includes('next-step') &&
+    !/다음\s*단계|후속\s*조치|일정|착수/.test(text) &&
+    qs.every((q) => !/다음\s*단계|후속/.test(q.question))
+  ) {
+    add({
+      id: uid(),
+      question: '보고 이후 다음 단계나 후속 조치 계획이 있다면 알려주세요.',
+      hint: '예: 다음 달 파일럿 착수, 2주 내 담당자 지정',
+      multiline: false,
+    })
+  }
+
+  // risk role: ask for risk factors if not covered by type switch
+  if (
+    roles.includes('risk') &&
+    !/리스크|위험|우려|주의/.test(text) &&
+    qs.every((q) => !/리스크|위험/.test(q.question))
+  ) {
+    add({
+      id: uid(),
+      question: '추진 시 예상되는 주요 리스크나 제약 조건을 알려주세요.',
+      hint: '예: 담당자 부재, 예산 제약, 일정 압박',
+      multiline: false,
+    })
+  }
 }
