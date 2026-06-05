@@ -13,6 +13,14 @@ try {
   DS_CSS = '/* design system not found */'
 }
 
+// CSS class list only (no values) — gives gpt-4o enough context without bloating its output
+const DS_CLASS_SUMMARY = DS_CSS
+  .split('\n')
+  .filter((l) => l.trim().startsWith('.report-'))
+  .map((l) => l.trim().replace(/\s*\{.*/, ''))
+  .filter(Boolean)
+  .join(', ')
+
 const RESTRUCTURE_PROMPT = (html: string) => `당신은 사내 보고자료 HTML 전문가입니다.
 아래 원본 HTML을 Report HTML Design System v1.2 기준으로 재구성하세요.
 
@@ -42,10 +50,9 @@ const RESTRUCTURE_PROMPT = (html: string) => `당신은 사내 보고자료 HTML
 - 의미 없는 hover 효과, 자동 재생 애니메이션은 제거한다.
 - JS는 classList.toggle 방식으로만 작성한다.
 
-## 사용 가능한 CSS 클래스 (아래만 사용할 것)
-\`\`\`css
-${DS_CSS}
-\`\`\`
+## 사용 가능한 CSS 클래스
+다음 클래스들을 사용하라 (디자인 시스템 CSS는 자동으로 주입됨):
+${DS_CLASS_SUMMARY}
 
 ## 개선 체크리스트
 - 중복 CSS 제거
@@ -64,7 +71,9 @@ ${html}
 
 ## 출력 지침
 - 완성된 단일 HTML 파일만 출력하세요. 설명 텍스트는 절대 포함하지 마세요.
-- <style> 태그에 위의 CSS 전체를 포함하세요.
+- <head> 안에 반드시 다음 한 줄을 포함하세요: <link rel="stylesheet" href="/ds.css">
+- 디자인 시스템 CSS를 <style> 태그에 직접 넣지 마세요. 위 link 태그로 로드합니다.
+- 원본 HTML의 커스텀 스타일은 별도 <style> 태그에 유지하세요.
 - 필요한 JS는 <script> 태그에 최소한으로 작성하세요.
 - 결과는 반드시 <!DOCTYPE html>로 시작하는 완전한 HTML이어야 합니다.`
 

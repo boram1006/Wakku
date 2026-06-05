@@ -60,13 +60,23 @@ export default function RefactorPage() {
         setStreamedChars(accumulated.length)
       }
 
+      // Strip markdown code fences if present
+      const stripped = accumulated.replace(/^```(?:html)?\s*/i, '').replace(/\s*```\s*$/, '')
+
       const htmlMatch =
-        accumulated.match(/<!DOCTYPE\s+html[\s\S]*<\/html>/i) ??
-        accumulated.match(/<html[\s\S]*<\/html>/i)
+        stripped.match(/<!DOCTYPE\s+html[\s\S]*/i)?.[0] ??
+        stripped.match(/<html[\s\S]*/i)?.[0]
 
       if (!htmlMatch) throw new Error('유효한 HTML을 추출할 수 없습니다.')
 
-      setResult(htmlMatch[0])
+      // Close unclosed tags if response was truncated
+      let finalHtml = htmlMatch
+      if (!/\<\/html\>/i.test(finalHtml)) {
+        if (!/\<\/body\>/i.test(finalHtml)) finalHtml += '\n</body>'
+        finalHtml += '\n</html>'
+      }
+
+      setResult(finalHtml)
       setStage('done')
     } catch (e) {
       setError(String(e))
@@ -82,8 +92,19 @@ export default function RefactorPage() {
     reader.readAsText(file, 'utf-8')
   }
 
-  function handleDownload() {
-    const blob = new Blob([result], { type: 'text/html;charset=utf-8' })
+  async function handleDownload() {
+    let downloadHtml = result
+    // Fetch DS CSS and inline it so the file works standalone
+    try {
+      const cssText = await fetch('/ds.css').then((r) => r.text())
+      downloadHtml = downloadHtml.replace(
+        /<link[^>]+href="\/ds\.css"[^>]*>/i,
+        `<style>\n${cssText}\n</style>`,
+      )
+    } catch {
+      // If fetch fails, leave the link tag as-is
+    }
+    const blob = new Blob([downloadHtml], { type: 'text/html;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url

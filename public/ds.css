@@ -1,0 +1,586 @@
+/*
+  Report HTML Design System v1.2
+  Purpose: clean internal reporting pages with clear message hierarchy.
+  Usage: include this CSS in your HTML or paste into a <style> tag.
+
+  v1.2 notes:
+  - Keeps AX Report Basic visual identity.
+  - Uses only 400/500/600/700 font weights. Do not use 800/900.
+  - Adds HTML-first interaction primitives for report-friendly toggles, reveals, and comparisons.
+  - Keeps density presets and viewport presets without changing existing class names.
+*/
+
+:root {
+  --report-accent: #FD312E;
+  --report-accent-soft: rgba(253, 49, 46, 0.08);
+  --report-accent-line: rgba(253, 49, 46, 0.24);
+
+  --report-bg: #FFFFFF;
+  --report-bg-muted: #F7F8F9;
+  --report-surface: #FFFFFF;
+  --report-surface-strong: #111827;
+
+  --report-text: #111111;
+  --report-text-muted: #6B7280;
+  --report-text-soft: #9CA3AF;
+
+  --report-border: #E5E7EB;
+  --report-border-strong: #D1D5DB;
+
+  --report-radius-sm: 10px;
+  --report-radius-md: 14px;
+  --report-radius-lg: 18px;
+  --report-radius-xl: 24px;
+
+  --report-shadow-card: 0 8px 24px rgba(17, 24, 39, 0.06);
+  --report-shadow-soft: 0 4px 14px rgba(17, 24, 39, 0.04);
+
+  --report-width: 1720px;
+  --report-pad-x: 60px;
+  --report-section-y: 92px;
+  --report-card-pad: 32px;
+  --report-card-gap: 28px;
+  --report-grid-gap: 28px;
+  --report-grid-gap-sm: 24px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard, "Noto Sans KR", sans-serif;
+
+  --report-weight-regular: 400;
+  --report-weight-medium: 500;
+  --report-weight-semibold: 600;
+  --report-weight-bold: 700;
+}
+
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--report-text);
+  background: var(--report-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.report-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--report-border);
+}
+
+.report-nav-inner {
+  width: min(var(--report-width), calc(100vw - 80px));
+  margin: 0 auto;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.report-brand {
+  font-size: 15px;
+  font-weight: var(--report-weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.report-nav-links {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+}
+
+.report-nav-links a {
+  color: var(--report-text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: var(--report-weight-semibold);
+}
+
+.report-nav-links a.is-active,
+.report-nav-links a:hover {
+  color: var(--report-accent);
+}
+
+.report-section {
+  width: 100%;
+  padding: var(--report-section-y) 0;
+  background: var(--report-bg);
+}
+
+.report-section.is-muted { background: var(--report-bg-muted); }
+
+.report-wrap {
+  width: min(var(--report-width), calc(100vw - 80px));
+  margin: 0 auto;
+}
+
+.report-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.report-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  color: var(--report-accent);
+  font-size: 14px;
+  font-weight: var(--report-weight-bold);
+  letter-spacing: 0.02em;
+}
+
+.report-kicker::before {
+  content: "";
+  width: 36px;
+  height: 2px;
+  background: var(--report-accent);
+  display: inline-block;
+}
+
+.report-title {
+  margin: 0;
+  font-size: 46px;
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+  font-weight: var(--report-weight-bold);
+}
+
+.report-subtitle {
+  margin: 18px 0 0;
+  color: var(--report-text-muted);
+  font-size: 20px;
+  line-height: 1.58;
+  letter-spacing: -0.01em;
+  max-width: 1100px;
+}
+
+.report-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--report-grid-gap); }
+.report-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--report-grid-gap); }
+.report-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--report-grid-gap-sm); }
+
+.report-card {
+  background: var(--report-surface);
+  border: 1px solid var(--report-border);
+  border-radius: var(--report-radius-lg);
+  box-shadow: var(--report-shadow-soft);
+  padding: var(--report-card-pad);
+}
+
+.report-card.is-emphasis {
+  border-color: var(--report-accent-line);
+  background: linear-gradient(180deg, var(--report-accent-soft), #fff 62%);
+}
+
+.report-card-title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.34;
+  font-weight: var(--report-weight-bold);
+  letter-spacing: -0.02em;
+}
+
+.report-card-desc {
+  margin: 12px 0 0;
+  color: var(--report-text-muted);
+  font-size: 17px;
+  line-height: 1.64;
+  letter-spacing: -0.01em;
+}
+
+.report-num {
+  font-size: 64px;
+  line-height: 1;
+  font-weight: var(--report-weight-bold);
+  letter-spacing: -0.04em;
+  color: var(--report-accent);
+}
+
+.report-unit {
+  margin-left: 4px;
+  font-size: 22px;
+  font-weight: var(--report-weight-bold);
+  color: var(--report-text);
+}
+
+.report-label {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--report-bg-muted);
+  color: var(--report-text-muted);
+  font-size: 14px;
+  font-weight: var(--report-weight-bold);
+}
+
+.report-label.is-accent {
+  background: var(--report-accent-soft);
+  color: var(--report-accent);
+}
+
+.report-split-row {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  padding: 16px 0;
+  border-top: 1px solid var(--report-border);
+}
+
+.report-split-row:first-child { border-top: 0; padding-top: 0; }
+.report-split-row:last-child { padding-bottom: 0; }
+
+.report-row-label {
+  font-size: 14px;
+  font-weight: var(--report-weight-bold);
+  color: var(--report-text-muted);
+}
+
+.report-row-text {
+  font-size: 17px;
+  line-height: 1.58;
+  color: var(--report-text);
+}
+
+.report-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 18px;
+}
+
+.report-step {
+  flex: 1;
+  min-height: 148px;
+  background: var(--report-surface);
+  border: 1px solid var(--report-border);
+  border-radius: var(--report-radius-md);
+  padding: 24px;
+  position: relative;
+}
+
+.report-step-num {
+  color: var(--report-accent);
+  font-size: 14px;
+  font-weight: var(--report-weight-bold);
+  margin-bottom: 10px;
+}
+
+.report-step-title {
+  font-size: 19px;
+  line-height: 1.38;
+  font-weight: var(--report-weight-bold);
+  letter-spacing: -0.02em;
+}
+
+.report-step-desc {
+  margin-top: 8px;
+  color: var(--report-text-muted);
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+
+.report-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--report-text-soft);
+  font-size: 22px;
+  font-weight: var(--report-weight-bold);
+}
+
+.report-callout {
+  border-left: 4px solid var(--report-accent);
+  background: var(--report-accent-soft);
+  border-radius: 0 var(--report-radius-md) var(--report-radius-md) 0;
+  padding: 20px 22px;
+  font-size: 18px;
+  line-height: 1.62;
+  font-weight: var(--report-weight-medium);
+}
+
+.report-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--report-border-strong);
+  background: #fff;
+  color: var(--report-text);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: var(--report-weight-bold);
+  cursor: pointer;
+}
+
+.report-button.is-active,
+.report-button:hover {
+  border-color: var(--report-accent-line);
+  color: var(--report-accent);
+  background: var(--report-accent-soft);
+}
+
+.report-muted { color: var(--report-text-muted); }
+.report-accent { color: var(--report-accent); }
+.report-strong { font-weight: var(--report-weight-bold); }
+
+
+/* HTML-first interaction primitives
+   Use these only when they support the reporting flow:
+   - As-Is / To-Be comparison
+   - scope separation
+   - summary-to-detail evidence
+   - step-by-step reveal for demos or process explanation
+   Keep JS minimal and state class based: .is-active, .is-open, .is-hidden.
+*/
+.report-tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--report-border);
+  border-radius: 999px;
+  background: var(--report-bg-muted);
+}
+
+.report-tab {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--report-text-muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: var(--report-weight-bold);
+  cursor: pointer;
+}
+
+.report-tab.is-active,
+.report-tab[aria-selected="true"] {
+  background: var(--report-surface);
+  color: var(--report-accent);
+  box-shadow: var(--report-shadow-soft);
+}
+
+.report-panel { margin-top: 20px; }
+.report-panel.is-hidden,
+.report-hidden { display: none !important; }
+
+.report-disclosure {
+  border: 1px solid var(--report-border);
+  border-radius: var(--report-radius-lg);
+  background: var(--report-surface);
+  box-shadow: var(--report-shadow-soft);
+  overflow: hidden;
+}
+
+.report-disclosure-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 0 20px;
+  border: 0;
+  background: var(--report-surface);
+  color: var(--report-text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: var(--report-weight-bold);
+  text-align: left;
+  cursor: pointer;
+}
+
+.report-disclosure-toggle::after {
+  content: "+";
+  color: var(--report-accent);
+  font-size: 22px;
+  line-height: 1;
+  font-weight: var(--report-weight-bold);
+}
+
+.report-disclosure.is-open .report-disclosure-toggle::after { content: "–"; }
+
+.report-disclosure-body {
+  display: none;
+  padding: 0 20px 20px;
+  color: var(--report-text-muted);
+  font-size: 16px;
+  line-height: 1.62;
+}
+
+.report-disclosure.is-open .report-disclosure-body { display: block; }
+
+.report-compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--report-grid-gap);
+  align-items: stretch;
+}
+
+.report-compare-side {
+  border: 1px solid var(--report-border);
+  border-radius: var(--report-radius-lg);
+  background: var(--report-surface);
+  padding: var(--report-card-pad);
+}
+
+.report-compare-side.is-after {
+  border-color: var(--report-accent-line);
+  background: linear-gradient(180deg, var(--report-accent-soft), #fff 72%);
+}
+
+.report-reveal-group { display: grid; gap: 14px; }
+
+.report-reveal-item {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.report-reveal-item.is-hidden {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+}
+
+.report-interaction-note {
+  margin-top: 14px;
+  color: var(--report-text-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1200px) {
+  .report-compare { grid-template-columns: 1fr; }
+}
+
+/* Density presets
+   Apply to body or a report root element:
+   <body class="report-density-presentation">
+   <main class="report-density-compact">...</main>
+*/
+.report-density-compact {
+  --report-section-y: 72px;
+  --report-card-pad: 24px;
+  --report-card-gap: 22px;
+  --report-grid-gap: 22px;
+  --report-grid-gap-sm: 18px;
+}
+
+.report-density-compact .report-title { font-size: 42px; }
+.report-density-compact .report-subtitle { font-size: 18px; }
+.report-density-compact .report-card-desc,
+.report-density-compact .report-row-text { font-size: 16px; }
+.report-density-compact .report-step-desc { font-size: 14.5px; }
+.report-density-compact .report-num { font-size: 56px; }
+
+.report-density-presentation {
+  --report-section-y: 104px;
+  --report-card-pad: 36px;
+  --report-card-gap: 32px;
+  --report-grid-gap: 32px;
+  --report-grid-gap-sm: 28px;
+}
+
+.report-density-presentation .report-title { font-size: 50px; }
+.report-density-presentation .report-subtitle { font-size: 21px; }
+.report-density-presentation .report-card-title { font-size: 23px; }
+.report-density-presentation .report-card-desc,
+.report-density-presentation .report-row-text { font-size: 18px; }
+.report-density-presentation .report-label,
+.report-density-presentation .report-row-label,
+.report-density-presentation .report-step-num { font-size: 14.5px; }
+.report-density-presentation .report-step-title { font-size: 20px; }
+.report-density-presentation .report-step-desc { font-size: 16px; }
+.report-density-presentation .report-num { font-size: 72px; }
+.report-density-presentation .report-callout { font-size: 19px; }
+
+/* Viewport presets
+   Use when exporting or previewing a fixed report size.
+   Example: <body class="report-viewport-1440">
+*/
+.report-viewport-1920 {
+  --report-width: 1720px;
+  --report-pad-x: 60px;
+}
+
+.report-viewport-1440 {
+  --report-width: 1240px;
+  --report-pad-x: 48px;
+  --report-section-y: 80px;
+  --report-card-pad: 28px;
+  --report-grid-gap: 24px;
+  --report-grid-gap-sm: 20px;
+}
+
+.report-viewport-1440 .report-title { font-size: 42px; }
+.report-viewport-1440 .report-subtitle { font-size: 18px; }
+.report-viewport-1440 .report-card-title { font-size: 20px; }
+.report-viewport-1440 .report-card-desc,
+.report-viewport-1440 .report-row-text { font-size: 16px; }
+.report-viewport-1440 .report-step-title { font-size: 18px; }
+.report-viewport-1440 .report-step-desc { font-size: 14.5px; }
+.report-viewport-1440 .report-num { font-size: 56px; }
+
+.report-viewport-1200 {
+  --report-width: 1080px;
+  --report-pad-x: 40px;
+  --report-section-y: 72px;
+  --report-card-pad: 26px;
+  --report-grid-gap: 22px;
+  --report-grid-gap-sm: 18px;
+}
+
+.report-viewport-1200 .report-title { font-size: 38px; }
+.report-viewport-1200 .report-subtitle { font-size: 17px; }
+.report-viewport-1200 .report-card-title { font-size: 19px; }
+.report-viewport-1200 .report-card-desc,
+.report-viewport-1200 .report-row-text { font-size: 15.5px; }
+.report-viewport-1200 .report-step-title { font-size: 17px; }
+.report-viewport-1200 .report-step-desc { font-size: 14px; }
+.report-viewport-1200 .report-num { font-size: 52px; }
+
+@media (max-width: 1500px) {
+  :root {
+    --report-width: 1240px;
+    --report-pad-x: 48px;
+    --report-section-y: 80px;
+    --report-card-pad: 28px;
+    --report-grid-gap: 24px;
+    --report-grid-gap-sm: 20px;
+  }
+
+  .report-title { font-size: 42px; }
+  .report-subtitle { font-size: 18px; }
+  .report-card-title { font-size: 20px; }
+  .report-card-desc,
+  .report-row-text { font-size: 16px; }
+  .report-step-title { font-size: 18px; }
+  .report-step-desc { font-size: 14.5px; }
+  .report-num { font-size: 56px; }
+}
+
+
+@media (max-width: 1200px) {
+  .report-wrap, .report-nav-inner { width: calc(100vw - 48px); }
+  .report-grid-2, .report-grid-3, .report-grid-4 { grid-template-columns: 1fr; }
+  .report-head { grid-template-columns: 1fr; }
+  .report-title { font-size: 36px; }
+  .report-flow { flex-direction: column; }
+  .report-arrow { justify-content: center; transform: rotate(90deg); }
+}
