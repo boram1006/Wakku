@@ -4,7 +4,7 @@ import type { Storyline } from '@/types/storyline'
 const uid = () => Math.random().toString(36).slice(2, 9)
 
 function combined(input: ProjectInput): string {
-  return [input.reportTitle, input.currentSituation, input.reportGoal, input.sourceText]
+  return [input.reportTitle, input.reportContext, input.reportGoal, input.referenceMaterial]
     .filter(Boolean)
     .join('\n')
 }

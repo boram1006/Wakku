@@ -44,9 +44,9 @@ export function InputForm({ onSubmit }: Props) {
     if (!canSubmit) return
     onSubmit({
       reportTitle: title.trim(),
-      currentSituation: context.trim() || undefined,
+      reportContext: context.trim() || undefined,
       reportGoal: goal.trim() || undefined,
-      sourceText: source.trim() || undefined,
+      referenceMaterial: source.trim() || undefined,
       avoidPoints: avoid.trim() || undefined,
     })
   }

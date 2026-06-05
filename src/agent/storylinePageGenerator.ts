@@ -83,7 +83,7 @@ function buildHookBlocks(input: ProjectInput, answers: AgentAnswers): ReportBloc
     {
       id: uid(), type: 'card', meta: '배경',
       title: '이 보고가 지금 필요한 이유',
-      body: input.currentSituation ?? `${input.reportTitle}에 대한 의사결정이 필요한 시점입니다.`,
+      body: input.reportContext ?? `${input.reportTitle}에 대한 의사결정이 필요한 시점입니다.`,
     },
     {
       id: uid(), type: 'card', meta: '판단 지점',
@@ -117,8 +117,8 @@ function buildScopeBlocks(input: ProjectInput, answers: AgentAnswers): ReportBlo
 }
 
 function buildContextBlocks(input: ProjectInput, storyline: Storyline): ReportBlock[] {
-  const situation = input.currentSituation ?? ''
-  const lines = extractLines([input.sourceText, situation].filter(Boolean).join('\n'))
+  const situation = input.reportContext ?? ''
+  const lines = extractLines([input.referenceMaterial, situation].filter(Boolean).join('\n'))
 
   return [
     {
@@ -140,7 +140,7 @@ function buildContextBlocks(input: ProjectInput, storyline: Storyline): ReportBl
 }
 
 function buildProblemBlocks(input: ProjectInput): ReportBlock[] {
-  const text = [input.sourceText, input.currentSituation].filter(Boolean).join('\n')
+  const text = [input.referenceMaterial, input.reportContext].filter(Boolean).join('\n')
   const lines = extractLines(text)
   const problemLines = pickBy(lines, RE_PROBLEM)
 
@@ -154,7 +154,7 @@ function buildProblemBlocks(input: ProjectInput): ReportBlock[] {
     }))
   }
 
-  const situation = input.currentSituation ?? ''
+  const situation = input.reportContext ?? ''
   return [
     {
       id: uid(), type: 'card', meta: 'Problem 01',
@@ -177,7 +177,7 @@ function buildProblemBlocks(input: ProjectInput): ReportBlock[] {
 }
 
 function buildEvidenceBlocks(input: ProjectInput): ReportBlock[] {
-  const text = [input.sourceText, input.currentSituation, input.reportGoal].filter(Boolean).join('\n')
+  const text = [input.referenceMaterial, input.reportContext, input.reportGoal].filter(Boolean).join('\n')
   const kpis = extractKpis(text)
 
   if (kpis.length >= 3) {
@@ -199,7 +199,7 @@ function buildEvidenceBlocks(input: ProjectInput): ReportBlock[] {
 }
 
 function buildExecutionBlocks(input: ProjectInput, storyline: Storyline): ReportBlock[] {
-  const text = [input.sourceText, input.currentSituation].filter(Boolean).join('\n')
+  const text = [input.referenceMaterial, input.reportContext].filter(Boolean).join('\n')
   const lines = extractLines(text)
   const solutionLines = pickBy(lines, RE_SOLUTION)
   const steps = solutionLines.length >= 2 ? solutionLines : storyline.narrativeFlow.slice(0, 3)
@@ -224,7 +224,7 @@ function buildExecutionBlocks(input: ProjectInput, storyline: Storyline): Report
 }
 
 function buildEffectBlocks(input: ProjectInput): ReportBlock[] {
-  const text = [input.sourceText, input.currentSituation, input.reportGoal].filter(Boolean).join('\n')
+  const text = [input.referenceMaterial, input.reportContext, input.reportGoal].filter(Boolean).join('\n')
   const lines = extractLines(text)
   const effectLines = pickBy(lines, RE_EFFECT)
 
@@ -233,7 +233,7 @@ function buildEffectBlocks(input: ProjectInput): ReportBlock[] {
       id: uid(), type: 'card', meta: '직접 효과',
       title: (effectLines[0] ?? '즉시 측정 가능한 효과').slice(0, 22),
       body: effectLines[0]
-        ?? (input.currentSituation
+        ?? (input.reportContext
           ? `${input.reportTitle} 적용으로 반복 업무와 리드타임 단축이 직접 확인됩니다.`
           : '현재 적용 범위 기준의 직접 절감 효과입니다.'),
     },
@@ -247,7 +247,7 @@ function buildEffectBlocks(input: ProjectInput): ReportBlock[] {
 }
 
 function buildToBeBlocks(input: ProjectInput, answers: AgentAnswers, storyline: Storyline): ReportBlock[] {
-  const text = [input.sourceText, input.currentSituation].filter(Boolean).join('\n')
+  const text = [input.referenceMaterial, input.reportContext].filter(Boolean).join('\n')
   const lines = extractLines(text)
   const solutionLines = pickBy(lines, RE_SOLUTION)
   const core = answers.core_improvement ?? input.reportGoal ?? ''
@@ -269,7 +269,7 @@ function buildToBeBlocks(input: ProjectInput, answers: AgentAnswers, storyline: 
 }
 
 function buildTimelineBlocks(input: ProjectInput, storyline: Storyline): ReportBlock[] {
-  const text = [input.sourceText, input.currentSituation].filter(Boolean).join('\n')
+  const text = [input.referenceMaterial, input.reportContext].filter(Boolean).join('\n')
   const lines = extractLines(text)
   const timelineLines = pickBy(lines, RE_TIMELINE)
 

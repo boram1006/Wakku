@@ -53,11 +53,11 @@ export async function POST(req: NextRequest) {
 
 ## 입력 정보
 - 보고 제목: ${input.reportTitle}
-${input.currentSituation ? `- 보고 맥락: ${input.currentSituation}` : ''}
+${input.reportContext ? `- 보고 맥락: ${input.reportContext}` : ''}
 ${input.reportGoal ? `- 핵심 목표: ${input.reportGoal}` : ''}
 ${input.avoidPoints ? `- 피해야 할 내용: ${input.avoidPoints}` : ''}
 - 원본 자료:
-${input.sourceText ?? '(없음)'}
+${input.referenceMaterial ?? '(없음)'}
 
 ## 추가 답변
 ${answersText || '(없음)'}

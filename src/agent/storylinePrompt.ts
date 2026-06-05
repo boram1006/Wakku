@@ -48,7 +48,7 @@ export function buildStorylinePrompt(
   // ── 입력 정보 (우선순위 순서로 배치) ──────────────────────────────────────
   const goalText = input.reportGoal?.trim()
     ? input.reportGoal.trim()
-    : '(미입력 — 입력이 없으면 currentSituation과 reportTitle에서 의도를 추론하되, 구조는 보수적으로 잡으세요)'
+    : '(미입력 — 입력이 없으면 reportContext과 reportTitle에서 의도를 추론하되, 구조는 보수적으로 잡으세요)'
 
   const avoidText = input.avoidPoints?.trim()
     ? input.avoidPoints.trim()
@@ -65,10 +65,10 @@ export function buildStorylinePrompt(
     input.reportTitle,
     ``,
     `### ④ 보고 맥락 (현재 상황 / 배경)`,
-    input.currentSituation?.trim() || '(미입력)',
+    input.reportContext?.trim() || '(미입력)',
     ``,
     `### ⑤ 참고 자료 (구조 보강용)`,
-    input.sourceText?.trim() ? input.sourceText.slice(0, 2000) : '(없음)',
+    input.referenceMaterial?.trim() ? input.referenceMaterial.slice(0, 2000) : '(없음)',
   ]
   parts.push(`## 입력 정보\n\n${inputLines.join('\n')}`)
 
@@ -97,7 +97,7 @@ export function buildStorylinePrompt(
    - 같은 **type**을 2개 이상 사용하지 마세요.
 
 3. **첫 번째 카드는 핵심 목표에 가장 직접적으로 응답하는 구조**여야 합니다.
-   - 핵심 목표가 미입력인 경우: reportTitle과 currentSituation에서 의도를 추론해 가장 자연스러운 구조를 첫 번째로 배치하세요.
+   - 핵심 목표가 미입력인 경우: reportTitle과 reportContext에서 의도를 추론해 가장 자연스러운 구조를 첫 번째로 배치하세요.
 
 4. **피해야 할 내용은 모든 카드에서 완전히 제외하세요.**
    - pagePlan message, narrativeFlow, keyMessage, name 어디에도 포함되면 안 됩니다.

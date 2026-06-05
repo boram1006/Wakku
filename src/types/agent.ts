@@ -2,10 +2,9 @@ import type { LayoutType } from './report'
 
 export interface ProjectInput {
   reportTitle: string
-  /** 현재 상황 / 배경 / 왜 이 보고가 필요한지 */
-  currentSituation?: string
+  reportContext?: string
   reportGoal?: string
-  sourceText?: string
+  referenceMaterial?: string
   avoidPoints?: string
 }
 

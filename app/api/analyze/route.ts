@@ -11,9 +11,9 @@ export async function POST(req: NextRequest) {
 
 입력 정보:
 - 보고 제목: ${input.reportTitle}
-${input.currentSituation ? `- 보고 맥락: ${input.currentSituation}` : ''}
+${input.reportContext ? `- 보고 맥락: ${input.reportContext}` : ''}
 ${input.reportGoal ? `- 핵심 목표: ${input.reportGoal}` : ''}
-${input.sourceText ? `- 원본 자료:\n${input.sourceText}` : ''}
+${input.referenceMaterial ? `- 원본 자료:\n${input.referenceMaterial}` : ''}
 ${input.avoidPoints ? `- 피해야 할 내용: ${input.avoidPoints}` : ''}
 
 다음을 분석해 JSON으로 응답하세요. JSON 외에 다른 텍스트는 절대 출력하지 마세요.

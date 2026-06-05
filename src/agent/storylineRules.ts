@@ -63,7 +63,7 @@ export const STORYLINE_RULES: StorylineRule[] = [
   {
     id: 'SM04',
     category: 'message',
-    rule: 'currentSituation(현재 상황)은 이 보고가 왜 지금 필요한지, 보고 대상이 먼저 납득해야 할 전제를 담는 핵심 맥락이다.',
+    rule: 'reportContext(보고 맥락)은 이 보고가 왜 지금 필요한지, 보고 대상이 먼저 납득해야 할 전제를 담는 핵심 맥락이다.',
   },
   {
     id: 'SM05',

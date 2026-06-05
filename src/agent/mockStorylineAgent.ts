@@ -88,7 +88,7 @@ function buildReason(storyline: Storyline, input: ProjectInput): string {
   const goalSnippet = goal
     ? `"${goal.slice(0, 35)}${goal.length > 35 ? '…' : ''}"`
     : null
-  const situation = input.currentSituation?.trim()
+  const situation = input.reportContext?.trim()
   const sitSnippet = situation
     ? `"${situation.slice(0, 35)}${situation.length > 35 ? '…' : ''}"`
     : null
@@ -237,7 +237,7 @@ function selectTopThree(input: ProjectInput): StorylineType[] {
   // Score from situation + title only
   // alignment is intentionally excluded from this scoring (see scoreTypes)
   const secondaryText = [
-    input.currentSituation ?? '',
+    input.reportContext ?? '',
     input.reportTitle,
   ].join(' ')
   const scores = scoreTypes(secondaryText)
@@ -259,7 +259,7 @@ function selectTopThree(input: ProjectInput): StorylineType[] {
 
 function makeExecution(input: ProjectInput): Storyline {
   const title = input.reportTitle
-  const situation = input.currentSituation ?? '현재 진행 중인 과제'
+  const situation = input.reportContext ?? '현재 진행 중인 과제'
   const goal = input.reportGoal ?? '다음 단계 추진'
 
   const pagePlan: StorylinePagePlan[] = [
@@ -310,7 +310,7 @@ function makeExecution(input: ProjectInput): Storyline {
 
 function makeDecision(input: ProjectInput): Storyline {
   const title = input.reportTitle
-  const situation = input.currentSituation ?? '현재 상황'
+  const situation = input.reportContext ?? '현재 상황'
   const goal = input.reportGoal ?? '추진 방향 결정'
 
   const pagePlan: StorylinePagePlan[] = [
@@ -361,7 +361,7 @@ function makeDecision(input: ProjectInput): Storyline {
 
 function makeScopeClarification(input: ProjectInput): Storyline {
   const title = input.reportTitle
-  const situation = input.currentSituation ?? '보고 배경'
+  const situation = input.reportContext ?? '보고 배경'
 
   const pagePlan: StorylinePagePlan[] = [
     {
@@ -406,7 +406,7 @@ function makeScopeClarification(input: ProjectInput): Storyline {
 
 function makeRoi(input: ProjectInput): Storyline {
   const title = input.reportTitle
-  const situation = input.currentSituation ?? '현재 업무 구조'
+  const situation = input.reportContext ?? '현재 업무 구조'
   const goal = input.reportGoal ?? '효과 입증'
 
   const pagePlan: StorylinePagePlan[] = [
@@ -507,7 +507,7 @@ function makeDemo(input: ProjectInput): Storyline {
 
 function makeAlignment(input: ProjectInput): Storyline {
   const title = input.reportTitle
-  const situation = input.currentSituation ?? '전사 전략 맥락'
+  const situation = input.reportContext ?? '전사 전략 맥락'
 
   const pagePlan: StorylinePagePlan[] = [
     {
@@ -588,9 +588,9 @@ export async function previewStorylines(
   const agent = new MockStorylineAgent()
   const full: ProjectInput = {
     reportTitle: input.reportTitle,
-    currentSituation: input.currentSituation,
+    reportContext: input.reportContext,
     reportGoal: input.reportGoal,
-    sourceText: input.sourceText,
+    referenceMaterial: input.referenceMaterial,
     avoidPoints: input.avoidPoints,
   }
   const result = await agent.generateStorylines(full)
