@@ -47,6 +47,12 @@ export function PageShell({ children, step }: { children: React.ReactNode; step?
             <span className="lbl">보고자료 생성</span>
           </div>
         </div>
+        <a
+          href="/report/refactor"
+          style={{ font: '500 13px/1 var(--font-kr)', color: 'var(--color-neutral-400)', textDecoration: 'none', letterSpacing: 'var(--tracking-tight)', flexShrink: 0 }}
+        >
+          HTML 재구성
+        </a>
       </header>
       {children}
     </div>

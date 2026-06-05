@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { readFileSync } from 'fs'
 import { join } from 'path'
-
-const client = new Anthropic()
 
 // Load design system CSS at module init (server-side only)
 let DS_CSS = ''
@@ -51,16 +49,16 @@ ${DS_CSS}
 \`\`\`
 
 ## 개선 체크리스트
-- [ ] 중복 CSS 제거
-- [ ] 중복 JS 함수 정리
-- [ ] font-weight 800/900 → 700으로 교체
-- [ ] 섹션 배경이 전체 너비를 채우는지 확인
-- [ ] 카드 제목과 본문 중복 제거
-- [ ] 강조색 과다 사용 정리
-- [ ] 직접 효과와 간접 효과 위계 조정
-- [ ] 확정 범위와 후속 검토 범위 분리
-- [ ] 네비게이션 active 상태 버그 확인
-- [ ] HTML 인터랙션 적용 가능 지점 검토
+- 중복 CSS 제거
+- 중복 JS 함수 정리
+- font-weight 800/900 → 700으로 교체
+- 섹션 배경이 전체 너비를 채우는지 확인
+- 카드 제목과 본문 중복 제거
+- 강조색 과다 사용 정리
+- 직접 효과와 간접 효과 위계 조정
+- 확정 범위와 후속 검토 범위 분리
+- 네비게이션 active 상태 버그 확인
+- HTML 인터랙션 적용 가능 지점 검토
 
 ## 원본 HTML
 ${html}
@@ -82,16 +80,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'HTML이 너무 큽니다. 200,000자 이하로 입력하세요.' }, { status: 400 })
   }
 
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }, { status: 500 })
+  }
+
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 16000,
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o',
       messages: [{ role: 'user', content: RESTRUCTURE_PROMPT(html) }],
+      temperature: 0.3,
+      max_tokens: 16000,
     })
 
-    const text = message.content[0].type === 'text' ? message.content[0].text : ''
+    const text = completion.choices[0]?.message?.content ?? ''
 
-    // Extract full HTML document from response
     const htmlMatch =
       text.match(/<!DOCTYPE\s+html[\s\S]*<\/html>/i) ??
       text.match(/<html[\s\S]*<\/html>/i)
