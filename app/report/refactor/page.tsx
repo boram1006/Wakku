@@ -62,6 +62,17 @@ export default function RefactorPage() {
     <main style={{ display: 'flex', justifyContent: 'center', padding: '72px 32px 120px', minHeight: '100vh' }}>
       <div style={{ width: '100%', maxWidth: 860 }}>
 
+        {/* 상단 네비 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 44 }}>
+          <a href="/report/create" style={{ font: '700 15px/1 var(--font-kr)', color: 'var(--color-neutral-900)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>W</span>
+            <span>Wakku</span>
+          </a>
+          <a href="/report/create" style={{ font: '500 13px/1 var(--font-kr)', color: 'var(--color-neutral-400)', textDecoration: 'none' }}>
+            보고 구조 잡기 →
+          </a>
+        </div>
+
         {/* 헤더 */}
         <div style={{ marginBottom: 44 }}>
           <span className="wk-eyebrow">Design System v1.2</span>

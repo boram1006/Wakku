@@ -27,7 +27,7 @@ export function PageShell({ children, step }: { children: React.ReactNode; step?
   return (
     <div className="wk-page">
       <header className="wk-header">
-        <a className="wk-brand" href="/">
+        <a className="wk-brand" href="/report/create">
           <span className="mark">W</span>
           <span className="name">Wakku</span>
         </a>
