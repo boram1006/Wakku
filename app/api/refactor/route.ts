@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import OpenAI from 'openai'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-// Load design system CSS at module init (server-side only)
 let DS_CSS = ''
 try {
   DS_CSS = readFileSync(
@@ -73,40 +72,42 @@ export async function POST(req: NextRequest) {
   const { html }: { html: string } = await req.json()
 
   if (!html?.trim()) {
-    return NextResponse.json({ error: '입력 HTML이 없습니다.' }, { status: 400 })
+    return new Response(JSON.stringify({ error: '입력 HTML이 없습니다.' }), { status: 400 })
   }
 
   if (html.length > 200_000) {
-    return NextResponse.json({ error: 'HTML이 너무 큽니다. 200,000자 이하로 입력하세요.' }, { status: 400 })
+    return new Response(JSON.stringify({ error: 'HTML이 너무 큽니다. 200,000자 이하로 입력하세요.' }), { status: 400 })
   }
 
   if (!process.env.OPENAI_API_KEY) {
-    return NextResponse.json({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }, { status: 500 })
+    return new Response(JSON.stringify({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }), { status: 500 })
   }
 
-  try {
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-    const completion = await client.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [{ role: 'user', content: RESTRUCTURE_PROMPT(html) }],
-      temperature: 0.3,
-      max_tokens: 16000,
-    })
+  const stream = await client.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: RESTRUCTURE_PROMPT(html) }],
+    temperature: 0.3,
+    max_tokens: 16000,
+    stream: true,
+  })
 
-    const text = completion.choices[0]?.message?.content ?? ''
+  const encoder = new TextEncoder()
+  const readable = new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content ?? ''
+          if (text) controller.enqueue(encoder.encode(text))
+        }
+      } finally {
+        controller.close()
+      }
+    },
+  })
 
-    const htmlMatch =
-      text.match(/<!DOCTYPE\s+html[\s\S]*<\/html>/i) ??
-      text.match(/<html[\s\S]*<\/html>/i)
-
-    if (!htmlMatch) {
-      return NextResponse.json({ error: '유효한 HTML을 추출할 수 없습니다.', raw: text }, { status: 500 })
-    }
-
-    return NextResponse.json({ html: htmlMatch[0] })
-  } catch (e) {
-    console.error('refactor error:', e)
-    return NextResponse.json({ error: String(e) }, { status: 500 })
-  }
+  return new Response(readable, {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+  })
 }

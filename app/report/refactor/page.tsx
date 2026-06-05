@@ -27,6 +27,7 @@ export default function RefactorPage() {
   const [stage, setStage] = useState<Stage>('idle')
   const [error, setError] = useState('')
   const [viewport, setViewport] = useState<Viewport>('1920')
+  const [streamedChars, setStreamedChars] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function handleRefactor() {
@@ -34,6 +35,7 @@ export default function RefactorPage() {
     setStage('loading')
     setError('')
     setResult('')
+    setStreamedChars(0)
 
     try {
       const res = await fetch('/api/refactor', {
@@ -41,9 +43,30 @@ export default function RefactorPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ html }),
       })
-      const data = await res.json()
-      if (!res.ok || data.error) throw new Error(data.error ?? '알 수 없는 오류')
-      setResult(data.html)
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error ?? `HTTP ${res.status}`)
+      }
+
+      const reader = res.body!.getReader()
+      const decoder = new TextDecoder()
+      let accumulated = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        accumulated += decoder.decode(value, { stream: true })
+        setStreamedChars(accumulated.length)
+      }
+
+      const htmlMatch =
+        accumulated.match(/<!DOCTYPE\s+html[\s\S]*<\/html>/i) ??
+        accumulated.match(/<html[\s\S]*<\/html>/i)
+
+      if (!htmlMatch) throw new Error('유효한 HTML을 추출할 수 없습니다.')
+
+      setResult(htmlMatch[0])
       setStage('done')
     } catch (e) {
       setError(String(e))
@@ -160,9 +183,14 @@ export default function RefactorPage() {
 
             {stage === 'loading' && (
               <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid var(--color-neutral-100)', borderTopColor: 'var(--color-primary)', animation: 'wk-spin 0.8s linear infinite' }} />
+                <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid var(--color-neutral-100)', borderTopColor: 'var(--color-primary)', animation: 'wk-spin 0.8s linear infinite', flexShrink: 0 }} />
                 <span style={{ font: '400 14px/1 var(--font-kr)', color: 'var(--color-neutral-500)' }}>
                   디자인 시스템을 적용하고 있습니다…
+                  {streamedChars > 0 && (
+                    <span style={{ marginLeft: 8, color: 'var(--color-primary)', fontWeight: 600 }}>
+                      {streamedChars.toLocaleString()}자 수신 중
+                    </span>
+                  )}
                 </span>
               </div>
             )}
