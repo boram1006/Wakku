@@ -1,6 +1,7 @@
 'use client'
 
 import type { AnalysisResult, AgentAnswers } from '@/types/agent'
+import type { Storyline, StorylinePageRole } from '@/types/storyline'
 
 const SECTION_LABEL: Record<string, string> = {
   scope: '보고 범위',
@@ -11,17 +12,34 @@ const SECTION_LABEL: Record<string, string> = {
   'effect-split': '기대효과',
 }
 
+const PAGE_ROLE_LABEL: Record<StorylinePageRole, string> = {
+  hook: '도입 / 핵심 메시지',
+  context: '맥락 / 배경',
+  scope: '보고 범위',
+  problem: '현황 / 문제점',
+  evidence: '근거 / 데이터',
+  decision: '결정 요청',
+  solution: '해결 방향',
+  effect: '기대효과',
+  'to-be': '개선 방향',
+  execution: '실행 계획',
+  risk: '리스크 관리',
+  'next-step': '다음 단계',
+  appendix: '부록',
+}
+
 interface Props {
   reportTitle: string
   analysis: AnalysisResult
+  selectedStoryline?: Storyline
   answers: AgentAnswers
   onAnswer: (id: string, value: string) => void
   onGenerate: () => void
   onBack: () => void
 }
 
-export function AgentQuestions({ reportTitle, analysis, answers, onAnswer, onGenerate, onBack }: Props) {
-  const { detectedLayouts, detectedKpis, questions } = analysis
+export function AgentQuestions({ reportTitle, analysis, selectedStoryline, answers, onAnswer, onGenerate, onBack }: Props) {
+  const { detectedKpis, questions } = analysis
 
   return (
     <main style={{ display: 'flex', justifyContent: 'center', padding: '72px 32px 120px' }}>
@@ -42,19 +60,40 @@ export function AgentQuestions({ reportTitle, analysis, answers, onAnswer, onGen
           </p>
         </div>
 
-        {/* 감지된 구조 카드 */}
+        {/* 보고 구조 카드 */}
         <div className="wk-struct-card" style={{ marginBottom: 44 }}>
-          <div className="wk-card-label">
-            감지된 페이지 구조 <span className="n">{detectedLayouts.length}페이지</span>
-          </div>
-          <div className="wk-struct">
-            {detectedLayouts.map((s, i) => (
-              <span key={s} className="wk-page-chip">
-                <span className="idx">{String(i + 1).padStart(2, '0')}</span>
-                <span className="nm">{SECTION_LABEL[s] ?? s}</span>
-              </span>
-            ))}
-          </div>
+          {selectedStoryline ? (
+            <>
+              <div className="wk-card-label">
+                선택한 보고 구조 <span className="n">{selectedStoryline.pagePlan.length}페이지</span>
+              </div>
+              <div className="wk-struct">
+                {selectedStoryline.pagePlan
+                  .slice()
+                  .sort((a, b) => a.order - b.order)
+                  .map((page) => (
+                    <span key={page.id} className="wk-page-chip">
+                      <span className="idx">{String(page.order).padStart(2, '0')}</span>
+                      <span className="nm">{PAGE_ROLE_LABEL[page.role] ?? page.role}</span>
+                    </span>
+                  ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="wk-card-label">
+                감지된 페이지 구조 <span className="n">{analysis.detectedLayouts.length}페이지</span>
+              </div>
+              <div className="wk-struct">
+                {analysis.detectedLayouts.map((s, i) => (
+                  <span key={s} className="wk-page-chip">
+                    <span className="idx">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="nm">{SECTION_LABEL[s] ?? s}</span>
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
 
           {detectedKpis.length > 0 && (
             <>
