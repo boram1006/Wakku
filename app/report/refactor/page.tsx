@@ -109,8 +109,10 @@ export default function RefactorPage() {
     const a = document.createElement('a')
     a.href = url
     a.download = 'report-v1.2.html'
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 100)
   }
 
   function handleCopy() {
