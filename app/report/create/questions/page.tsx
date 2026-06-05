@@ -8,7 +8,9 @@ import { PageShell } from '@/components/input/GeneratingScreen'
 
 export default function QuestionsPage() {
   const router = useRouter()
-  const { input, analysis, answers, setAnswer } = useAgentStore()
+  const { input, analysis, answers, storylines, selectedStorylineId, setAnswer } = useAgentStore()
+
+  const selectedStoryline = storylines.find((s) => s.id === selectedStorylineId)
 
   useEffect(() => {
     if (!input || !analysis || analysis.questions.length === 0) {
@@ -23,6 +25,7 @@ export default function QuestionsPage() {
       <AgentQuestions
         reportTitle={input.reportTitle}
         analysis={analysis}
+        selectedStoryline={selectedStoryline}
         answers={answers}
         onAnswer={setAnswer}
         onGenerate={() => router.push('/report/create/generating')}
