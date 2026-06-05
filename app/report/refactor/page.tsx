@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 
-type Stage = 'idle' | 'loading' | 'done' | 'error'
+type Stage = 'idle' | 'loading' | 'done' | 'truncated' | 'error'
 type Viewport = '1920' | '1440' | '1200'
 
 const VIEWPORTS: Viewport[] = ['1920', '1440', '1200']
@@ -70,15 +70,21 @@ export default function RefactorPage() {
 
       if (!htmlMatch) throw new Error('유효한 HTML을 추출할 수 없습니다.')
 
-      // Close unclosed tags if response was truncated
+      // If truncated, preserve original script tags so interactivity isn't lost
       let finalHtml = htmlMatch
-      if (!/\<\/html\>/i.test(finalHtml)) {
+      const wasTruncated = !/\<\/html\>/i.test(finalHtml)
+      if (wasTruncated) {
+        const originalScripts = [...html.matchAll(/<script[\s\S]*?<\/script>/gi)].map((m) => m[0])
+        const resultHasScript = /<script/i.test(finalHtml)
+        if (originalScripts.length > 0 && !resultHasScript) {
+          finalHtml += '\n' + originalScripts.join('\n')
+        }
         if (!/\<\/body\>/i.test(finalHtml)) finalHtml += '\n</body>'
         finalHtml += '\n</html>'
       }
 
       setResult(finalHtml)
-      setStage('done')
+      setStage(wasTruncated ? 'truncated' : 'done')
     } catch (e) {
       setError(String(e))
       setStage('error')
@@ -220,8 +226,19 @@ export default function RefactorPage() {
         )}
 
         {/* 결과 */}
-        {stage === 'done' && (
+        {(stage === 'done' || stage === 'truncated') && (
           <div>
+            {/* 잘림 경고 */}
+            {stage === 'truncated' && (
+              <div style={{ marginBottom: 12, padding: '10px 16px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 16 }}>⚠️</span>
+                <span style={{ font: '500 13px/1.5 var(--font-kr)', color: '#92400E' }}>
+                  출력이 중간에 잘렸습니다. 원본의 스크립트는 자동으로 보존했지만 일부 내용이 누락됐을 수 있습니다.
+                  HTML이 크면 두 부분으로 나눠 입력해보세요.
+                </span>
+              </div>
+            )}
+
             {/* 툴바 */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               {/* 뷰포트 선택 — iframe 실제 너비를 변경 */}
@@ -255,7 +272,7 @@ export default function RefactorPage() {
 
               {/* 액션 버튼 */}
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="wk-btn wk-btn-ghost" style={{ height: 34, padding: '0 14px', fontSize: 13 }} onClick={() => { setStage('idle'); setResult('') }}>
+                <button className="wk-btn wk-btn-ghost" style={{ height: 34, padding: '0 14px', fontSize: 13 }} onClick={() => { setStage('idle'); setResult(''); setStreamedChars(0) }}>
                   ← 다시 입력
                 </button>
                 <button className="wk-btn wk-btn-ghost" style={{ height: 34, padding: '0 14px', fontSize: 13 }} onClick={handleCopy}>
