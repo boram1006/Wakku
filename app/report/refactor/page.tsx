@@ -1,25 +1,12 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 type Stage = 'idle' | 'loading' | 'done' | 'error'
 type Viewport = '1920' | '1440' | '1200'
 
 const VIEWPORTS: Viewport[] = ['1920', '1440', '1200']
-
-function injectViewportClass(html: string, viewport: Viewport): string {
-  const cls = `report-viewport-${viewport}`
-  const stripped = html.replace(/\breport-viewport-\d+\b/g, '').replace(/class="(\s*)"/g, 'class=""')
-  if (/<body([^>]*)>/i.test(stripped)) {
-    return stripped.replace(/<body([^>]*)>/i, (_, attrs: string) => {
-      if (/class=/i.test(attrs)) {
-        return `<body${attrs.replace(/class="([^"]*)"/i, (__, c) => `class="${(c.trim() + ' ' + cls).trim()}"`)}>`
-      }
-      return `<body${attrs} class="${cls}">`
-    })
-  }
-  return stripped
-}
+const VP_WIDTHS: Record<Viewport, number> = { '1920': 1920, '1440': 1440, '1200': 1200 }
 
 export default function RefactorPage() {
   const [html, setHtml] = useState('')
@@ -28,7 +15,21 @@ export default function RefactorPage() {
   const [error, setError] = useState('')
   const [viewport, setViewport] = useState<Viewport>('1920')
   const [streamedChars, setStreamedChars] = useState(0)
+  const [containerWidth, setContainerWidth] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = previewContainerRef.current
+    if (!el) return
+    const obs = new ResizeObserver(([e]) => setContainerWidth(e.contentRect.width))
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  const vpWidth = VP_WIDTHS[viewport]
+  const scale = containerWidth > 0 ? Math.min(1, containerWidth / vpWidth) : 1
+  const iframeHeight = scale > 0 ? `${82 / scale}vh` : '82vh'
 
   async function handleRefactor() {
     if (!html.trim()) return
@@ -94,7 +95,6 @@ export default function RefactorPage() {
 
   async function handleDownload() {
     let downloadHtml = result
-    // Fetch DS CSS and inline it so the file works standalone
     try {
       const cssText = await fetch('/ds.css').then((r) => r.text())
       downloadHtml = downloadHtml.replace(
@@ -102,7 +102,7 @@ export default function RefactorPage() {
         `<style>\n${cssText}\n</style>`,
       )
     } catch {
-      // If fetch fails, leave the link tag as-is
+      // leave link tag as-is if fetch fails
     }
     const blob = new Blob([downloadHtml], { type: 'text/html;charset=utf-8' })
     const url = URL.createObjectURL(blob)
@@ -121,7 +121,6 @@ export default function RefactorPage() {
 
   const charCount = html.length
   const overLimit = charCount > 200_000
-  const previewHtml = result ? injectViewportClass(result, viewport) : ''
 
   return (
     <main style={{
@@ -225,26 +224,33 @@ export default function RefactorPage() {
           <div>
             {/* 툴바 */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              {/* 뷰포트 선택 */}
-              <div style={{ display: 'inline-flex', gap: 4, padding: 4, background: 'var(--color-neutral-10)', border: '1px solid var(--color-neutral-100)', borderRadius: 999 }}>
-                {VIEWPORTS.map((vp) => (
-                  <button
-                    key={vp}
-                    onClick={() => setViewport(vp)}
-                    style={{
-                      height: 28, padding: '0 14px',
-                      border: 'none', borderRadius: 999,
-                      background: viewport === vp ? '#fff' : 'transparent',
-                      boxShadow: viewport === vp ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
-                      color: viewport === vp ? 'var(--color-primary)' : 'var(--color-neutral-400)',
-                      font: `${viewport === vp ? 700 : 500} 13px/1 var(--font-kr)`,
-                      cursor: 'pointer',
-                      transition: 'all 120ms',
-                    }}
-                  >
-                    {vp}
-                  </button>
-                ))}
+              {/* 뷰포트 선택 — iframe 실제 너비를 변경 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'inline-flex', gap: 4, padding: 4, background: 'var(--color-neutral-10)', border: '1px solid var(--color-neutral-100)', borderRadius: 999 }}>
+                  {VIEWPORTS.map((vp) => (
+                    <button
+                      key={vp}
+                      onClick={() => setViewport(vp)}
+                      style={{
+                        height: 28, padding: '0 14px',
+                        border: 'none', borderRadius: 999,
+                        background: viewport === vp ? '#fff' : 'transparent',
+                        boxShadow: viewport === vp ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
+                        color: viewport === vp ? 'var(--color-primary)' : 'var(--color-neutral-400)',
+                        font: `${viewport === vp ? 700 : 500} 13px/1 var(--font-kr)`,
+                        cursor: 'pointer',
+                        transition: 'all 120ms',
+                      }}
+                    >
+                      {vp}
+                    </button>
+                  ))}
+                </div>
+                {scale < 1 && (
+                  <span style={{ font: '400 11px/1 var(--font-kr)', color: 'var(--color-neutral-300)' }}>
+                    {Math.round(scale * 100)}% 축소
+                  </span>
+                )}
               </div>
 
               {/* 액션 버튼 */}
@@ -265,19 +271,32 @@ export default function RefactorPage() {
             <div style={{ border: '1px solid var(--color-neutral-100)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: 'var(--color-neutral-10)', borderBottom: '1px solid var(--color-neutral-100)' }}>
                 <span style={{ font: '400 12px/1 monospace', color: 'var(--color-neutral-300)' }}>
-                  report-v1.2.html
+                  {vpWidth}px 기준 미리보기
                 </span>
                 <span style={{ font: '400 11px/1 var(--font-kr)', color: 'var(--color-neutral-300)' }}>
                   {result.length.toLocaleString()}자
                 </span>
               </div>
-              <iframe
-                key={viewport}
-                srcDoc={previewHtml}
-                style={{ width: '100%', height: '82vh', border: 'none', display: 'block' }}
-                sandbox="allow-scripts allow-same-origin"
-                title="재구성된 HTML 보고서 미리보기"
-              />
+              {/* overflow:hidden + 실제 너비 고정 iframe → scale로 축소 */}
+              <div
+                ref={previewContainerRef}
+                style={{ overflow: 'hidden', height: '82vh', background: '#fff' }}
+              >
+                <iframe
+                  key={viewport}
+                  srcDoc={result}
+                  style={{
+                    width: vpWidth,
+                    height: iframeHeight,
+                    border: 'none',
+                    display: 'block',
+                    transform: `scale(${scale})`,
+                    transformOrigin: 'top left',
+                  }}
+                  sandbox="allow-scripts allow-same-origin"
+                  title="재구성된 HTML 보고서 미리보기"
+                />
+              </div>
             </div>
           </div>
         )}
