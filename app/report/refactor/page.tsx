@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 
-type Stage = 'idle' | 'loading' | 'done' | 'truncated' | 'error'
+type Stage = 'idle' | 'extracting' | 'generating' | 'done' | 'truncated' | 'error'
 type Viewport = '1920' | '1440' | '1200'
 
 const VIEWPORTS: Viewport[] = ['1920', '1440', '1200']
@@ -31,26 +31,42 @@ export default function RefactorPage() {
   const scale = containerWidth > 0 ? Math.min(1, containerWidth / vpWidth) : 1
   const iframeHeight = scale > 0 ? `${82 / scale}vh` : '82vh'
 
+  const isDone = stage === 'done' || stage === 'truncated'
+  const isWorking = stage === 'extracting' || stage === 'generating'
+
   async function handleRefactor() {
     if (!html.trim()) return
-    setStage('loading')
+    setStage('extracting')
     setError('')
     setResult('')
     setStreamedChars(0)
 
     try {
-      const res = await fetch('/api/refactor', {
+      // Stage 1: Extract content JSON
+      const extractRes = await fetch('/api/refactor/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ html }),
       })
+      if (!extractRes.ok) {
+        const data = await extractRes.json().catch(() => ({}))
+        throw new Error(data.error ?? `추출 실패 HTTP ${extractRes.status}`)
+      }
+      const extracted = await extractRes.json()
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.error ?? `HTTP ${res.status}`)
+      // Stage 2: Generate HTML (streaming)
+      setStage('generating')
+      const genRes = await fetch('/api/refactor/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: extracted }),
+      })
+      if (!genRes.ok) {
+        const data = await genRes.json().catch(() => ({}))
+        throw new Error(data.error ?? `생성 실패 HTTP ${genRes.status}`)
       }
 
-      const reader = res.body!.getReader()
+      const reader = genRes.body!.getReader()
       const decoder = new TextDecoder()
       let accumulated = ''
 
@@ -61,24 +77,17 @@ export default function RefactorPage() {
         setStreamedChars(accumulated.length)
       }
 
-      // Strip markdown code fences if present
+      // Strip markdown fences
       const stripped = accumulated.replace(/^```(?:html)?\s*/i, '').replace(/\s*```\s*$/, '')
-
       const htmlMatch =
         stripped.match(/<!DOCTYPE\s+html[\s\S]*/i)?.[0] ??
         stripped.match(/<html[\s\S]*/i)?.[0]
 
       if (!htmlMatch) throw new Error('유효한 HTML을 추출할 수 없습니다.')
 
-      // If truncated, preserve original script tags so interactivity isn't lost
       let finalHtml = htmlMatch
       const wasTruncated = !/\<\/html\>/i.test(finalHtml)
       if (wasTruncated) {
-        const originalScripts = [...html.matchAll(/<script[\s\S]*?<\/script>/gi)].map((m) => m[0])
-        const resultHasScript = /<script/i.test(finalHtml)
-        if (originalScripts.length > 0 && !resultHasScript) {
-          finalHtml += '\n' + originalScripts.join('\n')
-        }
         if (!/\<\/body\>/i.test(finalHtml)) finalHtml += '\n</body>'
         finalHtml += '\n</html>'
       }
@@ -102,13 +111,13 @@ export default function RefactorPage() {
   async function handleDownload() {
     let downloadHtml = result
     try {
-      const cssText = await fetch('/ds.css').then((r) => r.text())
+      const cssText = await fetch('/wakku-ds.css').then((r) => r.text())
       downloadHtml = downloadHtml.replace(
-        /<link[^>]+href="\/ds\.css"[^>]*>/i,
+        /<link[^>]+href="\/wakku-ds\.css"[^>]*>/i,
         `<style>\n${cssText}\n</style>`,
       )
     } catch {
-      // leave link tag as-is if fetch fails
+      // leave link tag as-is
     }
     const blob = new Blob([downloadHtml], { type: 'text/html;charset=utf-8' })
     const url = URL.createObjectURL(blob)
@@ -132,13 +141,13 @@ export default function RefactorPage() {
     <main style={{
       display: 'flex',
       justifyContent: 'center',
-      padding: stage === 'done' ? '40px 24px 80px' : '72px 32px 120px',
+      padding: isDone ? '40px 24px 80px' : '72px 32px 120px',
       minHeight: '100vh',
     }}>
-      <div style={{ width: '100%', maxWidth: stage === 'done' ? 'none' : 860 }}>
+      <div style={{ width: '100%', maxWidth: isDone ? 'none' : 860 }}>
 
         {/* 상단 네비 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: stage === 'done' ? 24 : 44 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isDone ? 24 : 44 }}>
           <a href="/report/create" style={{ font: '700 15px/1 var(--font-kr)', color: 'var(--color-neutral-900)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>W</span>
             <span>Wakku</span>
@@ -149,7 +158,7 @@ export default function RefactorPage() {
         </div>
 
         {/* 헤더 (입력 단계만) */}
-        {stage !== 'done' && (
+        {!isDone && (
           <div style={{ marginBottom: 44 }}>
             <span className="wk-eyebrow">Design System v1.2</span>
             <h1 style={{ margin: '0 0 14px', font: '700 36px/48px var(--font-kr)', letterSpacing: 'var(--tracking-tight)', color: 'var(--color-neutral-900)' }}>
@@ -157,13 +166,13 @@ export default function RefactorPage() {
             </h1>
             <p style={{ margin: 0, font: '400 16px/26px var(--font-kr)', color: 'var(--color-neutral-500)', letterSpacing: 'var(--tracking-tight)', maxWidth: 600 }}>
               기존 HTML 보고서를 붙여넣거나 파일을 올리면,
-              디자인 시스템 v1.2 기준으로 재구성합니다.
+              내용을 분석하고 Wakku DS 레이아웃으로 완전히 새로 재구성합니다.
             </p>
           </div>
         )}
 
         {/* 입력 영역 */}
-        {stage !== 'done' && (
+        {!isDone && (
           <div style={{ marginBottom: 32 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <label style={{ font: '600 13px/1 var(--font-kr)', color: 'var(--color-neutral-700)', letterSpacing: 'var(--tracking-caption)' }}>
@@ -202,23 +211,51 @@ export default function RefactorPage() {
               <button
                 className="wk-btn wk-btn-primary"
                 onClick={handleRefactor}
-                disabled={!html.trim() || overLimit || stage === 'loading'}
+                disabled={!html.trim() || overLimit || isWorking}
                 style={{ minWidth: 160 }}
               >
-                {stage === 'loading' ? '재구성 중…' : '재구성하기 ›'}
+                {isWorking
+                  ? stage === 'extracting' ? '내용 분석 중…' : 'HTML 생성 중…'
+                  : '재구성하기 ›'}
               </button>
             </div>
 
-            {stage === 'loading' && (
-              <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid var(--color-neutral-100)', borderTopColor: 'var(--color-primary)', animation: 'wk-spin 0.8s linear infinite', flexShrink: 0 }} />
-                <span style={{ font: '400 14px/1 var(--font-kr)', color: 'var(--color-neutral-500)' }}>
-                  디자인 시스템을 적용하고 있습니다…
-                  {streamedChars > 0 && (
-                    <span style={{ marginLeft: 8, color: 'var(--color-primary)', fontWeight: 600 }}>
-                      {streamedChars.toLocaleString()}자 수신 중
-                    </span>
-                  )}
+            {isWorking && (
+              <div style={{ marginTop: 28 }}>
+                {/* 2단계 진행 표시 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 14 }}>
+                  {(['extracting', 'generating'] as const).map((s, i) => {
+                    const done = s === 'extracting' && stage === 'generating'
+                    const active = stage === s
+                    return (
+                      <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{
+                          width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: done ? 'var(--color-primary)' : 'transparent',
+                          border: active ? '2px solid var(--color-primary)' : done ? 'none' : '2px solid var(--color-neutral-200)',
+                          borderTopColor: active ? 'transparent' : undefined,
+                          animation: active ? 'wk-spin 0.8s linear infinite' : 'none',
+                        }}>
+                          {done && <span style={{ color: '#fff', fontSize: 11 }}>✓</span>}
+                        </div>
+                        <span style={{
+                          font: `${active ? 600 : 400} 13px/1 var(--font-kr)`,
+                          color: done ? 'var(--color-primary)' : active ? 'var(--color-neutral-900)' : 'var(--color-neutral-300)',
+                        }}>
+                          {s === 'extracting' ? '내용 분석' : 'HTML 생성'}
+                        </span>
+                        {i === 0 && (
+                          <span style={{ margin: '0 10px', color: 'var(--color-neutral-200)', fontSize: 16 }}>→</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+                <span style={{ font: '400 13px/1 var(--font-kr)', color: 'var(--color-neutral-400)' }}>
+                  {stage === 'extracting'
+                    ? '보고서 내용을 구조화하고 있습니다…'
+                    : `디자인 시스템으로 재구성하고 있습니다… ${streamedChars > 0 ? streamedChars.toLocaleString() + '자 생성 중' : ''}`}
                 </span>
               </div>
             )}
@@ -226,22 +263,19 @@ export default function RefactorPage() {
         )}
 
         {/* 결과 */}
-        {(stage === 'done' || stage === 'truncated') && (
+        {isDone && (
           <div>
-            {/* 잘림 경고 */}
             {stage === 'truncated' && (
               <div style={{ marginBottom: 12, padding: '10px 16px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ fontSize: 16 }}>⚠️</span>
                 <span style={{ font: '500 13px/1.5 var(--font-kr)', color: '#92400E' }}>
-                  출력이 중간에 잘렸습니다. 원본의 스크립트는 자동으로 보존했지만 일부 내용이 누락됐을 수 있습니다.
-                  HTML이 크면 두 부분으로 나눠 입력해보세요.
+                  출력이 중간에 잘렸습니다. HTML이 크면 두 부분으로 나눠 입력해보세요.
                 </span>
               </div>
             )}
 
             {/* 툴바 */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              {/* 뷰포트 선택 — iframe 실제 너비를 변경 */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ display: 'inline-flex', gap: 4, padding: 4, background: 'var(--color-neutral-10)', border: '1px solid var(--color-neutral-100)', borderRadius: 999 }}>
                   {VIEWPORTS.map((vp) => (
@@ -249,14 +283,12 @@ export default function RefactorPage() {
                       key={vp}
                       onClick={() => setViewport(vp)}
                       style={{
-                        height: 28, padding: '0 14px',
-                        border: 'none', borderRadius: 999,
+                        height: 28, padding: '0 14px', border: 'none', borderRadius: 999,
                         background: viewport === vp ? '#fff' : 'transparent',
                         boxShadow: viewport === vp ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
                         color: viewport === vp ? 'var(--color-primary)' : 'var(--color-neutral-400)',
                         font: `${viewport === vp ? 700 : 500} 13px/1 var(--font-kr)`,
-                        cursor: 'pointer',
-                        transition: 'all 120ms',
+                        cursor: 'pointer', transition: 'all 120ms',
                       }}
                     >
                       {vp}
@@ -270,7 +302,6 @@ export default function RefactorPage() {
                 )}
               </div>
 
-              {/* 액션 버튼 */}
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className="wk-btn wk-btn-ghost" style={{ height: 34, padding: '0 14px', fontSize: 13 }} onClick={() => { setStage('idle'); setResult(''); setStreamedChars(0) }}>
                   ← 다시 입력
@@ -284,7 +315,7 @@ export default function RefactorPage() {
               </div>
             </div>
 
-            {/* iframe 컨테이너 */}
+            {/* iframe */}
             <div style={{ border: '1px solid var(--color-neutral-100)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: 'var(--color-neutral-10)', borderBottom: '1px solid var(--color-neutral-100)' }}>
                 <span style={{ font: '400 12px/1 monospace', color: 'var(--color-neutral-300)' }}>
@@ -294,7 +325,6 @@ export default function RefactorPage() {
                   {result.length.toLocaleString()}자
                 </span>
               </div>
-              {/* overflow:hidden + 실제 너비 고정 iframe → scale로 축소 */}
               <div
                 ref={previewContainerRef}
                 style={{ overflow: 'hidden', height: '82vh', background: '#fff' }}
@@ -303,12 +333,8 @@ export default function RefactorPage() {
                   key={viewport}
                   srcDoc={result}
                   style={{
-                    width: vpWidth,
-                    height: iframeHeight,
-                    border: 'none',
-                    display: 'block',
-                    transform: `scale(${scale})`,
-                    transformOrigin: 'top left',
+                    width: vpWidth, height: iframeHeight, border: 'none',
+                    display: 'block', transform: `scale(${scale})`, transformOrigin: 'top left',
                   }}
                   sandbox="allow-scripts allow-same-origin"
                   title="재구성된 HTML 보고서 미리보기"
