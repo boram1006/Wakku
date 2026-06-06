@@ -5,18 +5,21 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서에서 내용을 분석하여 JSON으로 반환하세요.
 
-## 섹션 type 종류
+⚠️ 핵심 원칙: 원본 HTML에 실제로 존재하는 섹션만 JSON에 포함하세요.
+없는 내용을 추가하거나, 섹션을 임의로 만들거나, 추론·추가하지 마세요.
+예) 원본에 일정(timeline)이 없으면 timeline 섹션을 생성하지 마세요.
+예) 원본에 R&R(org)이 없으면 org 섹션을 생성하지 마세요.
+
+## 섹션 type 종류 (원본에 있는 것만 사용)
 - "cover"      : 표지·제목 전용 첫 화면
 - "agenda"     : 금일 보고 범위·목차
 - "hero"       : 과제 개요·배경 (KPI 지표 포함 가능)
-- "comparison" : As-Is / To-Be 비교 (두 상태를 나란히 보여줌)
+- "comparison" : As-Is / To-Be 비교 — 업무 흐름 단계와 수치 포함
 - "cards"      : 카드 나열형 (배경·현황·개선방안 등)
 - "kpi"        : 핵심 수치·지표 강조
-- "flow"       : 프로세스·업무 흐름 단계
-- "timeline"   : 일정·로드맵·마일스톤
-- "table"      : 표 형태 데이터
-- "org"        : 조직·R&R·역할 분담
-- "discussion" : 추가 논의·결론·다음 단계
+- "timeline"   : 일정·로드맵·마일스톤 (원본에 있을 때만)
+- "org"        : 조직·R&R·역할 분담 (원본에 있을 때만)
+- "discussion" : 추가 논의·결론·다음 단계 (원본에 있을 때만)
 
 ## 출력 형식 (JSON only, 설명 없이)
 {
@@ -44,16 +47,28 @@ const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서에서 내용을 
       "title": "섹션 제목",
       "subtitle": "설명",
       "asis": {
-        "title": "As-Is · 현재",
-        "label": "현재 상태 레이블",
-        "items": ["현재 문제점 1", "현재 문제점 2"],
-        "steps": [{"idx": "01", "title": "단계명", "hours": "27h", "highlight": false}]
+        "flowTitle": "현재 업무 흐름",
+        "steps": [
+          {"idx": "01", "title": "단계명", "hours": "27h", "isBottleneck": false, "detail": "설명"},
+          {"idx": "02", "title": "병목 단계", "hours": "130h", "isBottleneck": true, "detail": "병목 원인"}
+        ],
+        "totalHours": "431h",
+        "bottleneckHours": "290h",
+        "problems": ["문제점 1 — 구체적으로", "문제점 2"],
+        "takeaway": "핵심 문제 한 줄 요약"
       },
       "tobe": {
-        "title": "To-Be · 개선",
-        "label": "개선 상태 레이블",
-        "items": ["개선 방향 1", "개선 방향 2"],
-        "steps": [{"idx": "01", "title": "단계명", "hours": "10h", "highlight": true}]
+        "flowTitle": "개선된 업무 흐름",
+        "steps": [
+          {"idx": "01", "title": "단계명", "hours": "27h", "isAI": false, "savedHours": null},
+          {"idx": "02", "title": "AI 처리 단계", "hours": "20h", "isAI": true, "savedHours": "110h", "detail": "AI 처리 내용"},
+          {"idx": "03", "title": "제거된 단계", "hours": "0h", "isRemoved": true, "savedHours": "60h"}
+        ],
+        "totalHours": "160h",
+        "savedHours": "271h",
+        "savedPct": "63%",
+        "improvements": ["개선 효과 1", "개선 효과 2"],
+        "takeaway": "핵심 개선 한 줄 요약"
       }
     },
     {
@@ -123,7 +138,7 @@ export async function POST(req: NextRequest) {
     model: 'gpt-4o',
     messages: [{ role: 'user', content: EXTRACT_PROMPT(html) }],
     temperature: 0.1,
-    max_tokens: 4000,
+    max_tokens: 6000,
     response_format: { type: 'json_object' },
   })
 

@@ -238,6 +238,66 @@ ul.body em {
 .flow .step .hours { position: absolute; top: 14px; right: 14px; font: 600 12px/1 var(--font-sans); color: var(--color-neutral-400); }
 .flow .step.is-highlight .hours { color: var(--color-primary); }
 
+/* ===== Process Flow Diagram ===== */
+.proc-flow {
+  display: flex; align-items: flex-start; overflow-x: auto;
+  padding: 8px 0 20px; gap: 0;
+}
+.proc-step {
+  flex: 0 0 156px; min-height: 118px;
+  background: #fff; border: 1px solid var(--border-subtle); border-radius: 12px;
+  padding: 14px; position: relative; display: flex; flex-direction: column; gap: 5px;
+  transition: box-shadow .15s;
+}
+.proc-step.is-bottleneck {
+  border-color: rgba(253,49,46,.4);
+  background: linear-gradient(180deg, #fff 0%, var(--color-primary-bg) 100%);
+}
+.proc-step.is-ai {
+  border-color: rgba(99,102,241,.4);
+  background: linear-gradient(180deg, #fff 0%, rgba(99,102,241,.06) 100%);
+}
+.proc-step.is-removed {
+  opacity: .32; background: var(--color-neutral-30);
+}
+.proc-idx   { font: 600 11px/1 var(--font-sans); color: var(--color-neutral-300); letter-spacing: 1px; }
+.proc-title { font: 600 14px/20px var(--font-sans); letter-spacing: var(--tracking-tight); color: var(--color-neutral-900); }
+.proc-detail { font: 400 11px/16px var(--font-sans); color: var(--color-neutral-500); }
+.proc-hours {
+  margin-top: auto;
+  font: 700 14px/1 var(--font-sans); color: var(--color-neutral-400);
+}
+.proc-step.is-bottleneck .proc-hours { color: var(--color-primary); }
+.proc-step.is-ai .proc-hours { color: #6366F1; }
+.proc-badge {
+  position: absolute; top: 9px; right: 9px;
+  padding: 3px 7px; border-radius: 999px;
+  font: 700 10px/1 var(--font-sans); letter-spacing: .4px;
+}
+.proc-badge.ai      { background: rgba(99,102,241,.12); color: #6366F1; }
+.proc-badge.problem { background: rgba(253,49,46,.12); color: var(--color-primary); }
+.proc-save {
+  display: inline-flex; align-items: center; gap: 3px;
+  font: 600 11px/1 var(--font-sans); color: #059669; margin-top: 3px;
+}
+.proc-save::before { content: "▼"; font-size: 8px; }
+.proc-arrow {
+  flex: 0 0 28px; display: flex; align-items: center; justify-content: center;
+  padding-top: 38px; color: var(--color-neutral-300); font-size: 18px; user-select: none;
+}
+
+/* Save Summary Bar */
+.proc-summary {
+  display: flex; align-items: center; gap: 0;
+  margin-top: 18px; border: 1px solid var(--border-subtle);
+  border-radius: 12px; overflow: hidden; background: #fff;
+}
+.proc-summary-item { flex: 1; padding: 14px 18px; }
+.proc-summary-sep  { width: 1px; height: 40px; background: var(--border-subtle); flex-shrink: 0; }
+.proc-summary-label { font: 600 11px/1 var(--font-sans); color: var(--color-neutral-400); letter-spacing: .3px; text-transform: uppercase; margin-bottom: 7px; }
+.proc-summary-value { font: 700 22px/1 var(--font-sans); color: var(--color-neutral-900); letter-spacing: var(--tracking-tight); }
+.proc-summary-value.saved { color: var(--color-primary); }
+
 /* ===== Comparison (As-Is / To-Be) ===== */
 .cmp-bar {
   display: inline-flex; gap: 4px; padding: 4px;

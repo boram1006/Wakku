@@ -98,7 +98,7 @@ const HTML_EXAMPLES = `
 </section>
 \`\`\`
 
-### comparison (As-Is / To-Be 비교) — 반드시 이 구조 사용
+### comparison (As-Is / To-Be 비교) — 반드시 proc-flow 다이어그램 포함
 \`\`\`html
 <section class="block" id="asis" style="background:#F7F8F9;">
   <div class="wrap">
@@ -110,70 +110,117 @@ const HTML_EXAMPLES = `
 
     <!-- 토글 버튼 -->
     <div class="cmp-bar">
-      <button class="cmp-btn is-active" onclick="cmpSwitch(event,'asis-1','as-is')">As-Is · 현재</button>
-      <button class="cmp-btn" onclick="cmpSwitch(event,'asis-1','to-be')">To-Be · 개선</button>
+      <button class="cmp-btn is-active" onclick="cmpSwitch(event,'cmp-asis','as-is')">As-Is · 현재</button>
+      <button class="cmp-btn" onclick="cmpSwitch(event,'cmp-asis','to-be')">To-Be · 개선</button>
     </div>
 
-    <!-- As-Is 패널 -->
-    <div class="cmp-panel" id="asis-1-as-is">
+    <!-- As-Is 패널: 프로세스 흐름 다이어그램 -->
+    <div class="cmp-panel" id="cmp-asis-as-is">
       <h3 class="h-bar">현재 업무 흐름</h3>
-      <p style="font:400 14px/22px var(--font-kr);color:var(--color-neutral-500);margin:0 0 20px;">현재 상태 설명.</p>
-      <div class="flow" style="grid-template-columns:repeat(5,1fr);">
-        <div class="flow-step">
-          <div class="idx">01</div>
-          <div class="title">단계명</div>
-          <div class="meta">설명</div>
-          <div class="hours">27h</div>
+      <!-- proc-flow: 박스 + 화살표 순서로 반복. 병목은 is-bottleneck -->
+      <div class="proc-flow">
+        <div class="proc-step">
+          <div class="proc-idx">01</div>
+          <div class="proc-title">요구사항 수령</div>
+          <div class="proc-detail">설명</div>
+          <div class="proc-hours">27h</div>
         </div>
-        <!-- 반복 -->
+        <div class="proc-arrow">→</div>
+        <div class="proc-step is-bottleneck">
+          <span class="proc-badge problem">병목</span>
+          <div class="proc-idx">02</div>
+          <div class="proc-title">GUI 컨셉 디자인</div>
+          <div class="proc-detail">순차 작업으로 리드타임 증가</div>
+          <div class="proc-hours">130h</div>
+        </div>
+        <div class="proc-arrow">→</div>
+        <div class="proc-step is-bottleneck">
+          <span class="proc-badge problem">병목</span>
+          <div class="proc-idx">03</div>
+          <div class="proc-title">UI 설계 및 리뷰</div>
+          <div class="proc-detail">반복 수정 다수</div>
+          <div class="proc-hours">160h</div>
+        </div>
+        <div class="proc-arrow">→</div>
+        <div class="proc-step">
+          <div class="proc-idx">04</div>
+          <div class="proc-title">배포</div>
+          <div class="proc-hours">17.5h</div>
+        </div>
       </div>
-      <div style="margin-top:28px;">
+      <!-- 수치 요약 바 -->
+      <div class="proc-summary">
+        <div class="proc-summary-item">
+          <div class="proc-summary-label">현재 총 업무량</div>
+          <div class="proc-summary-value">431h</div>
+        </div>
+        <div class="proc-summary-sep"></div>
+        <div class="proc-summary-item">
+          <div class="proc-summary-label">병목 구간 합산</div>
+          <div class="proc-summary-value">290h</div>
+        </div>
+      </div>
+      <!-- 문제점 + 핵심 요약 -->
+      <div style="margin-top:24px;">
         <ul class="body">
-          <li><em>문제점 1</em> — 설명</li>
+          <li><em>문제점 1</em> — 구체적 설명</li>
           <li>문제점 2</li>
         </ul>
         <div class="takeaway"><b>핵심 문제:</b> 요약 한 줄.</div>
       </div>
     </div>
 
-    <!-- To-Be 패널 -->
-    <div class="cmp-panel is-hidden" id="asis-1-to-be">
+    <!-- To-Be 패널: AI·제거 단계 시각화 -->
+    <div class="cmp-panel is-hidden" id="cmp-asis-to-be">
       <h3 class="h-bar">개선된 업무 흐름</h3>
-      <p style="font:400 14px/22px var(--font-kr);color:var(--color-neutral-500);margin:0 0 20px;">개선 상태 설명.</p>
-      <div class="flow" style="grid-template-columns:repeat(5,1fr);">
-        <div class="flow-step is-highlight">
-          <div class="idx">01</div>
-          <div class="title">단계명 (AI)</div>
-          <div class="meta">개선 설명</div>
-          <div class="hours">10h</div>
+      <!-- is-ai: AI 처리 단계, is-removed: 제거된 단계, proc-save: 절감 시간 -->
+      <div class="proc-flow">
+        <div class="proc-step">
+          <div class="proc-idx">01</div>
+          <div class="proc-title">요구사항 수령</div>
+          <div class="proc-hours">27h</div>
+        </div>
+        <div class="proc-arrow">→</div>
+        <div class="proc-step is-ai">
+          <span class="proc-badge ai">AI</span>
+          <div class="proc-idx">02</div>
+          <div class="proc-title">AI Draft 생성</div>
+          <div class="proc-detail">병렬 처리</div>
+          <div class="proc-hours">20h</div>
+          <div class="proc-save">-110h</div>
+        </div>
+        <div class="proc-arrow">→</div>
+        <div class="proc-step">
+          <div class="proc-idx">03</div>
+          <div class="proc-title">검토 및 확정</div>
+          <div class="proc-hours">30h</div>
+          <div class="proc-save">-130h</div>
+        </div>
+        <div class="proc-arrow">→</div>
+        <div class="proc-step">
+          <div class="proc-idx">04</div>
+          <div class="proc-title">배포</div>
+          <div class="proc-hours">17.5h</div>
         </div>
       </div>
-      <div style="margin-top:28px;">
+      <!-- 절감 수치 요약 -->
+      <div class="proc-summary">
+        <div class="proc-summary-item">
+          <div class="proc-summary-label">개선 후 업무량</div>
+          <div class="proc-summary-value">160h</div>
+        </div>
+        <div class="proc-summary-sep"></div>
+        <div class="proc-summary-item">
+          <div class="proc-summary-label">절감량</div>
+          <div class="proc-summary-value saved">271h (−63%)</div>
+        </div>
+      </div>
+      <div style="margin-top:24px;">
         <ul class="body">
-          <li><em>개선 효과 1</em> — 설명</li>
+          <li><em>개선 효과 1</em> — 구체적 설명</li>
           <li>개선 효과 2</li>
         </ul>
         <div class="takeaway"><b>핵심 개선:</b> 요약 한 줄.</div>
-      </div>
-    </div>
-
-    <!-- 나란히 비교 (선택적) -->
-    <div style="margin-top:32px;">
-      <div class="cmp-cols">
-        <div class="cmp-col is-asis">
-          <div class="cmp-col-label">AS-IS · 현재</div>
-          <ul class="body">
-            <li>현재 문제점 1</li>
-            <li>현재 문제점 2</li>
-          </ul>
-        </div>
-        <div class="cmp-col is-tobe">
-          <div class="cmp-col-label">TO-BE · 개선</div>
-          <ul class="body">
-            <li><em>개선 방향 1</em></li>
-            <li>개선 방향 2</li>
-          </ul>
-        </div>
       </div>
     </div>
   </div>
@@ -266,13 +313,13 @@ const HTML_EXAMPLES = `
 ### 필수 JS (</body> 직전에 반드시 포함)
 \`\`\`html
 <script>
-// 비교 토글
-function cmpSwitch(e, groupId, target) {
+// 비교 토글 — id 규칙: cmp-[group]-[as-is|to-be]
+function cmpSwitch(e, group, target) {
   const wrap = e.target.closest('.wrap');
   wrap.querySelectorAll('.cmp-btn').forEach(b => b.classList.remove('is-active'));
   e.target.classList.add('is-active');
   wrap.querySelectorAll('.cmp-panel').forEach(p => {
-    p.classList.toggle('is-hidden', !p.id.endsWith(target));
+    p.classList.toggle('is-hidden', p.id !== group + '-' + target);
   });
 }
 // Nav 활성 상태
@@ -296,10 +343,12 @@ const GENERATE_PROMPT = (jsonContent: string) => `당신은 사내 보고자료 
 1. <head> 안에 반드시 포함: <link rel="stylesheet" href="/wakku-ds.css">
 2. <style> 태그에 CSS를 직접 쓰지 마세요. 디자인 시스템이 처리합니다.
 3. 아래 컴포넌트 예시의 클래스와 구조를 정확히 따르세요.
-4. comparison 섹션이 있으면 반드시 cmp-bar + cmp-panel 토글 구조를 사용하세요.
-5. 모든 섹션은 <section class="block"> 안에, 내용은 <div class="wrap"> 안에.
-6. 섹션 배경은 #F7F8F9와 #fff를 교차 사용하세요.
-7. 필수 JS (nav 활성화 + 비교 토글)를 </body> 직전에 포함하세요.
+4. comparison 섹션이 있으면 cmp-bar + cmp-panel 토글 + proc-flow 다이어그램을 반드시 포함하세요.
+5. comparison의 proc-flow는 asis.steps, tobe.steps의 모든 단계를 박스+화살표로 표현하세요.
+6. 모든 섹션은 <section class="block"> 안에, 내용은 <div class="wrap"> 안에.
+7. 섹션 배경은 #F7F8F9와 #fff를 교차 사용하세요.
+8. 필수 JS (nav 활성화 + 비교 토글)를 </body> 직전에 포함하세요.
+9. ⚠️ JSON에 없는 섹션을 임의로 추가하지 마세요. JSON의 sections 배열에 있는 것만 생성하세요.
 
 ${HTML_EXAMPLES}
 
