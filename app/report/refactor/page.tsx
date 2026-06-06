@@ -14,6 +14,8 @@ export default function RefactorPage() {
   const [stage, setStage] = useState<Stage>('idle')
   const [error, setError] = useState('')
   const [viewport, setViewport] = useState<Viewport>('1920')
+  const [extractedJson, setExtractedJson] = useState<Record<string, unknown> | null>(null)
+  const [showDebug, setShowDebug] = useState(false)
   const [containerWidth, setContainerWidth] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
   const previewContainerRef = useRef<HTMLDivElement>(null)
@@ -38,6 +40,8 @@ export default function RefactorPage() {
     setStage('extracting')
     setError('')
     setResult('')
+    setExtractedJson(null)
+    setShowDebug(false)
 
     try {
       // Stage 1: Extract content JSON
@@ -51,13 +55,17 @@ export default function RefactorPage() {
         throw new Error(data.error ?? `추출 실패 HTTP ${extractRes.status}`)
       }
       const extracted = await extractRes.json()
+      setExtractedJson(extracted)
 
-      // Stage 2: Generate HTML (streaming)
+      // Pull out the source HTML fallback (added by extract route) before sending to generate
+      const { _sourceHtml, ...extractedContent } = extracted as Record<string, unknown>
+
+      // Stage 2: Generate HTML
       setStage('generating')
       const genRes = await fetch('/api/refactor/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: extracted }),
+        body: JSON.stringify({ content: extractedContent, sourceHtml: _sourceHtml }),
       })
       if (!genRes.ok) {
         const data = await genRes.json().catch(() => ({}))
@@ -275,6 +283,15 @@ export default function RefactorPage() {
                 <button className="wk-btn wk-btn-ghost" style={{ height: 34, padding: '0 14px', fontSize: 13 }} onClick={() => { setStage('idle'); setResult('') }}>
                   ← 다시 입력
                 </button>
+                {extractedJson && (
+                  <button
+                    className="wk-btn wk-btn-ghost"
+                    style={{ height: 34, padding: '0 14px', fontSize: 13, color: showDebug ? 'var(--color-primary)' : undefined }}
+                    onClick={() => setShowDebug(v => !v)}
+                  >
+                    추출 JSON {(extractedJson as { sections?: unknown[] }).sections?.length ?? 0}섹션
+                  </button>
+                )}
                 <button className="wk-btn wk-btn-ghost" style={{ height: 34, padding: '0 14px', fontSize: 13 }} onClick={handleCopy}>
                   HTML 복사
                 </button>
@@ -283,6 +300,18 @@ export default function RefactorPage() {
                 </button>
               </div>
             </div>
+
+            {/* 디버그: 추출된 JSON */}
+            {showDebug && extractedJson && (
+              <div style={{ marginBottom: 12, border: '1px solid var(--color-neutral-100)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ padding: '8px 14px', background: 'var(--color-neutral-10)', borderBottom: '1px solid var(--color-neutral-100)', font: '600 12px/1 var(--font-kr)', color: 'var(--color-neutral-500)' }}>
+                  추출된 JSON — sections: {(extractedJson as { sections?: unknown[] }).sections?.length ?? 0}개
+                </div>
+                <pre style={{ margin: 0, padding: '16px', background: '#1e1e1e', color: '#d4d4d4', fontSize: 11, lineHeight: 1.6, overflowX: 'auto', maxHeight: 320, overflowY: 'auto' }}>
+                  {JSON.stringify(extractedJson, (k, v) => k === '_sourceHtml' ? '[stripped HTML...]' : v, 2)}
+                </pre>
+              </div>
+            )}
 
             {/* iframe */}
             <div style={{ border: '1px solid var(--color-neutral-100)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>

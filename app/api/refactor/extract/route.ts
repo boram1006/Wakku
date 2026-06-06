@@ -3,49 +3,51 @@ import OpenAI from 'openai'
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서에서 내용을 분석하여 JSON으로 반환하세요.
+const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서의 텍스트 내용을 빠짐없이 추출하여 JSON으로 반환하세요.
 
-⚠️ 핵심 원칙: 원본 HTML에 실제로 존재하는 섹션만 JSON에 포함하세요.
-없는 내용을 추가하거나, 섹션을 임의로 만들거나, 추론·추가하지 마세요.
-예) 원본에 일정(timeline)이 없으면 timeline 섹션을 생성하지 마세요.
-예) 원본에 R&R(org)이 없으면 org 섹션을 생성하지 마세요.
+⚠️ 스캔 원칙 — 이것이 가장 중요합니다
+HTML의 모든 텍스트 노드를 빠짐없이 읽으세요:
+- 모든 h1 ~ h4 제목
+- 모든 p, li, td, th, span, div의 텍스트 내용
+- 숫자 + 단위 (h, %, 개, 건, 월), 비율, 절감량, 업무 시간
+- "As-Is", "To-Be", 단계명, 병목, AI 처리 등 워크플로우 정보
+- 보고서의 모든 섹션 (하나도 빠뜨리지 마세요)
+원본에 없는 내용 추가 금지.
 
-## 섹션 type 종류 (원본에 있는 것만 사용)
-- "cover"      : 표지·제목 전용 첫 화면
-- "agenda"     : 금일 보고 범위·목차
-- "hero"       : 과제 개요·배경 (KPI 지표 포함 가능)
-- "comparison" : As-Is / To-Be 비교 — 업무 흐름 단계와 수치 포함
-- "cards"      : 카드 나열형 (배경·현황·개선방안 등)
-- "kpi"        : 핵심 수치·지표 강조
-- "timeline"   : 일정·로드맵·마일스톤 (원본에 있을 때만)
-- "org"        : 조직·R&R·역할 분담 (원본에 있을 때만)
-- "discussion" : 추가 논의·결론·다음 단계 (원본에 있을 때만)
+## comparison 섹션 특별 지침
+워크플로우 비교(As-Is/To-Be)가 있으면 반드시 추출:
+- 각 단계: 순번, 단계명, 소요시간, 병목 여부, AI 처리 여부, 설명
+- 총 소요시간, 병목 합산, 절감량, 절감률
+- 문제점 목록, 개선 효과 목록
 
-## 출력 형식 (JSON only, 설명 없이)
+## 섹션 타입 (원본에 있는 것만 사용)
+- "hero"       : 첫 화면 — 과제 개요, KPI, 배경 설명
+- "agenda"     : 목차 / 금일 보고 범위
+- "comparison" : As-Is / To-Be 업무 흐름 비교
+- "cards"      : 카드 나열 — 배경·현황·문제·개선방안 등
+- "kpi"        : 핵심 수치·지표
+- "timeline"   : 추진 일정 / 로드맵
+- "org"        : 조직·R&R
+- "discussion" : 추가 논의·결론
+
+## JSON 출력 형식 (JSON only, 설명 없이)
 {
   "title": "보고서 전체 제목",
   "org": "조직·팀명",
-  "date": "보고 날짜",
-  "navItems": [{"label": "섹션명", "href": "#section-id"}],
+  "date": "날짜",
   "sections": [
     {
-      "id": "hero",
-      "type": "hero",
+      "id": "hero", "type": "hero",
       "eyebrow": "조직명 · 연도",
-      "title": "섹션 제목",
-      "subtitle": "한 문단 설명",
-      "kpis": [
-        {"label": "지표명", "value": "54.5", "unit": "h 절감", "sub": "116h → 61.5h"}
-      ],
-      "items": ["불릿 포인트 1", "불릿 포인트 2"],
+      "title": "과제 제목",
+      "subtitle": "배경·개요 설명 (원문 그대로)",
+      "kpis": [{"label": "지표명", "value": "54.5", "unit": "h 절감", "sub": "116h → 61.5h"}],
+      "items": ["원본 텍스트 항목 1", "항목 2"],
       "meta": [{"label": "항목명", "value": "값"}]
     },
     {
-      "id": "asis",
-      "type": "comparison",
-      "secNum": "02",
-      "title": "섹션 제목",
-      "subtitle": "설명",
+      "id": "asis", "type": "comparison",
+      "secNum": "02", "title": "As-Is / To-Be 비교", "subtitle": "설명",
       "asis": {
         "flowTitle": "현재 업무 흐름",
         "steps": [
@@ -54,7 +56,7 @@ const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서에서 내용을 
         ],
         "totalHours": "431h",
         "bottleneckHours": "290h",
-        "problems": ["문제점 1 — 구체적으로", "문제점 2"],
+        "problems": ["문제점 1 (원문)", "문제점 2"],
         "takeaway": "핵심 문제 한 줄 요약"
       },
       "tobe": {
@@ -67,56 +69,31 @@ const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서에서 내용을 
         "totalHours": "160h",
         "savedHours": "271h",
         "savedPct": "63%",
-        "improvements": ["개선 효과 1", "개선 효과 2"],
+        "improvements": ["개선 효과 1 (원문)", "개선 효과 2"],
         "takeaway": "핵심 개선 한 줄 요약"
       }
     },
     {
-      "id": "cards-1",
-      "type": "cards",
-      "secNum": "03",
-      "title": "섹션 제목",
-      "subtitle": "설명",
+      "id": "cards-1", "type": "cards", "secNum": "03",
+      "title": "섹션 제목", "subtitle": "설명",
       "cards": [
-        {
-          "tag": "태그명",
-          "tagStyle": "brand",
-          "title": "카드 제목",
-          "body": "카드 설명",
-          "items": ["항목 1"],
-          "takeaway": "핵심 요약 한 줄"
-        }
+        {"tag": "태그", "tagStyle": "brand", "title": "카드 제목", "body": "설명", "items": ["항목"], "takeaway": "요약"}
       ]
     },
     {
-      "id": "timeline",
-      "type": "timeline",
-      "secNum": "05",
-      "title": "추진 일정",
-      "subtitle": "설명",
-      "milestones": [
-        {"period": "Q1 2026", "title": "마일스톤명", "items": ["세부 항목 1"]}
-      ]
+      "id": "timeline", "type": "timeline", "secNum": "05",
+      "title": "추진 일정", "subtitle": "설명",
+      "milestones": [{"period": "Q1 2026", "title": "마일스톤", "items": ["세부 항목"]}]
     },
     {
-      "id": "org",
-      "type": "org",
-      "secNum": "06",
-      "title": "조직 및 R&R",
-      "subtitle": "설명",
-      "teams": [
-        {"role": "ROLE", "name": "팀명", "items": ["담당 업무 1"]}
-      ]
+      "id": "org", "type": "org", "secNum": "06",
+      "title": "조직 및 R&R", "subtitle": "설명",
+      "teams": [{"role": "LEAD", "name": "팀명", "items": ["담당 업무"]}]
     },
     {
-      "id": "discussion",
-      "type": "discussion",
-      "secNum": "07",
-      "title": "추가 논의",
-      "subtitle": "설명",
-      "cards": [
-        {"tag": "확인필요", "tagStyle": "warning", "title": "논의 주제", "body": "논의 내용", "items": []}
-      ]
+      "id": "discussion", "type": "discussion", "secNum": "07",
+      "title": "추가 논의", "subtitle": "설명",
+      "cards": [{"tag": "확인필요", "tagStyle": "warning", "title": "주제", "body": "내용", "items": []}]
     }
   ]
 }
@@ -143,19 +120,26 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }), { status: 500 })
   }
 
-  // Strip CSS/JS/comments before sending — large files are mostly CSS
   const strippedHtml = stripStylesAndScripts(html)
 
   const completion = await client.chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: EXTRACT_PROMPT(strippedHtml) }],
     temperature: 0.1,
-    max_tokens: 6000,
+    max_tokens: 8000,
     response_format: { type: 'json_object' },
   })
 
   const json = completion.choices[0]?.message?.content ?? '{}'
-  return new Response(json, {
+
+  // Return JSON + stripped source so the caller can pass it to generate as fallback
+  const parsed = JSON.parse(json)
+  const responsePayload = JSON.stringify({
+    ...parsed,
+    _sourceHtml: strippedHtml.slice(0, 25000),
+  })
+
+  return new Response(responsePayload, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   })
 }

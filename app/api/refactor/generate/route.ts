@@ -336,12 +336,12 @@ sections.forEach(s => io.observe(s));
 </script>
 \`\`\``
 
-const GENERATE_PROMPT = (jsonContent: string) => `당신은 사내 보고자료 HTML 전문가입니다.
+const GENERATE_PROMPT = (jsonContent: string, sourceHtml?: string) => `당신은 사내 보고자료 HTML 전문가입니다.
 아래 JSON 내용을 바탕으로 완성된 HTML 보고서를 생성하세요.
 
 ## 절대 규칙 (위반 시 틀린 답)
 - ❌ <style> 태그 절대 금지. CSS 한 줄도 쓰지 마세요. wakku-ds.css가 모두 처리합니다.
-- ❌ JSON에 없는 섹션 추가 금지. sections 배열에 있는 것만 생성하세요.
+- ❌ JSON에 없는 섹션을 새로 만들지 마세요. 단, JSON sections가 비어있거나 hero만 있으면 원본 HTML 텍스트를 직접 스캔하여 섹션을 구성하세요.
 - ✅ <head>에 반드시: <link rel="stylesheet" href="/wakku-ds.css">
 - ✅ comparison 섹션 → cmp-bar 토글 + cmp-panel + proc-flow 다이어그램 (박스+화살표)
 - ✅ 모든 섹션: <section class="block"> + <div class="wrap">
@@ -352,11 +352,13 @@ ${HTML_EXAMPLES}
 
 ## 생성할 보고서 내용 (JSON)
 ${jsonContent}
+${sourceHtml ? `\n## 원본 보고서 텍스트 (JSON에 빠진 내용 참고용 — 위 JSON이 충분하면 무시)\n\`\`\`html\n${sourceHtml}\n\`\`\`` : ''}
 
 출력: <!DOCTYPE html>로 시작하는 완전한 HTML만. 설명 텍스트 없이.`
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
+  const sourceHtml: string | undefined = body.sourceHtml
   const jsonContent: string = typeof body.content === 'string'
     ? body.content
     : JSON.stringify(body.content, null, 2)
@@ -370,7 +372,7 @@ export async function POST(req: NextRequest) {
 
   const completion = await client.chat.completions.create({
     model: 'gpt-4o',
-    messages: [{ role: 'user', content: GENERATE_PROMPT(jsonContent) }],
+    messages: [{ role: 'user', content: GENERATE_PROMPT(jsonContent, sourceHtml) }],
     temperature: 0.2,
     max_tokens: 16000,
     stream: false,
