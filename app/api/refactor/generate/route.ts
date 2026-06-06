@@ -361,7 +361,7 @@ ${HTML_EXAMPLES}
 
 ## 생성할 보고서 내용 (JSON)
 ${jsonContent}
-${sourceHtml ? `\n## 원본 HTML (JSON의 comparison.steps가 비어있거나 없으면 여기서 업무 단계를 읽어 proc-flow를 직접 구성하세요)\n\`\`\`html\n${sourceHtml}\n\`\`\`` : ''}
+${sourceHtml ? `\n## 원본 HTML 텍스트 — 아래 경우에 직접 참조하세요\n- comparison.steps가 비어있으면 → 순번+단계명+시간 패턴을 찾아 proc-flow 구성\n- cards[].body 또는 items가 비어있으면 → 해당 카드 주변 텍스트를 찾아 채우세요\n- timeline.milestones[].items가 비어있으면 → 해당 기간의 세부 항목을 찾아 채우세요\n\`\`\`html\n${sourceHtml}\n\`\`\`` : ''}
 
 출력: <!DOCTYPE html>로 시작하는 완전한 HTML만. 설명 텍스트 없이.`
 
