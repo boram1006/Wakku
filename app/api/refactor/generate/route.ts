@@ -368,48 +368,39 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }), { status: 500 })
   }
 
-  const stream = await client.chat.completions.create({
+  const completion = await client.chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: GENERATE_PROMPT(jsonContent) }],
     temperature: 0.2,
     max_tokens: 16000,
-    stream: true,
+    stream: false,
   })
 
-  const encoder = new TextEncoder()
-  const readable = new ReadableStream({
-    async start(controller) {
-      try {
-        let accumulated = ''
-        let headerCleaned = false
-        for await (const chunk of stream) {
-          const text = chunk.choices[0]?.delta?.content ?? ''
-          if (!text) continue
-          accumulated += text
+  const raw = completion.choices[0]?.message?.content ?? ''
 
-          // As soon as we have the full <head>, strip any inlined <style> blocks
-          // that gpt-4o may have written despite instructions, and ensure link tag exists
-          if (!headerCleaned && accumulated.includes('</head>')) {
-            headerCleaned = true
-            accumulated = accumulated
-              .replace(/<style[\s\S]*?<\/style>/gi, '')
-              .replace('</head>', '<link rel="stylesheet" href="/wakku-ds.css">\n</head>')
-              // deduplicate link tags
-              .replace(/(<link[^>]+wakku-ds\.css[^>]*>\s*){2,}/gi, '<link rel="stylesheet" href="/wakku-ds.css">\n')
-            controller.enqueue(encoder.encode(accumulated))
-            accumulated = ''
-            continue
-          }
-          controller.enqueue(encoder.encode(text))
-        }
-        if (accumulated) controller.enqueue(encoder.encode(accumulated))
-      } finally {
-        controller.close()
-      }
-    },
-  })
+  // 1. Strip markdown code fences (```html ... ```)
+  let html = raw
+    .replace(/^```(?:html)?\s*/i, '')
+    .replace(/\s*```\s*$/i, '')
 
-  return new Response(readable, {
-    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+  // 2. If gpt-4o still embedded markdown inside (</head>```html pattern), extract inner HTML
+  const innerMatch = html.match(/<!DOCTYPE\s+html[\s\S]*/i) ?? html.match(/<html[\s\S]*/i)
+  if (innerMatch) html = innerMatch[0]
+
+  // 3. Strip any <style> blocks gpt-4o wrote despite instructions
+  html = html.replace(/<style[\s\S]*?<\/style>/gi, '')
+
+  // 4. Ensure exactly one <link href="/wakku-ds.css"> in <head>
+  html = html.replace(/(<link[^>]+wakku-ds\.css[^>]*>\s*)+/gi, '')
+  html = html.replace('</head>', '<link rel="stylesheet" href="/wakku-ds.css">\n</head>')
+
+  // 5. Close if truncated
+  if (!/\<\/html\>/i.test(html)) {
+    if (!/\<\/body\>/i.test(html)) html += '\n</body>'
+    html += '\n</html>'
+  }
+
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
   })
 }

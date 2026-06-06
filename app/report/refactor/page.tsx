@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 
-type Stage = 'idle' | 'extracting' | 'generating' | 'done' | 'truncated' | 'error'
+type Stage = 'idle' | 'extracting' | 'generating' | 'done' | 'error'
 type Viewport = '1920' | '1440' | '1200'
 
 const VIEWPORTS: Viewport[] = ['1920', '1440', '1200']
@@ -14,7 +14,6 @@ export default function RefactorPage() {
   const [stage, setStage] = useState<Stage>('idle')
   const [error, setError] = useState('')
   const [viewport, setViewport] = useState<Viewport>('1920')
-  const [streamedChars, setStreamedChars] = useState(0)
   const [containerWidth, setContainerWidth] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
   const previewContainerRef = useRef<HTMLDivElement>(null)
@@ -31,7 +30,7 @@ export default function RefactorPage() {
   const scale = containerWidth > 0 ? Math.min(1, containerWidth / vpWidth) : 1
   const iframeHeight = scale > 0 ? `${82 / scale}vh` : '82vh'
 
-  const isDone = stage === 'done' || stage === 'truncated'
+  const isDone = stage === 'done'
   const isWorking = stage === 'extracting' || stage === 'generating'
 
   async function handleRefactor() {
@@ -39,7 +38,6 @@ export default function RefactorPage() {
     setStage('extracting')
     setError('')
     setResult('')
-    setStreamedChars(0)
 
     try {
       // Stage 1: Extract content JSON
@@ -66,34 +64,14 @@ export default function RefactorPage() {
         throw new Error(data.error ?? `생성 실패 HTTP ${genRes.status}`)
       }
 
-      const reader = genRes.body!.getReader()
-      const decoder = new TextDecoder()
-      let accumulated = ''
+      const finalHtml = await genRes.text()
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        accumulated += decoder.decode(value, { stream: true })
-        setStreamedChars(accumulated.length)
-      }
-
-      // Strip markdown fences
-      const stripped = accumulated.replace(/^```(?:html)?\s*/i, '').replace(/\s*```\s*$/, '')
-      const htmlMatch =
-        stripped.match(/<!DOCTYPE\s+html[\s\S]*/i)?.[0] ??
-        stripped.match(/<html[\s\S]*/i)?.[0]
-
-      if (!htmlMatch) throw new Error('유효한 HTML을 추출할 수 없습니다.')
-
-      let finalHtml = htmlMatch
-      const wasTruncated = !/\<\/html\>/i.test(finalHtml)
-      if (wasTruncated) {
-        if (!/\<\/body\>/i.test(finalHtml)) finalHtml += '\n</body>'
-        finalHtml += '\n</html>'
+      if (!finalHtml.trim() || !/<html/i.test(finalHtml)) {
+        throw new Error('유효한 HTML을 추출할 수 없습니다.')
       }
 
       setResult(finalHtml)
-      setStage(wasTruncated ? 'truncated' : 'done')
+      setStage('done')
     } catch (e) {
       setError(String(e))
       setStage('error')
@@ -255,7 +233,7 @@ export default function RefactorPage() {
                 <span style={{ font: '400 13px/1 var(--font-kr)', color: 'var(--color-neutral-400)' }}>
                   {stage === 'extracting'
                     ? '보고서 내용을 구조화하고 있습니다…'
-                    : `디자인 시스템으로 재구성하고 있습니다… ${streamedChars > 0 ? streamedChars.toLocaleString() + '자 생성 중' : ''}`}
+                    : 'Wakku 디자인 시스템으로 재구성하고 있습니다…'}
                 </span>
               </div>
             )}
@@ -265,15 +243,6 @@ export default function RefactorPage() {
         {/* 결과 */}
         {isDone && (
           <div>
-            {stage === 'truncated' && (
-              <div style={{ marginBottom: 12, padding: '10px 16px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 16 }}>⚠️</span>
-                <span style={{ font: '500 13px/1.5 var(--font-kr)', color: '#92400E' }}>
-                  출력이 중간에 잘렸습니다. HTML이 크면 두 부분으로 나눠 입력해보세요.
-                </span>
-              </div>
-            )}
-
             {/* 툴바 */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -303,7 +272,7 @@ export default function RefactorPage() {
               </div>
 
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="wk-btn wk-btn-ghost" style={{ height: 34, padding: '0 14px', fontSize: 13 }} onClick={() => { setStage('idle'); setResult(''); setStreamedChars(0) }}>
+                <button className="wk-btn wk-btn-ghost" style={{ height: 34, padding: '0 14px', fontSize: 13 }} onClick={() => { setStage('idle'); setResult('') }}>
                   ← 다시 입력
                 </button>
                 <button className="wk-btn wk-btn-ghost" style={{ height: 34, padding: '0 14px', fontSize: 13 }} onClick={handleCopy}>
