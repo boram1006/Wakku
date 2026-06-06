@@ -341,18 +341,27 @@ const GENERATE_PROMPT = (jsonContent: string, sourceHtml?: string) => `당신은
 
 ## 절대 규칙 (위반 시 틀린 답)
 - ❌ <style> 태그 절대 금지. CSS 한 줄도 쓰지 마세요. wakku-ds.css가 모두 처리합니다.
-- ❌ JSON에 없는 섹션을 새로 만들지 마세요. 단, JSON sections가 비어있거나 hero만 있으면 원본 HTML 텍스트를 직접 스캔하여 섹션을 구성하세요.
 - ✅ <head>에 반드시: <link rel="stylesheet" href="/wakku-ds.css">
-- ✅ comparison 섹션 → cmp-bar 토글 + cmp-panel + proc-flow 다이어그램 (박스+화살표)
 - ✅ 모든 섹션: <section class="block"> + <div class="wrap">
 - ✅ 섹션 배경: #F7F8F9 / #fff 교차
 - ✅ </body> 직전에 필수 JS 포함
+
+## proc-flow 다이어그램 — 반드시 지켜야 합니다
+comparison 섹션이 있거나 sourceHtml에 As-Is/To-Be 내용이 있으면:
+1. cmp-bar 토글 버튼 (As-Is / To-Be)
+2. 각 패널에 proc-flow 다이어그램 — 박스(proc-step) + 화살표(proc-arrow) 반복
+3. proc-step 박스 안에: proc-idx(순번) + proc-title(단계명) + proc-hours(시간) + proc-detail(설명, 있으면)
+4. 병목 단계: class="proc-step is-bottleneck" + <span class="proc-badge problem">병목</span>
+5. AI 단계: class="proc-step is-ai" + <span class="proc-badge ai">AI</span> + proc-save(절감량)
+6. 제거 단계: class="proc-step is-removed"
+7. proc-summary 바: 총 시간, 절감량 표시
+JSON의 steps 배열이 비어있으면 sourceHtml에서 순번+단계명+시간값 패턴을 직접 찾아 proc-flow를 구성하세요.
 
 ${HTML_EXAMPLES}
 
 ## 생성할 보고서 내용 (JSON)
 ${jsonContent}
-${sourceHtml ? `\n## 원본 보고서 텍스트 (JSON에 빠진 내용 참고용 — 위 JSON이 충분하면 무시)\n\`\`\`html\n${sourceHtml}\n\`\`\`` : ''}
+${sourceHtml ? `\n## 원본 HTML (JSON의 comparison.steps가 비어있거나 없으면 여기서 업무 단계를 읽어 proc-flow를 직접 구성하세요)\n\`\`\`html\n${sourceHtml}\n\`\`\`` : ''}
 
 출력: <!DOCTYPE html>로 시작하는 완전한 HTML만. 설명 텍스트 없이.`
 
