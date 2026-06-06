@@ -124,6 +124,15 @@ const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서에서 내용을 
 원본 HTML:
 ${html}`
 
+function stripStylesAndScripts(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 export async function POST(req: NextRequest) {
   const { html }: { html: string } = await req.json()
 
@@ -134,9 +143,12 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }), { status: 500 })
   }
 
+  // Strip CSS/JS/comments before sending — large files are mostly CSS
+  const strippedHtml = stripStylesAndScripts(html)
+
   const completion = await client.chat.completions.create({
     model: 'gpt-4o',
-    messages: [{ role: 'user', content: EXTRACT_PROMPT(html) }],
+    messages: [{ role: 'user', content: EXTRACT_PROMPT(strippedHtml) }],
     temperature: 0.1,
     max_tokens: 6000,
     response_format: { type: 'json_object' },

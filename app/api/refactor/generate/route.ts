@@ -339,26 +339,21 @@ sections.forEach(s => io.observe(s));
 const GENERATE_PROMPT = (jsonContent: string) => `당신은 사내 보고자료 HTML 전문가입니다.
 아래 JSON 내용을 바탕으로 완성된 HTML 보고서를 생성하세요.
 
-## 필수 규칙
-1. <head> 안에 반드시 포함: <link rel="stylesheet" href="/wakku-ds.css">
-2. <style> 태그에 CSS를 직접 쓰지 마세요. 디자인 시스템이 처리합니다.
-3. 아래 컴포넌트 예시의 클래스와 구조를 정확히 따르세요.
-4. comparison 섹션이 있으면 cmp-bar + cmp-panel 토글 + proc-flow 다이어그램을 반드시 포함하세요.
-5. comparison의 proc-flow는 asis.steps, tobe.steps의 모든 단계를 박스+화살표로 표현하세요.
-6. 모든 섹션은 <section class="block"> 안에, 내용은 <div class="wrap"> 안에.
-7. 섹션 배경은 #F7F8F9와 #fff를 교차 사용하세요.
-8. 필수 JS (nav 활성화 + 비교 토글)를 </body> 직전에 포함하세요.
-9. ⚠️ JSON에 없는 섹션을 임의로 추가하지 마세요. JSON의 sections 배열에 있는 것만 생성하세요.
+## 절대 규칙 (위반 시 틀린 답)
+- ❌ <style> 태그 절대 금지. CSS 한 줄도 쓰지 마세요. wakku-ds.css가 모두 처리합니다.
+- ❌ JSON에 없는 섹션 추가 금지. sections 배열에 있는 것만 생성하세요.
+- ✅ <head>에 반드시: <link rel="stylesheet" href="/wakku-ds.css">
+- ✅ comparison 섹션 → cmp-bar 토글 + cmp-panel + proc-flow 다이어그램 (박스+화살표)
+- ✅ 모든 섹션: <section class="block"> + <div class="wrap">
+- ✅ 섹션 배경: #F7F8F9 / #fff 교차
+- ✅ </body> 직전에 필수 JS 포함
 
 ${HTML_EXAMPLES}
 
 ## 생성할 보고서 내용 (JSON)
 ${jsonContent}
 
-## 출력 지침
-- 완성된 단일 HTML 파일만 출력하세요. 설명 텍스트 없이.
-- <!DOCTYPE html>로 시작하는 완전한 HTML.
-- <html lang="ko">에서 시작해서 </html>로 끝나야 합니다.`
+출력: <!DOCTYPE html>로 시작하는 완전한 HTML만. 설명 텍스트 없이.`
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -385,10 +380,29 @@ export async function POST(req: NextRequest) {
   const readable = new ReadableStream({
     async start(controller) {
       try {
+        let accumulated = ''
+        let headerCleaned = false
         for await (const chunk of stream) {
           const text = chunk.choices[0]?.delta?.content ?? ''
-          if (text) controller.enqueue(encoder.encode(text))
+          if (!text) continue
+          accumulated += text
+
+          // As soon as we have the full <head>, strip any inlined <style> blocks
+          // that gpt-4o may have written despite instructions, and ensure link tag exists
+          if (!headerCleaned && accumulated.includes('</head>')) {
+            headerCleaned = true
+            accumulated = accumulated
+              .replace(/<style[\s\S]*?<\/style>/gi, '')
+              .replace('</head>', '<link rel="stylesheet" href="/wakku-ds.css">\n</head>')
+              // deduplicate link tags
+              .replace(/(<link[^>]+wakku-ds\.css[^>]*>\s*){2,}/gi, '<link rel="stylesheet" href="/wakku-ds.css">\n')
+            controller.enqueue(encoder.encode(accumulated))
+            accumulated = ''
+            continue
+          }
+          controller.enqueue(encoder.encode(text))
         }
+        if (accumulated) controller.enqueue(encoder.encode(accumulated))
       } finally {
         controller.close()
       }
