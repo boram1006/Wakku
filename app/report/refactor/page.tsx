@@ -31,6 +31,8 @@ export default function RefactorPage() {
   const vpWidth = VP_WIDTHS[viewport]
   const scale = containerWidth > 0 ? Math.min(1, containerWidth / vpWidth) : 1
   const iframeHeight = scale > 0 ? `${82 / scale}vh` : '82vh'
+  // Center the scaled iframe: offset = (containerWidth - visual_width) / 2
+  const iframeOffset = containerWidth > 0 ? Math.max(0, (containerWidth - vpWidth * scale) / 2) : 0
 
   const isDone = stage === 'done'
   const isWorking = stage === 'extracting' || stage === 'generating'
@@ -333,6 +335,7 @@ export default function RefactorPage() {
                   style={{
                     width: vpWidth, height: iframeHeight, border: 'none',
                     display: 'block', transform: `scale(${scale})`, transformOrigin: 'top left',
+                    marginLeft: iframeOffset,
                   }}
                   sandbox="allow-scripts allow-same-origin"
                   title="재구성된 HTML 보고서 미리보기"
