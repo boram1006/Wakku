@@ -357,6 +357,69 @@ ul.body em {
 .rnr-card h4 { margin: 0 0 12px; font: 600 16px/24px var(--font-kr); color: var(--color-neutral-900); }
 .rnr-card .role { font: 500 12px/1 var(--font-sans); color: var(--color-primary); letter-spacing: .3px; text-transform: uppercase; margin-bottom: 8px; }
 
+/* ===== Data Table ===== */
+.wk-table-wrap {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md); border: 1px solid var(--border-subtle);
+}
+.wk-table {
+  width: 100%; border-collapse: collapse;
+  font: 400 14px/1.6 var(--font-kr); letter-spacing: var(--tracking-tight);
+  min-width: 560px;
+}
+.wk-table th, .wk-table td {
+  padding: 11px 16px; border-bottom: 1px solid var(--border-subtle);
+  text-align: left; vertical-align: middle; color: var(--color-neutral-600);
+}
+.wk-table thead th {
+  background: var(--color-neutral-30);
+  font: 700 12px/1 var(--font-sans); color: var(--color-neutral-600);
+  letter-spacing: .4px; text-transform: uppercase; white-space: nowrap;
+  border-bottom: 1px solid var(--border-default);
+}
+.wk-table tbody tr:last-child td,
+.wk-table tbody tr:last-child th { border-bottom: 0; }
+.wk-table tbody tr:hover td,
+.wk-table tbody tr:hover th { background: var(--color-neutral-10); }
+.wk-table tbody th {
+  font: 600 14px/1.4 var(--font-kr); color: var(--color-neutral-900);
+  white-space: nowrap; background: #fff;
+}
+/* 단계 번호 셀 */
+.wk-table .num-cell {
+  text-align: center; font: 700 14px/1 var(--font-sans);
+  color: var(--color-primary); white-space: nowrap; width: 48px;
+}
+/* 구간(phase) 셀 — rowspan */
+.wk-table .phase-cell {
+  text-align: center; vertical-align: middle; font-weight: 700;
+  border-right: 3px solid #fff; line-height: 1.35;
+  width: 140px; white-space: normal;
+}
+.wk-table .phase-cell .phase-title { font: 700 13px/1.3 var(--font-sans); }
+.wk-table .phase-cell .phase-sub   { font: 400 11px/1 var(--font-sans); opacity: .75; margin-top: 5px; }
+.wk-table .phase-p2d { background: #DCFCE7; color: #047857; }
+.wk-table .phase-d2c { background: #DBEAFE; color: #2563EB; }
+.wk-table .phase-empty { background: #fff; border-right: 3px solid #fff; width: 140px; }
+/* AS-IS / TO-BE 셀 색상 */
+.wk-table .asis-cell { color: var(--color-neutral-500); }
+.wk-table .tobe-cell { color: var(--color-neutral-900); font-weight: 500; }
+/* 테이블 래퍼 (제목 + 부제 포함) */
+.wk-table-block {
+  background: #fff; border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 20px 22px 0; box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+.wk-table-block .tb-head { margin-bottom: 14px; }
+.wk-table-block .tb-title {
+  font: 700 16px/1 var(--font-sans); letter-spacing: var(--tracking-tight);
+  color: var(--color-neutral-900); margin-bottom: 5px;
+}
+.wk-table-block .tb-sub {
+  font: 400 13px/1.5 var(--font-kr); color: var(--color-neutral-500);
+}
+.wk-table-block .wk-table-wrap { border-radius: 0; border: 0; border-top: 1px solid var(--border-subtle); }
+
 /* ===== Print & Accessibility ===== */
 @media print {
   .nav { display: none; }

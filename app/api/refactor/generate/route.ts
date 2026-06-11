@@ -575,7 +575,68 @@ const GENERATE_PROMPT = (jsonContent: string, sourceHtml?: string) => `당신은
 - ✅ 섹션 배경: #F7F8F9 / #fff 교차
 - ✅ </body> 직전에 필수 JS 포함
 
-## proc-flow 다이어그램 — 반드시 지켜야 합니다
+## ⚠️ 테이블 vs 플로우 — 반드시 구분하세요
+- comparison.format === "table" → 아래 wk-table 템플릿으로 렌더링. proc-flow 절대 사용 금지.
+- comparison.format === "flow" → 아래 proc-flow 템플릿으로 렌더링. wk-table 절대 사용 금지.
+
+## wk-table 테이블 — format:"table"인 경우
+tableRows 배열을 순서대로 <tr>로 렌더링합니다.
+- phaseIsStart:true → <td class="phase-cell phase-p2d" rowspan="N"> 셀 포함
+- phaseIsStart:false이고 phase가 있으면 → phase 셀 생략 (rowspan으로 이미 병합됨)
+- phase:""이면 → <td class="phase-empty"></td>
+- num → <td class="num-cell">번호</td>
+- label → <th scope="row">구분명</th>
+- asIs → <td class="asis-cell">내용</td>
+- toBe → <td class="tobe-cell">내용</td>
+
+```html
+<div class="wk-table-block">
+  <div class="tb-head">
+    <div class="tb-title">① 디자인 workflow에서의 변화</div>
+    <div class="tb-sub">설명 텍스트</div>
+  </div>
+  <div class="wk-table-wrap">
+    <table class="wk-table">
+      <thead>
+        <tr>
+          <th style="width:140px;text-align:center;">구간</th>
+          <th style="width:48px;text-align:center;">단계</th>
+          <th>구분</th>
+          <th>AS-IS (기존)</th>
+          <th>TO-BE (AI 도입 이후)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="phase-empty"></td>
+          <td class="num-cell">1</td>
+          <th scope="row">문제 정의</th>
+          <td class="asis-cell">PM·기획 주도</td>
+          <td class="tobe-cell">AI와 함께 탐색형 정의</td>
+        </tr>
+        <tr>
+          <td class="phase-cell phase-p2d" rowspan="2">
+            <div class="phase-title">Prompt to Design</div>
+            <div class="phase-sub">PRD → 디자인 초안</div>
+          </td>
+          <td class="num-cell">4</td>
+          <th scope="row">와이어프레임</th>
+          <td class="asis-cell">디자이너 수작업</td>
+          <td class="tobe-cell">AI 초안 생성</td>
+        </tr>
+        <tr>
+          <td class="num-cell">5</td>
+          <th scope="row">UI 디자인</th>
+          <td class="asis-cell">픽셀 단위 제작</td>
+          <td class="tobe-cell">시스템 조합 + AI refinement</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+```
+
+## proc-flow 다이어그램 — format:"flow"인 경우
 comparison 섹션이 있거나 sourceHtml에 As-Is/To-Be 내용이 있으면:
 1. cmp-bar 토글 버튼 (As-Is / To-Be)
 2. 각 패널에 proc-flow 다이어그램 — 박스(proc-step) + 화살표(proc-arrow) 반복
