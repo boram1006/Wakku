@@ -216,13 +216,13 @@ document.addEventListener('click', function(e) {
     <main style={{
       display: 'flex',
       justifyContent: 'center',
-      padding: isDone ? '40px 24px 80px' : '72px 32px 120px',
+      padding: isDone ? '40px 0 80px' : '72px 32px 120px',
       minHeight: '100vh',
     }}>
       <div style={{ width: '100%', maxWidth: isDone ? 'none' : 860 }}>
 
         {/* 상단 네비 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isDone ? 24 : 44 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isDone ? 24 : 44, padding: isDone ? '0 24px' : 0 }}>
           <a href="/report/create" style={{ font: '700 15px/1 var(--font-kr)', color: 'var(--color-neutral-900)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>W</span>
             <span>Wakku</span>
@@ -440,7 +440,7 @@ document.addEventListener('click', function(e) {
         {isDone && (
           <div>
             {/* 툴바 */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ display: 'inline-flex', gap: 4, padding: 4, background: 'var(--color-neutral-10)', border: '1px solid var(--color-neutral-100)', borderRadius: 999 }}>
                   {VIEWPORTS.map((vp) => (
@@ -491,7 +491,7 @@ document.addEventListener('click', function(e) {
 
             {/* 디버그: 추출된 JSON */}
             {showDebug && extractedJson && (
-              <div style={{ marginBottom: 12, border: '1px solid var(--color-neutral-100)', borderRadius: 12, overflow: 'hidden' }}>
+              <div style={{ marginBottom: 12, margin: '0 24px 12px', border: '1px solid var(--color-neutral-100)', borderRadius: 12, overflow: 'hidden' }}>
                 <div style={{ padding: '8px 14px', background: 'var(--color-neutral-10)', borderBottom: '1px solid var(--color-neutral-100)', font: '600 12px/1 var(--font-kr)', color: 'var(--color-neutral-500)' }}>
                   추출된 JSON — sections: {(extractedJson as { sections?: unknown[] }).sections?.length ?? 0}개
                 </div>
@@ -502,7 +502,7 @@ document.addEventListener('click', function(e) {
             )}
 
             {/* iframe */}
-            <div style={{ border: '1px solid var(--color-neutral-100)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+            <div style={{ border: '1px solid var(--color-neutral-100)', borderTop: '1px solid var(--color-neutral-100)', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: 'var(--color-neutral-10)', borderBottom: '1px solid var(--color-neutral-100)' }}>
                 <span style={{ font: '400 12px/1 monospace', color: 'var(--color-neutral-300)' }}>
                   {vpWidth}px 기준 미리보기
