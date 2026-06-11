@@ -155,16 +155,32 @@ export default function RefactorPage() {
         throw new Error('유효한 HTML을 추출할 수 없습니다.')
       }
 
-      // iframe 내 앵커 링크가 상위 프레임을 탐색하지 않고 섹션으로 스크롤되도록 처리
+      // iframe 내 모든 링크를 인터셉트: 해시 링크는 scrollIntoView, 외부 링크는 차단
       const anchorScript = `<script>
 document.addEventListener('click', function(e) {
-  var a = e.target.closest('a[href^="#"]');
+  var a = e.target.closest('a');
   if (!a) return;
+  var href = a.getAttribute('href') || '';
+  if (!href || href.startsWith('javascript')) return;
+  // 순수 해시 링크: #foo
+  if (href.charAt(0) === '#') {
+    e.preventDefault();
+    var el = document.getElementById(href.slice(1));
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+  // 경로 + 해시: /path#foo 또는 http://...#foo
+  var hi = href.indexOf('#');
+  if (hi !== -1) {
+    e.preventDefault();
+    var id = href.slice(hi + 1);
+    var el2 = document.getElementById(id);
+    if (el2) el2.scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+  // 그 외 모든 링크 — 외부 탐색 차단
   e.preventDefault();
-  var id = a.getAttribute('href').slice(1);
-  var el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
-});
+}, true);
 </script>`
       finalHtml = finalHtml.replace(/<\/body>/i, anchorScript + '\n</body>')
 
