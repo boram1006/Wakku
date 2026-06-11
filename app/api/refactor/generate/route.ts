@@ -318,9 +318,11 @@ const HTML_EXAMPLES = `
       <p>설명 텍스트.</p>
     </div>
     <!-- 용어 정의 callout (있으면) -->
-    <div class="card flat" style="border-left:4px solid var(--color-primary);padding:20px 24px;margin-bottom:32px;">
-      <span class="wk-eyebrow">용어 정의</span>
-      <p class="body" style="margin:6px 0 0;">용어 설명 내용</p>
+    <div class="wk-callout" style="margin-bottom:28px;">
+      <div class="wk-callout-inner">
+        <div class="wk-callout-label">용어 정의</div>
+        <p class="body">용어 설명 내용</p>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
 
@@ -390,9 +392,11 @@ const HTML_EXAMPLES = `
       <p>설명 텍스트.</p>
     </div>
     <!-- 용어 정의 callout (있으면) -->
-    <div class="card flat" style="border-left:4px solid var(--color-primary);padding:20px 24px;margin-bottom:28px;">
-      <span class="wk-eyebrow">용어 정의</span>
-      <p class="body" style="margin:8px 0 0;">용어 정의 내용</p>
+    <div class="wk-callout" style="margin-bottom:28px;">
+      <div class="wk-callout-inner">
+        <div class="wk-callout-label">용어 정의</div>
+        <p class="body">용어 정의 내용</p>
+      </div>
     </div>
     <!-- DS 탭 컴포넌트 -->
     <div class="wk-tabs" data-tabgroup="examples">
@@ -469,17 +473,17 @@ const HTML_EXAMPLES = `
       <div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
           <span style="width:8px;height:8px;border-radius:999px;background:var(--color-primary);box-shadow:0 0 0 4px rgba(253,49,46,.14);flex-shrink:0;"></span>
-          <span style="font:700 11px/1 var(--font-sans);letter-spacing:.18em;text-transform:uppercase;color:var(--color-primary);">Part 1</span>
-          <span style="font:700 15px/1 var(--font-sans);color:var(--color-ink);margin-left:4px;">사전 기술 검토</span>
+          <span class="tag tag-brand tag-md">Part 1</span>
+          <span style="font:600 15px/1 var(--font-sans);color:var(--color-neutral-900);margin-left:4px;">사전 기술 검토</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px;">
-          <a href="http://localhost:3004/" target="_blank" rel="noopener" style="display:flex;align-items:stretch;gap:22px;background:#fff;border:1px solid var(--border-subtle);border-radius:18px;padding:26px 28px;box-shadow:var(--shadow-sm);color:inherit;text-decoration:none;transition:transform .15s,border-color .15s,box-shadow .15s;">
-            <div style="flex-shrink:0;width:56px;height:56px;border-radius:14px;background:var(--color-primary);color:#fff;font:800 22px/1 var(--font-sans);display:grid;place-items:center;">1</div>
-            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-              <div style="font:700 19px/1.3 var(--font-kr);color:var(--color-ink);margin-bottom:4px;">항목 제목</div>
-              <div style="font:400 14px/1.55 var(--font-kr);color:var(--color-neutral-500);">항목 설명</div>
+          <a href="#" class="wk-link-card">
+            <div class="wk-link-num">1</div>
+            <div class="wk-link-card-body">
+              <div class="wk-link-card-title">항목 제목</div>
+              <div class="wk-link-card-desc">항목 설명</div>
             </div>
-            <div style="align-self:center;font:700 13px/1 var(--font-sans);color:var(--color-primary);white-space:nowrap;">바로가기 ↗</div>
+            <div class="wk-link-go">바로가기 ↗</div>
           </a>
         </div>
       </div>
@@ -489,23 +493,20 @@ const HTML_EXAMPLES = `
       <div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
           <span style="width:8px;height:8px;border-radius:999px;background:var(--color-primary);box-shadow:0 0 0 4px rgba(253,49,46,.14);flex-shrink:0;"></span>
-          <span style="font:700 11px/1 var(--font-sans);letter-spacing:.18em;text-transform:uppercase;color:var(--color-primary);">Part 2</span>
-          <span style="font:700 15px/1 var(--font-sans);color:var(--color-ink);margin-left:4px;">컨셉 검증 Prototype</span>
+          <span class="tag tag-brand tag-md">Part 2</span>
+          <span style="font:600 15px/1 var(--font-sans);color:var(--color-neutral-900);margin-left:4px;">컨셉 검증 Prototype</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px;">
-          <a href="#" target="_blank" rel="noopener" style="display:flex;align-items:flex-start;gap:22px;background:#fff;border:1px solid var(--border-subtle);border-radius:18px;padding:26px 28px;box-shadow:var(--shadow-sm);color:inherit;text-decoration:none;">
-            <div style="flex-shrink:0;width:56px;height:56px;border-radius:14px;background:var(--color-primary);color:#fff;font:800 22px/1 var(--font-sans);display:grid;place-items:center;">5</div>
-            <div style="flex:1;">
-              <div style="font:700 19px/1.3 var(--font-kr);color:var(--color-ink);margin-bottom:4px;">컨셉 검증 및 1차 Prototype</div>
-              <div style="font:400 14px/1.55 var(--font-kr);color:var(--color-neutral-500);">설명</div>
-              <ul style="list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px dashed var(--border-subtle);display:flex;flex-direction:column;gap:8px;">
-                <li style="position:relative;padding-left:18px;font:400 14px/1.6 var(--font-kr);color:var(--color-neutral-500);">
-                  <span style="position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:999px;background:var(--color-primary);display:block;"></span>
-                  서브 항목 1
-                </li>
-              </ul>
+          <a href="#" class="wk-link-card" style="align-items:flex-start;">
+            <div class="wk-link-num">5</div>
+            <div class="wk-link-card-body">
+              <div class="wk-link-card-title">컨셉 검증 및 1차 Prototype</div>
+              <div class="wk-link-card-desc">설명</div>
+              <div class="wk-link-card-sub">
+                <ul class="body"><li>서브 항목 1</li></ul>
+              </div>
             </div>
-            <div style="align-self:center;font:700 13px/1 var(--font-sans);color:var(--color-primary);white-space:nowrap;">바로가기 ↗</div>
+            <div class="wk-link-go">바로가기 ↗</div>
           </a>
         </div>
       </div>
