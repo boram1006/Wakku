@@ -281,27 +281,35 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }), { status: 500 })
   }
 
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  const strippedHtml = stripStylesAndScripts(html)
+  try {
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const strippedHtml = stripStylesAndScripts(html)
 
-  const completion = await client.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [{ role: 'user', content: EXTRACT_PROMPT(strippedHtml) }],
-    temperature: 0.1,
-    max_tokens: 16384,
-    response_format: { type: 'json_object' },
-  })
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: EXTRACT_PROMPT(strippedHtml) }],
+      temperature: 0.1,
+      max_tokens: 16384,
+      response_format: { type: 'json_object' },
+    })
 
-  const json = completion.choices[0]?.message?.content ?? '{}'
+    const json = completion.choices[0]?.message?.content ?? '{}'
 
-  // Return JSON + stripped source so the caller can pass it to generate as fallback
-  const parsed = JSON.parse(json)
-  const responsePayload = JSON.stringify({
-    ...parsed,
-    _sourceHtml: strippedHtml.slice(0, 80000),
-  })
+    // Return JSON + stripped source so the caller can pass it to generate as fallback
+    const parsed = JSON.parse(json)
+    const responsePayload = JSON.stringify({
+      ...parsed,
+      _sourceHtml: strippedHtml.slice(0, 80000),
+    })
 
-  return new Response(responsePayload, {
-    headers: { 'Content-Type': 'application/json; charset=utf-8' },
-  })
+    return new Response(responsePayload, {
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    })
+  }
 }

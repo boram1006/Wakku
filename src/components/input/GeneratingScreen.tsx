@@ -22,8 +22,9 @@ function Spinner() {
   )
 }
 
-export function PageShell({ children, step }: { children: React.ReactNode; step?: 1 | 2 | 3 }) {
+export function PageShell({ children, step, mode }: { children: React.ReactNode; step?: 1 | 2 | 3; mode?: 'create' | 'refactor' }) {
   const s = step ?? 1
+  const isRefactor = mode === 'refactor'
   return (
     <div className="wk-page">
       <header className="wk-header">
@@ -31,27 +32,33 @@ export function PageShell({ children, step }: { children: React.ReactNode; step?
           <span className="mark">W</span>
           <span className="name">Wakku</span>
         </a>
-        <div className="wk-steps">
-          <div className={`wk-step${s === 1 ? ' is-active' : s > 1 ? ' is-done' : ''}`}>
-            <span className="dot">1</span>
-            <span className="lbl">자료 입력</span>
+        {isRefactor ? (
+          <span style={{ font: '500 13px/1 var(--font-kr)', color: 'var(--color-neutral-500)', letterSpacing: 'var(--tracking-tight)' }}>
+            HTML 보고서 재구성
+          </span>
+        ) : (
+          <div className="wk-steps">
+            <div className={`wk-step${s === 1 ? ' is-active' : s > 1 ? ' is-done' : ''}`}>
+              <span className="dot">1</span>
+              <span className="lbl">자료 입력</span>
+            </div>
+            <span className="wk-step-sep" />
+            <div className={`wk-step${s === 2 ? ' is-active' : s > 2 ? ' is-done' : ''}`}>
+              <span className="dot">2</span>
+              <span className="lbl">분석 확인</span>
+            </div>
+            <span className="wk-step-sep" />
+            <div className={`wk-step${s === 3 ? ' is-active' : ''}`}>
+              <span className="dot">3</span>
+              <span className="lbl">보고자료 생성</span>
+            </div>
           </div>
-          <span className="wk-step-sep" />
-          <div className={`wk-step${s === 2 ? ' is-active' : s > 2 ? ' is-done' : ''}`}>
-            <span className="dot">2</span>
-            <span className="lbl">분석 확인</span>
-          </div>
-          <span className="wk-step-sep" />
-          <div className={`wk-step${s === 3 ? ' is-active' : ''}`}>
-            <span className="dot">3</span>
-            <span className="lbl">보고자료 생성</span>
-          </div>
-        </div>
+        )}
         <a
-          href="/report/refactor"
+          href={isRefactor ? '/report/create' : '/report/refactor'}
           style={{ font: '500 13px/1 var(--font-kr)', color: 'var(--color-neutral-400)', textDecoration: 'none', letterSpacing: 'var(--tracking-tight)', flexShrink: 0 }}
         >
-          HTML 재구성
+          {isRefactor ? '보고 구조 잡기 →' : 'HTML 재구성'}
         </a>
       </header>
       {children}

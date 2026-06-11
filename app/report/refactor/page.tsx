@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { PageShell } from '@/components/input/GeneratingScreen'
 
 type Stage = 'idle' | 'extracting' | 'generating' | 'done' | 'error'
 type Viewport = '1920' | '1440' | '1200'
@@ -50,6 +51,7 @@ export default function RefactorPage() {
   const fileRef = useRef<HTMLInputElement>(null)
   const slideInputRef = useRef<HTMLInputElement>(null)
   const previewContainerRef = useRef<HTMLDivElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     const el = previewContainerRef.current
@@ -102,7 +104,16 @@ export default function RefactorPage() {
     addSlides(e.dataTransfer.files)
   }, [])
 
+  function handleCancel() {
+    abortRef.current?.abort()
+    abortRef.current = null
+    setStage('idle')
+    setError('')
+  }
+
   async function handleRefactor() {
+    const abort = new AbortController()
+    abortRef.current = abort
     setStage('extracting')
     setError('')
     setResult('')
@@ -116,7 +127,7 @@ export default function RefactorPage() {
         if (!slides.length) return
         const formData = new FormData()
         slides.forEach((s, i) => formData.append(`slide_${i}`, s.file))
-        const res = await fetch('/api/refactor/extract-vision', { method: 'POST', body: formData })
+        const res = await fetch('/api/refactor/extract-vision', { method: 'POST', body: formData, signal: abort.signal })
         if (!res.ok) {
           const d = await res.json().catch(() => ({}))
           throw new Error(d.error ?? `추출 실패 HTTP ${res.status}`)
@@ -128,6 +139,7 @@ export default function RefactorPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ html }),
+          signal: abort.signal,
         })
         if (!res.ok) {
           const d = await res.json().catch(() => ({}))
@@ -144,6 +156,7 @@ export default function RefactorPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: extractedContent, sourceHtml: _sourceHtml }),
+        signal: abort.signal,
       })
       if (!genRes.ok) {
         const d = await genRes.json().catch(() => ({}))
@@ -187,6 +200,7 @@ document.addEventListener('click', function(e) {
       setResult(finalHtml)
       setStage('done')
     } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return
       setError(String(e))
       setStage('error')
     }
@@ -229,24 +243,14 @@ document.addEventListener('click', function(e) {
   const overLimit = charCount > 200_000
 
   return (
-    <main style={{
-      display: 'flex',
-      justifyContent: 'center',
-      padding: isDone ? '40px 0 80px' : '72px 32px 120px',
-      minHeight: '100vh',
-    }}>
+    <PageShell mode="refactor">
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        padding: isDone ? '40px 0 80px' : '72px 32px 120px',
+        minHeight: 'calc(100vh - 72px)',
+      }}>
       <div style={{ width: '100%', maxWidth: isDone ? 'none' : 860 }}>
-
-        {/* 상단 네비 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isDone ? 24 : 44, padding: isDone ? '0 24px' : 0 }}>
-          <a href="/report/create" style={{ font: '700 15px/1 var(--font-kr)', color: 'var(--color-neutral-900)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>W</span>
-            <span>Wakku</span>
-          </a>
-          <a href="/report/create" style={{ font: '500 13px/1 var(--font-kr)', color: 'var(--color-neutral-400)', textDecoration: 'none' }}>
-            보고 구조 잡기 →
-          </a>
-        </div>
 
         {/* 헤더 (입력 단계만) */}
         {!isDone && (
@@ -398,16 +402,24 @@ document.addEventListener('click', function(e) {
 
             {/* 실행 버튼 */}
             <div className="wk-actions" style={{ marginTop: 20 }}>
-              <button
-                className="wk-btn wk-btn-primary"
-                onClick={handleRefactor}
-                disabled={!canRun || isWorking}
-                style={{ minWidth: 160 }}
-              >
-                {isWorking
-                  ? stage === 'extracting' ? '내용 분석 중…' : 'HTML 생성 중…'
-                  : '재구성하기 ›'}
-              </button>
+              {isWorking ? (
+                <button
+                  className="wk-btn wk-btn-ghost"
+                  onClick={handleCancel}
+                  style={{ minWidth: 160 }}
+                >
+                  취소
+                </button>
+              ) : (
+                <button
+                  className="wk-btn wk-btn-primary"
+                  onClick={handleRefactor}
+                  disabled={!canRun}
+                  style={{ minWidth: 160 }}
+                >
+                  재구성하기 ›
+                </button>
+              )}
             </div>
 
             {/* 진행 표시 */}
@@ -548,6 +560,7 @@ document.addEventListener('click', function(e) {
         )}
 
       </div>
-    </main>
+      </div>
+    </PageShell>
   )
 }
