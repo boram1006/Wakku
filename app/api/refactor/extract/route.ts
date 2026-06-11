@@ -299,7 +299,7 @@ export async function POST(req: NextRequest) {
     const parsed = JSON.parse(json)
     const responsePayload = JSON.stringify({
       ...parsed,
-      _sourceHtml: strippedHtml.slice(0, 80000),
+      _sourceHtml: strippedHtml.slice(0, 15000),
     })
 
     return new Response(responsePayload, {
