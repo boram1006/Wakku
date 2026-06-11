@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { PageShell } from '@/src/components/input/GeneratingScreen'
 
 type Stage = 'idle' | 'extracting' | 'generating' | 'done' | 'error'
 type Viewport = '1920' | '1440' | '1200'
@@ -229,24 +230,14 @@ document.addEventListener('click', function(e) {
   const overLimit = charCount > 200_000
 
   return (
-    <main style={{
-      display: 'flex',
-      justifyContent: 'center',
-      padding: isDone ? '40px 0 80px' : '72px 32px 120px',
-      minHeight: '100vh',
-    }}>
+    <PageShell mode="refactor">
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        padding: isDone ? '40px 0 80px' : '72px 32px 120px',
+        minHeight: 'calc(100vh - 72px)',
+      }}>
       <div style={{ width: '100%', maxWidth: isDone ? 'none' : 860 }}>
-
-        {/* 상단 네비 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isDone ? 24 : 44, padding: isDone ? '0 24px' : 0 }}>
-          <a href="/report/create" style={{ font: '700 15px/1 var(--font-kr)', color: 'var(--color-neutral-900)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>W</span>
-            <span>Wakku</span>
-          </a>
-          <a href="/report/create" style={{ font: '500 13px/1 var(--font-kr)', color: 'var(--color-neutral-400)', textDecoration: 'none' }}>
-            보고 구조 잡기 →
-          </a>
-        </div>
 
         {/* 헤더 (입력 단계만) */}
         {!isDone && (
@@ -548,6 +539,7 @@ document.addEventListener('click', function(e) {
         )}
 
       </div>
-    </main>
+      </div>
+    </PageShell>
   )
 }
