@@ -9,13 +9,30 @@ const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서의 텍스트 내
 3. 원본에 없는 내용 추가 금지
 4. cards.body는 p 태그 전체 문장을 그대로 담으세요 (한 문장도 빠뜨리지 마세요)
 
-## A. comparison 섹션 (As-Is / To-Be 워크플로우)
+## A. comparison 섹션 (As-Is / To-Be 비교)
 
-비교 섹션 찾기: As-Is, To-Be, 현재, 개선, Before, After, 워크플로우, 프로세스, 단계별 테이블 키워드
-업무 단계 인식: 순서 번호(01 02 03...) + 단계명 + 시간값(27h, 130h...) 조합
-테이블 형식도 인식: thead/tbody가 있는 비교 테이블 → steps 배열로 변환
-특수 단계: 병목/지연 → isBottleneck:true, AI/자동화 → isAI:true, 제거/삭제 → isRemoved:true
-수치: totalHours, bottleneckHours, savedHours, savedPct(%)
+⚠️ 테이블과 플로우는 반드시 구분하세요:
+
+### format: "table" — 원본이 <table> 태그로 AS-IS/TO-BE 열을 나란히 보여주는 경우
+- thead에 AS-IS, TO-BE 같은 열이 있거나
+- <table>의 각 행이 단계(구분)이고 열이 AS-IS/TO-BE인 구조
+- 예: 9개 단계가 행으로, AS-IS와 TO-BE가 열로 나란히 있는 워크플로우 비교표
+- 이 경우 tableRows 배열로 추출:
+  - phase: 구간명 (있으면), phaseClass: "phase-p2d"|"phase-d2c"|"" , phaseSub: 구간 설명, phaseRowspan: rowspan 수
+  - num: 단계 번호 (1,2,3...)
+  - label: 단계명 (구분)
+  - asIs: AS-IS 내용
+  - toBe: TO-BE 내용
+  - phaseIsStart: true이면 해당 행이 rowspan 시작 행
+
+### format: "flow" — 원본이 박스+화살표로 순서대로 이어지는 프로세스 다이어그램인 경우
+- div.proc-step 또는 박스+→ 화살표 구조
+- 시간값(27h, 130h...)이 있고 병목/AI 강조가 있는 단계별 흐름
+- 이 경우 steps 배열로 추출:
+  - idx, title, hours, isBottleneck, isAI, isRemoved, detail, savedHours
+- 수치: totalHours, bottleneckHours, savedHours, savedPct(%)
+
+하나의 섹션에 테이블과 추가 카드(extraCards)가 함께 있을 수 있음.
 
 ## B. cards 섹션 (카드 나열형)
 
@@ -93,26 +110,46 @@ groups가 있으면 그룹 분리: { groupLabel, groupTitle, items[] }
     },
     {
       "id": "asis", "type": "comparison",
+      "format": "table",
       "secNum": "01", "title": "제목", "subtitle": "설명",
+      "tableTitle": "① 섹션 내 테이블 블록 제목",
+      "tableSub": "테이블 부제",
+      "tableHeaders": ["구간", "단계", "구분", "AS-IS (기존)", "TO-BE (AI 도입 이후)"],
+      "tableRows": [
+        {"phase": "", "phaseClass": "", "phaseSub": "", "phaseRowspan": 0, "phaseIsStart": false, "num": "1", "label": "문제 정의", "asIs": "PM·기획 주도", "toBe": "AI와 함께 탐색형 정의"},
+        {"phase": "Prompt to Design", "phaseClass": "phase-p2d", "phaseSub": "PRD → 디자인 초안", "phaseRowspan": 2, "phaseIsStart": true, "num": "4", "label": "와이어프레임", "asIs": "디자이너 수작업", "toBe": "AI 초안 생성"},
+        {"phase": "Prompt to Design", "phaseClass": "phase-p2d", "phaseSub": "", "phaseRowspan": 0, "phaseIsStart": false, "num": "5", "label": "UI 디자인", "asIs": "픽셀 단위 제작", "toBe": "시스템 조합 + AI refinement"}
+      ],
+      "extraCards": [
+        {"tag": "AS-IS", "title": "카드 제목", "items": ["항목1", "항목2"]}
+      ],
+      "extraBlocks": [
+        {"title": "② 직렬→병렬 구조 변화", "subtitle": "설명", "before": "기획 → 디자인 → 개발", "after": "AI + PM + Designer + Dev\n동시 협업", "afterDesc": "설명 (원문 그대로)"}
+      ]
+    },
+    {
+      "id": "asis-flow", "type": "comparison",
+      "format": "flow",
+      "secNum": "02", "title": "제목", "subtitle": "설명",
       "asis": {
         "flowTitle": "현재 업무 흐름",
         "steps": [
-          {"idx": "01", "title": "단계명", "isBottleneck": false, "detail": "설명", "asIs": "AS-IS 내용", "toBe": "TO-BE 내용", "phase": ""},
-          {"idx": "04", "title": "와이어프레임", "isBottleneck": false, "detail": "", "asIs": "디자이너 수작업", "toBe": "AI 초안 생성", "phase": "Prompt to Design"}
+          {"idx": "01", "title": "단계명", "hours": "27h", "isBottleneck": false, "detail": "설명"},
+          {"idx": "02", "title": "병목 단계", "hours": "130h", "isBottleneck": true, "detail": "병목 원인"}
         ],
+        "totalHours": "431h", "bottleneckHours": "290h",
         "problems": ["문제점 (원문)"],
-        "takeaway": "핵심 요약",
-        "extraCards": [
-          {"tag": "AS-IS", "title": "현재 프로세스 제목", "items": ["항목1", "항목2"]}
-        ]
+        "takeaway": "핵심 요약"
       },
       "tobe": {
         "flowTitle": "개선된 업무 흐름",
+        "steps": [
+          {"idx": "01", "title": "단계명", "hours": "27h"},
+          {"idx": "02", "title": "AI 처리", "hours": "20h", "isAI": true, "savedHours": "110h", "detail": "AI 처리 내용"}
+        ],
+        "totalHours": "160h", "savedHours": "271h", "savedPct": "63%",
         "improvements": ["개선 효과 (원문)"],
-        "takeaway": "핵심 요약",
-        "extraBlocks": [
-          {"title": "② 직렬→병렬 구조 변화", "subtitle": "설명", "before": "기획 → 디자인 → 개발", "after": "AI + PM + Designer + Dev\n동시 협업", "afterDesc": "설명 (원문 그대로)"}
-        ]
+        "takeaway": "핵심 요약"
       }
     },
     {

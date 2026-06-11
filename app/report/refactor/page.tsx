@@ -150,10 +150,23 @@ export default function RefactorPage() {
         throw new Error(d.error ?? `생성 실패 HTTP ${genRes.status}`)
       }
 
-      const finalHtml = await genRes.text()
+      let finalHtml = await genRes.text()
       if (!finalHtml.trim() || !/<html/i.test(finalHtml)) {
         throw new Error('유효한 HTML을 추출할 수 없습니다.')
       }
+
+      // iframe 내 앵커 링크가 상위 프레임을 탐색하지 않고 섹션으로 스크롤되도록 처리
+      const anchorScript = `<script>
+document.addEventListener('click', function(e) {
+  var a = e.target.closest('a[href^="#"]');
+  if (!a) return;
+  e.preventDefault();
+  var id = a.getAttribute('href').slice(1);
+  var el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+});
+</script>`
+      finalHtml = finalHtml.replace(/<\/body>/i, anchorScript + '\n</body>')
 
       setResult(finalHtml)
       setStage('done')
