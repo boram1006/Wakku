@@ -1,8 +1,6 @@
 import { NextRequest } from 'next/server'
 import OpenAI from 'openai'
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
 const HTML_EXAMPLES = `
 ## 컴포넌트 예시 — 이 클래스와 구조를 그대로 사용하라
 
@@ -632,6 +630,7 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }), { status: 500 })
   }
 
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const completion = await client.chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: GENERATE_PROMPT(jsonContent, sourceHtml) }],

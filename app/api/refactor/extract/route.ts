@@ -1,8 +1,6 @@
 import { NextRequest } from 'next/server'
 import OpenAI from 'openai'
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
 const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서의 텍스트 내용을 빠짐없이 추출하여 JSON으로 반환하세요.
 
 ⚠️ 핵심 원칙
@@ -246,6 +244,7 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }), { status: 500 })
   }
 
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   const strippedHtml = stripStylesAndScripts(html)
 
   const completion = await client.chat.completions.create({
