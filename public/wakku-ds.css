@@ -421,6 +421,65 @@ ul.body em {
 }
 .wk-table-block .wk-table-wrap { border-radius: 0; border: 0; border-top: 1px solid var(--border-subtle); }
 
+/* ===== Tabs ===== */
+/* 탭 컨테이너 */
+.wk-tabs {
+  background: #fff; border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);
+}
+/* 탭 헤더 바 */
+.wk-tab-bar {
+  display: flex; border-bottom: 1px solid var(--border-subtle);
+  background: var(--color-neutral-10); overflow-x: auto;
+}
+/* 탭 버튼 */
+.wk-tab-btn {
+  flex: 1; min-width: 120px; appearance: none; border: 0; background: transparent;
+  padding: 16px 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font: 600 14px/1 var(--font-sans); letter-spacing: var(--tracking-tight);
+  color: var(--color-neutral-400);
+  border-bottom: 3px solid transparent;
+  transition: color .15s, background .15s, border-color .15s;
+  white-space: nowrap;
+}
+.wk-tab-btn:hover { background: var(--color-neutral-30); color: var(--color-neutral-700); }
+.wk-tab-btn.is-active {
+  color: var(--color-primary); border-bottom-color: var(--color-primary);
+  background: #fff; font-weight: 700;
+}
+/* 탭 아이콘 배지 */
+.wk-tab-icon {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  display: grid; place-items: center;
+  font: 700 13px/1 var(--font-sans); background: var(--color-neutral-200); color: #fff;
+  transition: background .15s;
+}
+.wk-tab-btn.is-active .wk-tab-icon { background: var(--color-primary); }
+/* 탭 패널 */
+.wk-tab-panel { display: none; }
+.wk-tab-panel.is-active { display: block; }
+/* 탭 패널 헤더 (도구명 배너) */
+.wk-tab-hero {
+  display: flex; align-items: center; gap: 16px;
+  padding: 22px 28px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #FF6B69 100%);
+}
+.wk-tab-hero-icon {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  background: rgba(255,255,255,.20); display: grid; place-items: center;
+  font: 800 18px/1 var(--font-sans); color: #fff;
+}
+.wk-tab-hero-name { font: 700 20px/1.2 var(--font-sans); color: #fff; }
+.wk-tab-hero-sub  { font: 400 13px/1 var(--font-sans); color: rgba(255,255,255,.80); margin-top: 3px; }
+/* 탭 패널 바디 */
+.wk-tab-body { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
+/* 탭 패널 내 소항목 레이블 */
+.wk-tab-label {
+  font: 700 12px/1 var(--font-sans); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--color-primary); margin-bottom: 10px;
+}
+
 /* ===== Print & Accessibility ===== */
 @media print {
   .nav { display: none; }
