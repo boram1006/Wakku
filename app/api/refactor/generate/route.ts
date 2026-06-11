@@ -589,7 +589,7 @@ tableRows 배열을 순서대로 <tr>로 렌더링합니다.
 - asIs → <td class="asis-cell">내용</td>
 - toBe → <td class="tobe-cell">내용</td>
 
-```html
+\`\`\`html
 <div class="wk-table-block">
   <div class="tb-head">
     <div class="tb-title">① 디자인 workflow에서의 변화</div>
@@ -634,7 +634,7 @@ tableRows 배열을 순서대로 <tr>로 렌더링합니다.
     </table>
   </div>
 </div>
-```
+\`\`\`
 
 ## proc-flow 다이어그램 — format:"flow"인 경우
 comparison 섹션이 있거나 sourceHtml에 As-Is/To-Be 내용이 있으면:
