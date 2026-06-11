@@ -1,8 +1,6 @@
 import { NextRequest } from 'next/server'
 import OpenAI from 'openai'
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
 const EXTRACT_VISION_PROMPT = `아래 보고서 슬라이드 이미지들을 순서대로 분석하여 JSON으로 반환하세요.
 
 ⚠️ 핵심 원칙
@@ -112,6 +110,8 @@ export async function POST(req: NextRequest) {
   if (!process.env.OPENAI_API_KEY) {
     return Response.json({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }, { status: 500 })
   }
+
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
   const formData = await req.formData()
 
