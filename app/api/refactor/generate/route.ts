@@ -389,47 +389,66 @@ const HTML_EXAMPLES = `
       <h2>도구별 AI 적용 방식 &amp; 대표 사용 예시</h2>
       <p>설명 텍스트.</p>
     </div>
-    <!-- 용어 정의 callout -->
-    <div style="background:linear-gradient(135deg,#FFF0F0 0%,#fff 100%);border-left:4px solid var(--color-primary);padding:20px 24px;border-radius:12px;margin-bottom:24px;box-shadow:var(--shadow-sm);">
-      <p style="margin:0 0 6px;font:600 11px/1 var(--font-sans);color:var(--color-neutral-500);letter-spacing:.04em;text-transform:uppercase;">용어 정의</p>
-      <p style="margin:0;font:400 14px/1.7 var(--font-kr);color:var(--color-neutral-700);">용어 정의 내용</p>
+    <!-- 용어 정의 callout (있으면) -->
+    <div class="card flat" style="border-left:4px solid var(--color-primary);padding:20px 24px;margin-bottom:28px;">
+      <span class="wk-eyebrow">용어 정의</span>
+      <p class="body" style="margin:8px 0 0;">용어 정의 내용</p>
     </div>
-    <!-- 탭 컨테이너 -->
-    <div style="background:#fff;border:1px solid var(--border-subtle);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);">
+    <!-- DS 탭 컴포넌트 -->
+    <div class="wk-tabs" data-tabgroup="examples">
       <!-- 탭 헤더 -->
-      <div style="display:flex;border-bottom:1px solid var(--border-subtle);background:var(--color-neutral-30);" role="tablist" data-tabgroup="examples">
-        <button type="button" class="hx-tab is-active" data-target="ex-panel-0" style="flex:1;appearance:none;border:0;background:transparent;padding:16px 18px;font:600 14px/1 var(--font-sans);color:var(--color-neutral-500);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;border-bottom:3px solid transparent;transition:color .15s,background .15s,border-color .15s;">
-          <span style="width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font:800 12px/1 var(--font-sans);background:var(--color-neutral-500);color:#fff;flex-shrink:0;">S</span>Google Stitch
+      <div class="wk-tab-bar" role="tablist">
+        <button type="button" class="wk-tab-btn is-active" data-target="ex-panel-0">
+          <span class="wk-tab-icon">S</span>Google Stitch
         </button>
-        <button type="button" class="hx-tab" data-target="ex-panel-1" style="flex:1;appearance:none;border:0;background:transparent;padding:16px 18px;font:600 14px/1 var(--font-sans);color:var(--color-neutral-500);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;border-bottom:3px solid transparent;transition:color .15s,background .15s,border-color .15s;">
-          <span style="width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font:800 12px/1 var(--font-sans);background:var(--color-neutral-500);color:#fff;flex-shrink:0;">F</span>Figma
+        <button type="button" class="wk-tab-btn" data-target="ex-panel-1">
+          <span class="wk-tab-icon">F</span>Figma
         </button>
       </div>
-      <!-- 탭 패널 -->
-      <div id="ex-panel-0" class="hx-tab-panel" style="display:block;">
-        <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;background:linear-gradient(135deg,var(--color-primary) 0%,#FF7A78 100%);color:#fff;">
-          <div style="width:38px;height:38px;background:rgba(255,255,255,.18);border-radius:10px;display:grid;place-items:center;font:800 16px/1 var(--font-sans);flex-shrink:0;">S</div>
+      <!-- 탭 패널 0 -->
+      <div id="ex-panel-0" class="wk-tab-panel is-active">
+        <div class="wk-tab-hero">
+          <div class="wk-tab-hero-icon">S</div>
           <div>
-            <div style="font:700 18px/1 var(--font-sans);">Google Stitch</div>
-            <div style="font:400 12px/1 var(--font-sans);opacity:.85;margin-top:2px;">Gemini 기반 · 텍스트/음성 → 멀티스크린 UI</div>
+            <div class="wk-tab-hero-name">Google Stitch</div>
+            <div class="wk-tab-hero-sub">Gemini 기반 · 텍스트/음성 → 멀티스크린 UI</div>
           </div>
         </div>
-        <div style="padding:22px 24px 26px;">
-          <div style="margin-bottom:18px;">
-            <span style="display:inline-block;font:700 11px/1 var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--color-primary);margin-bottom:8px;">AI 적용 방식</span>
-            <p style="font:400 14px/1.7 var(--font-kr);color:var(--color-neutral-600);margin:0;">AI 적용 방식 원문 전체</p>
+        <div class="wk-tab-body">
+          <div>
+            <p class="wk-tab-label">AI 적용 방식</p>
+            <p class="body" style="list-style:none;padding:0;">AI 적용 방식 원문 전체. 생략 금지.</p>
           </div>
-          <div style="margin-bottom:18px;">
-            <span style="display:inline-block;font:700 11px/1 var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--color-primary);margin-bottom:8px;">가장 빈번한 입문 예제</span>
-            <ol style="padding-left:18px;margin:0;">
-              <li style="font:400 14px/1.7 var(--font-kr);color:var(--color-neutral-600);margin-bottom:6px;">단계 1</li>
+          <div>
+            <p class="wk-tab-label">가장 빈번한 입문 예제</p>
+            <ol style="padding-left:20px;margin:0 0 16px;">
+              <li class="body" style="margin-bottom:8px;">단계 1</li>
+              <li class="body" style="margin-bottom:8px;">단계 2</li>
             </ol>
-            <div style="background:#1a1a1a;color:#e5e5e5;border-radius:8px;padding:14px 16px;font:400 13px/1.55 'SF Mono','Consolas','Monaco',monospace;margin-top:8px;white-space:pre-wrap;word-break:break-word;"><span style="color:#f59e0b;font-weight:700;margin-right:6px;">프롬프트</span>프롬프트 텍스트</div>
-            <div style="background:var(--color-neutral-30);border-left:3px solid var(--color-primary);padding:12px 16px;border-radius:0 8px 8px 0;font:400 13px/1.6 var(--font-kr);color:var(--color-neutral-600);margin-top:6px;">▷ 결과: 결과 설명</div>
+            <!-- 프롬프트 블록 -->
+            <div style="background:#1a1a1a;color:#e5e5e5;border-radius:10px;padding:16px 20px;font:400 14px/1.6 'SF Mono','Consolas','Monaco',monospace;margin-bottom:10px;white-space:pre-wrap;word-break:break-word;">
+              <span style="color:var(--color-primary);font-weight:700;margin-right:8px;">프롬프트</span>프롬프트 텍스트 전체
+            </div>
+            <!-- 결과 블록 -->
+            <div class="card flat" style="border-left:3px solid var(--color-primary);padding:14px 18px;">
+              <p class="body" style="margin:0;">▷ 결과: 결과 설명 전체</p>
+            </div>
           </div>
         </div>
       </div>
-      <div id="ex-panel-1" class="hx-tab-panel" style="display:none;"><!-- 다음 탭 패널 --></div>
+      <!-- 탭 패널 1 -->
+      <div id="ex-panel-1" class="wk-tab-panel">
+        <div class="wk-tab-hero">
+          <div class="wk-tab-hero-icon">F</div>
+          <div>
+            <div class="wk-tab-hero-name">Figma</div>
+            <div class="wk-tab-hero-sub">설명 한 줄</div>
+          </div>
+        </div>
+        <div class="wk-tab-body">
+          <!-- 동일 구조 반복 -->
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -519,24 +538,15 @@ const io = new IntersectionObserver(entries => {
 }, { rootMargin: '-20% 0px -70% 0px' });
 sections.forEach(s => io.observe(s));
 
-// examples 탭 (data-tabgroup 속성으로 그룹 지정)
-document.querySelectorAll('[data-tabgroup]').forEach(function(tablist) {
-  var tabs = tablist.querySelectorAll('.hx-tab');
-  tabs.forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      var targetId = tab.getAttribute('data-target');
-      tabs.forEach(function(t) {
-        var active = t === tab;
-        t.classList.toggle('is-active', active);
-        t.style.color = active ? 'var(--color-primary)' : 'var(--color-neutral-500)';
-        t.style.background = active ? '#fff' : 'transparent';
-        t.style.borderBottomColor = active ? 'var(--color-primary)' : 'transparent';
-        var badge = t.querySelector('span');
-        if (badge) badge.style.background = active ? 'var(--color-primary)' : 'var(--color-neutral-500)';
-      });
-      document.querySelectorAll('.hx-tab-panel').forEach(function(panel) {
-        panel.style.display = panel.id === targetId ? 'block' : 'none';
-      });
+// examples 탭 — DS .wk-tabs 컴포넌트
+document.querySelectorAll('.wk-tabs[data-tabgroup]').forEach(function(container) {
+  var btns = container.querySelectorAll('.wk-tab-btn');
+  var panels = container.querySelectorAll('.wk-tab-panel');
+  btns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var targetId = btn.getAttribute('data-target');
+      btns.forEach(function(b) { b.classList.toggle('is-active', b === btn); });
+      panels.forEach(function(p) { p.classList.toggle('is-active', p.id === targetId); });
     });
   });
 });
@@ -662,12 +672,14 @@ tools 타입 섹션이 있으면 위 예시처럼 도구 카드 그리드를 생
 - callout이 있으면 섹션 시작 부분에 표시
 
 ## examples 섹션 — 반드시 지켜야 합니다
-examples 타입 섹션이 있으면 탭형 인터페이스를 생성합니다.
-- data-tabgroup 속성으로 탭 그룹 지정, .hx-tab + .hx-tab-panel 구조 사용
+examples 타입 섹션이 있으면 DS 탭 컴포넌트(.wk-tabs)로 생성합니다.
+- .wk-tabs[data-tabgroup] > .wk-tab-bar > .wk-tab-btn[data-target] 구조 사용
+- 패널은 .wk-tab-panel, 첫 패널만 .is-active 클래스 추가
+- 패널 내부 텍스트는 DS 클래스 사용: .body / .wk-tab-label / .card.flat / h3.h-bar 등 — inline font: 절대 금지
 - 각 탭의 method(원문 전체), accessSteps, steps, prompt, output을 모두 포함 — 생략 금지
 - prompt는 어두운 배경(#1a1a1a) 모노스페이스 블록으로 표현
-- output은 왼쪽에 빨간 border가 있는 결과 블록으로 표현
-- callout이 있으면 탭 컨테이너 위에 표시
+- output은 .card.flat + border-left:3px solid var(--color-primary) 결과 블록으로 표현
+- callout이 있으면 탭 컨테이너 위에 .card.flat으로 표시
 
 ## webos-agenda 섹션 — 반드시 지켜야 합니다
 webos-agenda 타입 섹션이 있으면 위 예시처럼 2컬럼 그룹 구조로 생성합니다.
