@@ -235,7 +235,7 @@ const HTML_EXAMPLES = `
       <p>설명.</p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
-      <div class="card flat" style="padding:28px 24px;display:flex;flex-direction:column;gap:12px;">
+      <div class="card flat" style="padding:28px 24px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;">
         <span class="tag tag-brand">태그</span>
         <h3 class="h-bar">카드 제목</h3>
         <ul class="body"><li>항목 1</li><li>항목 2</li></ul>
@@ -325,7 +325,7 @@ const HTML_EXAMPLES = `
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
 
       <!-- 일반 도구 카드 -->
-      <div class="card flat" style="padding:28px 24px;display:flex;flex-direction:column;gap:0;">
+      <div class="card flat" style="padding:28px 24px;display:flex;flex-direction:column;gap:0;align-items:flex-start;">
         <span class="tag tag-brand" style="margin-bottom:12px;">AI Native UI 생성</span>
         <h3 class="h-bar" style="margin:0 0 10px;">Google Stitch</h3>
         <p class="body" style="margin:0 0 16px;color:var(--color-primary);font-weight:600;">AI 기반 UI 생성 및 프로토타이핑 도구</p>
@@ -355,7 +355,7 @@ const HTML_EXAMPLES = `
           <button type="button" class="tool-subtab is-active" data-target="tool-figma-0" style="flex:1;appearance:none;border:0;background:transparent;padding:14px 16px;font:700 13px/1 var(--font-sans);color:var(--color-neutral-400);cursor:pointer;border-bottom:3px solid transparent;transition:color .15s,border-color .15s;">Figma</button>
           <button type="button" class="tool-subtab" data-target="tool-figma-1" style="flex:1;appearance:none;border:0;background:transparent;padding:14px 16px;font:700 13px/1 var(--font-sans);color:var(--color-neutral-400);cursor:pointer;border-bottom:3px solid transparent;transition:color .15s,border-color .15s;">Figma Make</button>
         </div>
-        <div id="tool-figma-0" class="tool-sub-panel" style="display:block;padding:24px;">
+        <div id="tool-figma-0" class="tool-sub-panel" style="display:flex;flex-direction:column;align-items:flex-start;padding:24px;">
           <span class="tag tag-brand" style="margin-bottom:12px;">디자인 플랫폼 + AI</span>
           <h3 class="h-bar" style="margin:0 0 10px;">Figma</h3>
           <p class="body" style="margin:0 0 16px;color:var(--color-primary);font-weight:600;">Figma 포지션 설명</p>
@@ -364,7 +364,7 @@ const HTML_EXAMPLES = `
             <ul class="body" style="margin:4px 0 12px;"><li>기능 1</li></ul>
           </details>
         </div>
-        <div id="tool-figma-1" class="tool-sub-panel" style="display:none;padding:24px;">
+        <div id="tool-figma-1" class="tool-sub-panel" style="display:none;flex-direction:column;align-items:flex-start;padding:24px;">
           <span class="tag tag-neutral" style="margin-bottom:12px;">생성형 코드 AI</span>
           <h3 class="h-bar" style="margin:0 0 10px;">Figma Make</h3>
           <p class="body" style="margin:0 0 16px;color:var(--color-primary);font-weight:600;">Figma Make 포지션 설명</p>
@@ -586,6 +586,9 @@ const GENERATE_PROMPT = (jsonContent: string, sourceHtml?: string) => `당신은
 
 ## 절대 규칙 (위반 시 틀린 답)
 - ❌ <style> 태그 절대 금지. CSS 한 줄도 쓰지 마세요. wakku-ds.css가 모두 처리합니다.
+- ❌ inline font: 절대 금지. 텍스트 크기·색상·font-weight를 inline style로 지정하지 마세요.
+- ❌ .tag는 반드시 <span>으로, <div>나 <a>에 tag 클래스 금지. display:block/width:100% 금지.
+- ❌ flex-direction:column 컨테이너에는 반드시 align-items:flex-start 포함 (태그 full-width 방지).
 - ✅ <head>에 반드시: <link rel="stylesheet" href="/wakku-ds.css">
 - ✅ 모든 섹션: <section class="block"> + <div class="wrap">
 - ✅ 섹션 배경: #F7F8F9 / #fff 교차
