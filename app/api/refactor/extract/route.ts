@@ -6,39 +6,77 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서의 텍스트 내용을 빠짐없이 추출하여 JSON으로 반환하세요.
 
 ⚠️ 핵심 원칙
-1. HTML의 모든 섹션을 순서대로 처리하세요 — comparison 이후 섹션도 동등하게 추출
-2. 각 섹션의 본문(body)·항목(items)은 원문 텍스트를 그대로 넣으세요
+1. HTML의 모든 섹션을 순서대로 처리하세요 — 마지막 섹션까지 빠짐없이
+2. 각 섹션의 본문(body)·항목(items)은 원문 텍스트를 그대로 넣으세요 — 절대 요약하거나 생략하지 마세요
 3. 원본에 없는 내용 추가 금지
+4. cards.body는 p 태그 전체 문장을 그대로 담으세요 (한 문장도 빠뜨리지 마세요)
 
 ## A. comparison 섹션 (As-Is / To-Be 워크플로우)
 
-비교 섹션 찾기: As-Is, To-Be, 현재, 개선, Before, After, 워크플로우, 프로세스 키워드
+비교 섹션 찾기: As-Is, To-Be, 현재, 개선, Before, After, 워크플로우, 프로세스, 단계별 테이블 키워드
 업무 단계 인식: 순서 번호(01 02 03...) + 단계명 + 시간값(27h, 130h...) 조합
+테이블 형식도 인식: thead/tbody가 있는 비교 테이블 → steps 배열로 변환
 특수 단계: 병목/지연 → isBottleneck:true, AI/자동화 → isAI:true, 제거/삭제 → isRemoved:true
 수치: totalHours, bottleneckHours, savedHours, savedPct(%)
 
 ## B. cards 섹션 (카드 나열형)
 
-카드 섹션 찾기: 배경, 현황, 문제, 개선방안, 적용 범위 등 카드나 박스가 나열된 섹션
+카드 섹션 찾기: 배경, 현황, 문제, 개선방안, 적용 범위, 변화, CHANGE 등 카드나 박스가 나열된 섹션
 각 카드에서 반드시 추출:
 - title: 카드 제목 (h3, h4 등)
-- body: 카드 본문 설명 (p 태그, div 텍스트 — 원문 그대로, 최소 1문장)
-- items: 해당 카드의 모든 bullet point (li 항목 전체)
+- body: 카드 본문 설명 (p 태그 전체 — 원문 그대로, 절대 요약하지 마세요, 여러 문장 모두 포함)
+- items: 해당 카드의 모든 bullet point (li 항목 전체 — 원문 그대로)
 - tag: 태그/라벨 텍스트 (있으면)
 - takeaway: 핵심 요약 한 줄 (있으면)
 
-## C. timeline 섹션
+## C. tools 섹션 (도구/제품 카드 나열)
+
+도구 섹션 찾기: 도구, tool, 제품, 플랫폼, AI 도구, 솔루션 등을 소개하는 카드 섹션
+각 tool 카드에서 반드시 추출:
+- name: 도구/제품명
+- stage: 카테고리/포지션 레이블 (예: "AI Native UI 생성")
+- position: 한 줄 설명
+- subtabs: Figma/Figma Make처럼 동일 카드 내 탭이 있으면 탭별로 분리 (배열)
+  - 각 subtab: { label, name, stage, position, features, strengths, weaknesses, scenes, value }
+- features: 주요 기능 목록 (원문 그대로)
+- strengths: 잘하는 것 목록 (원문 그대로)
+- weaknesses: 아쉬운 점 목록 (원문 그대로)
+- scenes: 대표 장면 목록 (원문 그대로)
+- value: 핵심 가치/적합한 팀 설명 (원문 그대로)
+
+## D. examples 섹션 (탭형 사용 예시)
+
+예시 섹션 찾기: 사용 예시, 입문 예제, hands-on, 적용 방식, 사용법 등 탭으로 구성된 섹션
+각 tab에서 반드시 추출:
+- label: 탭 이름
+- toolName: 도구 이름
+- toolSub: 부제/버전 정보
+- method: AI 적용 방식 (원문 전체 — 절대 요약 금지)
+- accessSteps: 접속 경로 단계 (있으면, 원문 그대로)
+- exampleTitle: 입문 예제 제목
+- steps: 단계별 순서 (원문 그대로)
+- prompt: 프롬프트 텍스트 (원문 그대로)
+- output: 결과 설명 (원문 그대로)
+- callout: 용어 정의나 주의사항 박스 내용 (있으면)
+
+## E. timeline 섹션
 
 일정, 로드맵, 마일스톤, 추진 계획 섹션
 각 milestone: period(Q1 2026 등), title, items(세부 항목 전체)
 
-## D. org 섹션
+## F. org 섹션
 
 조직, R&R, 역할, 담당 섹션
 각 team: role(역할명), name(팀/조직명), items(담당 업무 전체)
 
+## G. webos-agenda 섹션 (링크가 있는 아젠다 카드 목록)
+
+외부 링크가 있는 항목 목록 (사전 기술 검토, 컨셉 검증 등)
+각 item: num(번호), title(제목), desc(설명), href(링크 URL), subitems(서브 항목 배열, 있으면)
+groups가 있으면 그룹 분리: { groupLabel, groupTitle, items[] }
+
 ## 섹션 타입 (원본에 있는 것만 사용)
-"hero" | "agenda" | "comparison" | "cards" | "kpi" | "timeline" | "org" | "discussion"
+"hero" | "agenda" | "comparison" | "cards" | "tools" | "examples" | "kpi" | "timeline" | "org" | "discussion" | "webos-agenda"
 
 ## JSON 출력 형식
 {
@@ -57,38 +95,114 @@ const EXTRACT_PROMPT = (html: string) => `아래 HTML 보고서의 텍스트 내
     },
     {
       "id": "asis", "type": "comparison",
-      "secNum": "02", "title": "제목", "subtitle": "설명",
+      "secNum": "01", "title": "제목", "subtitle": "설명",
       "asis": {
         "flowTitle": "현재 업무 흐름",
         "steps": [
-          {"idx": "01", "title": "단계명", "hours": "27h", "isBottleneck": false, "detail": "설명"},
-          {"idx": "02", "title": "병목 단계", "hours": "130h", "isBottleneck": true, "detail": "병목 원인"}
+          {"idx": "01", "title": "단계명", "isBottleneck": false, "detail": "설명", "asIs": "AS-IS 내용", "toBe": "TO-BE 내용", "phase": ""},
+          {"idx": "04", "title": "와이어프레임", "isBottleneck": false, "detail": "", "asIs": "디자이너 수작업", "toBe": "AI 초안 생성", "phase": "Prompt to Design"}
         ],
-        "totalHours": "431h", "bottleneckHours": "290h",
         "problems": ["문제점 (원문)"],
-        "takeaway": "핵심 요약"
+        "takeaway": "핵심 요약",
+        "extraCards": [
+          {"tag": "AS-IS", "title": "현재 프로세스 제목", "items": ["항목1", "항목2"]}
+        ]
       },
       "tobe": {
         "flowTitle": "개선된 업무 흐름",
-        "steps": [
-          {"idx": "01", "title": "단계명", "hours": "27h"},
-          {"idx": "02", "title": "AI 처리", "hours": "20h", "isAI": true, "savedHours": "110h"}
-        ],
-        "totalHours": "160h", "savedHours": "271h", "savedPct": "63%",
         "improvements": ["개선 효과 (원문)"],
-        "takeaway": "핵심 요약"
+        "takeaway": "핵심 요약",
+        "extraBlocks": [
+          {"title": "② 직렬→병렬 구조 변화", "subtitle": "설명", "before": "기획 → 디자인 → 개발", "after": "AI + PM + Designer + Dev\n동시 협업", "afterDesc": "설명 (원문 그대로)"}
+        ]
       }
     },
     {
-      "id": "cards-1", "type": "cards", "secNum": "03",
+      "id": "cards-1", "type": "cards", "secNum": "02",
       "title": "섹션 제목", "subtitle": "설명",
       "cards": [
         {
-          "tag": "태그", "tagStyle": "brand",
+          "tag": "CHANGE 01", "tagStyle": "brand",
           "title": "카드 제목",
-          "body": "카드 본문 설명 — 원문 그대로 1~2문장",
+          "body": "카드 본문 — 원문 전체 문장 (절대 요약 금지)",
           "items": ["bullet 항목 1 (원문)", "항목 2", "항목 3"],
           "takeaway": "핵심 요약"
+        }
+      ]
+    },
+    {
+      "id": "tools-1", "type": "tools", "secNum": "02",
+      "title": "대표 AI 디자인 도구", "subtitle": "설명",
+      "callout": "용어 정의 박스 내용 (있으면, 원문 그대로)",
+      "tools": [
+        {
+          "name": "Google Stitch",
+          "stage": "AI Native UI 생성",
+          "position": "AI 기반 UI 생성 및 프로토타이핑 도구",
+          "features": ["기능 1 (원문)", "기능 2"],
+          "strengths": ["강점 1 (원문)"],
+          "weaknesses": ["약점 1 (원문)"],
+          "scenes": ["대표 장면 1 (원문)"],
+          "value": "이런 팀에 적합 — 원문 그대로"
+        },
+        {
+          "name": "Figma",
+          "subtabs": [
+            {
+              "label": "Figma",
+              "name": "Figma",
+              "stage": "디자인 플랫폼 + AI",
+              "position": "설명",
+              "features": ["기능 (원문)"],
+              "strengths": ["강점 (원문)"],
+              "weaknesses": ["약점 (원문)"],
+              "scenes": ["장면 (원문)"],
+              "value": "원문"
+            },
+            {
+              "label": "Figma Make",
+              "name": "Figma Make",
+              "stage": "생성형 코드 AI",
+              "position": "설명",
+              "features": ["기능 (원문)"],
+              "strengths": ["강점 (원문)"],
+              "weaknesses": ["약점 (원문)"],
+              "scenes": ["장면 (원문)"],
+              "value": "원문"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "examples-1", "type": "examples", "secNum": "03",
+      "title": "도구별 AI 적용 방식 & 대표 사용 예시", "subtitle": "설명",
+      "callout": "용어 정의 박스 내용 (있으면, 원문 그대로)",
+      "tabs": [
+        {
+          "label": "Google Stitch",
+          "toolName": "Google Stitch",
+          "toolSub": "Gemini 기반 · 텍스트/음성 → 멀티스크린 UI",
+          "method": "AI 적용 방식 전체 원문 — 절대 요약 금지",
+          "exampleTitle": "입문 예제 제목",
+          "steps": ["1. 단계 (원문)", "2. 단계 (원문)"],
+          "prompt": "프롬프트 텍스트 (원문 그대로)",
+          "output": "결과 설명 (원문 그대로)"
+        }
+      ]
+    },
+    {
+      "id": "webos", "type": "webos-agenda", "secNum": "04",
+      "title": "WebOS UX 디자인 자동화 과제 사전 기술 검토",
+      "subtitle": "설명 (원문 그대로)",
+      "headerDesc": "헤더 추가 설명 (원문 그대로)",
+      "groups": [
+        {
+          "groupLabel": "Part 1",
+          "groupTitle": "사전 기술 검토",
+          "items": [
+            {"num": 1, "title": "항목 제목", "desc": "설명 (원문)", "href": "URL (있으면)", "subitems": []}
+          ]
         }
       ]
     },
@@ -138,7 +252,7 @@ export async function POST(req: NextRequest) {
     model: 'gpt-4o',
     messages: [{ role: 'user', content: EXTRACT_PROMPT(strippedHtml) }],
     temperature: 0.1,
-    max_tokens: 12000,
+    max_tokens: 16384,
     response_format: { type: 'json_object' },
   })
 
@@ -148,7 +262,7 @@ export async function POST(req: NextRequest) {
   const parsed = JSON.parse(json)
   const responsePayload = JSON.stringify({
     ...parsed,
-    _sourceHtml: strippedHtml.slice(0, 25000),
+    _sourceHtml: strippedHtml.slice(0, 80000),
   })
 
   return new Response(responsePayload, {

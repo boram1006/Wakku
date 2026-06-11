@@ -310,6 +310,187 @@ const HTML_EXAMPLES = `
 </section>
 \`\`\`
 
+### tools (도구 카드 나열) — subtabs가 있는 카드도 지원
+\`\`\`html
+<section class="block" id="tools-1" style="background:#fff;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="ln"></span>02 · 대표 AI 디자인 도구</div>
+      <h2>대표 AI 디자인 도구</h2>
+      <p>설명 텍스트.</p>
+    </div>
+    <!-- 용어 정의 callout (있으면) -->
+    <div style="background:linear-gradient(135deg,#FFF0F0 0%,#fff 100%);border-left:4px solid var(--color-primary);padding:20px 24px;border-radius:12px;margin-bottom:32px;">
+      <p style="margin:0 0 6px;font:700 11px/1 var(--font-sans);color:var(--color-primary);letter-spacing:.4px;text-transform:uppercase;">용어 정의</p>
+      <p style="margin:0;font:400 14px/1.7 var(--font-kr);color:var(--color-neutral-700);">용어 설명 내용</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;">
+
+      <!-- 일반 도구 카드 -->
+      <div style="background:#fff;border:1px solid var(--border-subtle);border-radius:16px;padding:22px;box-shadow:var(--shadow-sm);">
+        <div style="font:600 11px/1 var(--font-sans);color:var(--color-primary);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;">AI Native UI 생성</div>
+        <div style="font:700 17px/1 var(--font-sans);color:var(--color-ink);margin-bottom:10px;">Google Stitch</div>
+        <div style="font:700 13px/1.5 var(--font-kr);color:var(--color-primary);background:var(--color-primary-bg);border-left:3px solid var(--color-primary);border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:14px;">AI 기반 UI 생성 및 프로토타이핑 도구</div>
+        <details open style="margin:0;"><summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">주요 기능</summary>
+          <ul class="body" style="margin:6px 0 10px;"><li>기능 1</li><li>기능 2</li></ul>
+        </details>
+        <details style="margin:0;"><summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">잘하는 것</summary>
+          <ul class="body" style="margin:6px 0 10px;"><li>강점 1</li></ul>
+        </details>
+        <details style="margin:0;"><summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-500);">아쉬운 점</summary>
+          <ul class="body" style="margin:6px 0 10px;"><li>약점 1</li></ul>
+        </details>
+        <details style="margin:0;"><summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">대표 장면</summary>
+          <ul class="body" style="margin:6px 0 8px;"><li>장면 1</li></ul>
+          <div class="takeaway" style="margin-top:8px;"><b>이런 팀에 적합</b> · 설명</div>
+        </details>
+      </div>
+
+      <!-- subtabs가 있는 도구 카드 (예: Figma / Figma Make) -->
+      <div style="background:#fff;border:1px solid var(--border-subtle);border-radius:16px;padding:22px;box-shadow:var(--shadow-sm);">
+        <!-- 서브탭 -->
+        <div style="display:flex;gap:6px;margin-bottom:14px;padding:4px;background:var(--color-neutral-30);border-radius:10px;" role="tablist" data-subtab-group="tool-figma">
+          <button type="button" class="tool-subtab is-active" data-target="tool-figma-0" style="flex:1;appearance:none;border:0;background:transparent;padding:8px 10px;font:700 12px/1 var(--font-sans);color:var(--color-neutral-500);cursor:pointer;border-radius:7px;transition:background .15s,color .15s;">Figma</button>
+          <button type="button" class="tool-subtab" data-target="tool-figma-1" style="flex:1;appearance:none;border:0;background:transparent;padding:8px 10px;font:700 12px/1 var(--font-sans);color:var(--color-neutral-500);cursor:pointer;border-radius:7px;transition:background .15s,color .15s;">Figma Make</button>
+        </div>
+        <div id="tool-figma-0" class="tool-sub-panel" style="display:block;">
+          <div style="font:600 11px/1 var(--font-sans);color:var(--color-primary);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;">디자인 플랫폼 + AI</div>
+          <div style="font:700 17px/1 var(--font-sans);color:var(--color-ink);margin-bottom:10px;">Figma</div>
+          <div style="font:700 13px/1.5 var(--font-kr);color:var(--color-primary);background:var(--color-primary-bg);border-left:3px solid var(--color-primary);border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:14px;">Figma 포지션 설명</div>
+          <details open><summary style="list-style:none;cursor:pointer;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);text-transform:uppercase;color:var(--color-neutral-600);">주요 기능</summary>
+            <ul class="body" style="margin:6px 0 10px;"><li>기능 1</li></ul>
+          </details>
+        </div>
+        <div id="tool-figma-1" class="tool-sub-panel" style="display:none;">
+          <div style="font:600 11px/1 var(--font-sans);color:var(--color-primary);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;">생성형 코드 AI</div>
+          <div style="font:700 17px/1 var(--font-sans);color:var(--color-ink);margin-bottom:10px;">Figma Make</div>
+          <div style="font:700 13px/1.5 var(--font-kr);color:var(--color-primary);background:var(--color-primary-bg);border-left:3px solid var(--color-primary);border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:14px;">Figma Make 포지션 설명</div>
+          <details open><summary style="list-style:none;cursor:pointer;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);text-transform:uppercase;color:var(--color-neutral-600);">주요 기능</summary>
+            <ul class="body" style="margin:6px 0 10px;"><li>기능 1</li></ul>
+          </details>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+\`\`\`
+
+### examples (탭형 사용 예시)
+\`\`\`html
+<section class="block" id="examples-1" style="background:#F7F8F9;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="ln"></span>03 · 도구별 AI 적용 방식 &amp; 대표 사용 예시</div>
+      <h2>도구별 AI 적용 방식 &amp; 대표 사용 예시</h2>
+      <p>설명 텍스트.</p>
+    </div>
+    <!-- 용어 정의 callout -->
+    <div style="background:linear-gradient(135deg,#FFF0F0 0%,#fff 100%);border-left:4px solid var(--color-primary);padding:20px 24px;border-radius:12px;margin-bottom:24px;box-shadow:var(--shadow-sm);">
+      <p style="margin:0 0 6px;font:600 11px/1 var(--font-sans);color:var(--color-neutral-500);letter-spacing:.04em;text-transform:uppercase;">용어 정의</p>
+      <p style="margin:0;font:400 14px/1.7 var(--font-kr);color:var(--color-neutral-700);">용어 정의 내용</p>
+    </div>
+    <!-- 탭 컨테이너 -->
+    <div style="background:#fff;border:1px solid var(--border-subtle);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);">
+      <!-- 탭 헤더 -->
+      <div style="display:flex;border-bottom:1px solid var(--border-subtle);background:var(--color-neutral-30);" role="tablist" data-tabgroup="examples">
+        <button type="button" class="hx-tab is-active" data-target="ex-panel-0" style="flex:1;appearance:none;border:0;background:transparent;padding:16px 18px;font:600 14px/1 var(--font-sans);color:var(--color-neutral-500);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;border-bottom:3px solid transparent;transition:color .15s,background .15s,border-color .15s;">
+          <span style="width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font:800 12px/1 var(--font-sans);background:var(--color-neutral-500);color:#fff;flex-shrink:0;">S</span>Google Stitch
+        </button>
+        <button type="button" class="hx-tab" data-target="ex-panel-1" style="flex:1;appearance:none;border:0;background:transparent;padding:16px 18px;font:600 14px/1 var(--font-sans);color:var(--color-neutral-500);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;border-bottom:3px solid transparent;transition:color .15s,background .15s,border-color .15s;">
+          <span style="width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font:800 12px/1 var(--font-sans);background:var(--color-neutral-500);color:#fff;flex-shrink:0;">F</span>Figma
+        </button>
+      </div>
+      <!-- 탭 패널 -->
+      <div id="ex-panel-0" class="hx-tab-panel" style="display:block;">
+        <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;background:linear-gradient(135deg,var(--color-primary) 0%,#FF7A78 100%);color:#fff;">
+          <div style="width:38px;height:38px;background:rgba(255,255,255,.18);border-radius:10px;display:grid;place-items:center;font:800 16px/1 var(--font-sans);flex-shrink:0;">S</div>
+          <div>
+            <div style="font:700 18px/1 var(--font-sans);">Google Stitch</div>
+            <div style="font:400 12px/1 var(--font-sans);opacity:.85;margin-top:2px;">Gemini 기반 · 텍스트/음성 → 멀티스크린 UI</div>
+          </div>
+        </div>
+        <div style="padding:22px 24px 26px;">
+          <div style="margin-bottom:18px;">
+            <span style="display:inline-block;font:700 11px/1 var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--color-primary);margin-bottom:8px;">AI 적용 방식</span>
+            <p style="font:400 14px/1.7 var(--font-kr);color:var(--color-neutral-600);margin:0;">AI 적용 방식 원문 전체</p>
+          </div>
+          <div style="margin-bottom:18px;">
+            <span style="display:inline-block;font:700 11px/1 var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--color-primary);margin-bottom:8px;">가장 빈번한 입문 예제</span>
+            <ol style="padding-left:18px;margin:0;">
+              <li style="font:400 14px/1.7 var(--font-kr);color:var(--color-neutral-600);margin-bottom:6px;">단계 1</li>
+            </ol>
+            <div style="background:#1a1a1a;color:#e5e5e5;border-radius:8px;padding:14px 16px;font:400 13px/1.55 'SF Mono','Consolas','Monaco',monospace;margin-top:8px;white-space:pre-wrap;word-break:break-word;"><span style="color:#f59e0b;font-weight:700;margin-right:6px;">프롬프트</span>프롬프트 텍스트</div>
+            <div style="background:var(--color-neutral-30);border-left:3px solid var(--color-primary);padding:12px 16px;border-radius:0 8px 8px 0;font:400 13px/1.6 var(--font-kr);color:var(--color-neutral-600);margin-top:6px;">▷ 결과: 결과 설명</div>
+          </div>
+        </div>
+      </div>
+      <div id="ex-panel-1" class="hx-tab-panel" style="display:none;"><!-- 다음 탭 패널 --></div>
+    </div>
+  </div>
+</section>
+\`\`\`
+
+### webos-agenda (링크 카드 목록)
+\`\`\`html
+<section class="block" id="webos" style="background:#F7F8F9;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="ln"></span>04 · WebOS UX 기술 검토</div>
+      <h2>WebOS UX 디자인 자동화 과제<br>사전 기술 검토</h2>
+      <p>설명 텍스트.</p>
+    </div>
+    <!-- 2-컬럼 그룹 -->
+    <div style="display:grid;grid-template-columns:1fr 1px 1fr;column-gap:24px;align-items:start;">
+      <!-- 좌: Part 1 -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <span style="width:8px;height:8px;border-radius:999px;background:var(--color-primary);box-shadow:0 0 0 4px rgba(253,49,46,.14);flex-shrink:0;"></span>
+          <span style="font:700 11px/1 var(--font-sans);letter-spacing:.18em;text-transform:uppercase;color:var(--color-primary);">Part 1</span>
+          <span style="font:700 15px/1 var(--font-sans);color:var(--color-ink);margin-left:4px;">사전 기술 검토</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <a href="http://localhost:3004/" target="_blank" rel="noopener" style="display:flex;align-items:stretch;gap:22px;background:#fff;border:1px solid var(--border-subtle);border-radius:18px;padding:26px 28px;box-shadow:var(--shadow-sm);color:inherit;text-decoration:none;transition:transform .15s,border-color .15s,box-shadow .15s;">
+            <div style="flex-shrink:0;width:56px;height:56px;border-radius:14px;background:var(--color-primary);color:#fff;font:800 22px/1 var(--font-sans);display:grid;place-items:center;">1</div>
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+              <div style="font:700 19px/1.3 var(--font-kr);color:var(--color-ink);margin-bottom:4px;">항목 제목</div>
+              <div style="font:400 14px/1.55 var(--font-kr);color:var(--color-neutral-500);">항목 설명</div>
+            </div>
+            <div style="align-self:center;font:700 13px/1 var(--font-sans);color:var(--color-primary);white-space:nowrap;">바로가기 ↗</div>
+          </a>
+        </div>
+      </div>
+      <!-- 구분선 -->
+      <div style="background:var(--border-subtle);align-self:stretch;"></div>
+      <!-- 우: Part 2 -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <span style="width:8px;height:8px;border-radius:999px;background:var(--color-primary);box-shadow:0 0 0 4px rgba(253,49,46,.14);flex-shrink:0;"></span>
+          <span style="font:700 11px/1 var(--font-sans);letter-spacing:.18em;text-transform:uppercase;color:var(--color-primary);">Part 2</span>
+          <span style="font:700 15px/1 var(--font-sans);color:var(--color-ink);margin-left:4px;">컨셉 검증 Prototype</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <a href="#" target="_blank" rel="noopener" style="display:flex;align-items:flex-start;gap:22px;background:#fff;border:1px solid var(--border-subtle);border-radius:18px;padding:26px 28px;box-shadow:var(--shadow-sm);color:inherit;text-decoration:none;">
+            <div style="flex-shrink:0;width:56px;height:56px;border-radius:14px;background:var(--color-primary);color:#fff;font:800 22px/1 var(--font-sans);display:grid;place-items:center;">5</div>
+            <div style="flex:1;">
+              <div style="font:700 19px/1.3 var(--font-kr);color:var(--color-ink);margin-bottom:4px;">컨셉 검증 및 1차 Prototype</div>
+              <div style="font:400 14px/1.55 var(--font-kr);color:var(--color-neutral-500);">설명</div>
+              <ul style="list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px dashed var(--border-subtle);display:flex;flex-direction:column;gap:8px;">
+                <li style="position:relative;padding-left:18px;font:400 14px/1.6 var(--font-kr);color:var(--color-neutral-500);">
+                  <span style="position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:999px;background:var(--color-primary);display:block;"></span>
+                  서브 항목 1
+                </li>
+              </ul>
+            </div>
+            <div style="align-self:center;font:700 13px/1 var(--font-sans);color:var(--color-primary);white-space:nowrap;">바로가기 ↗</div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+\`\`\`
+
 ### 필수 JS (</body> 직전에 반드시 포함)
 \`\`\`html
 <script>
@@ -333,6 +514,56 @@ const io = new IntersectionObserver(entries => {
   });
 }, { rootMargin: '-20% 0px -70% 0px' });
 sections.forEach(s => io.observe(s));
+
+// examples 탭 (data-tabgroup 속성으로 그룹 지정)
+document.querySelectorAll('[data-tabgroup]').forEach(function(tablist) {
+  var tabs = tablist.querySelectorAll('.hx-tab');
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var targetId = tab.getAttribute('data-target');
+      tabs.forEach(function(t) {
+        var active = t === tab;
+        t.classList.toggle('is-active', active);
+        t.style.color = active ? 'var(--color-primary)' : 'var(--color-neutral-500)';
+        t.style.background = active ? '#fff' : 'transparent';
+        t.style.borderBottomColor = active ? 'var(--color-primary)' : 'transparent';
+        var badge = t.querySelector('span');
+        if (badge) badge.style.background = active ? 'var(--color-primary)' : 'var(--color-neutral-500)';
+      });
+      document.querySelectorAll('.hx-tab-panel').forEach(function(panel) {
+        panel.style.display = panel.id === targetId ? 'block' : 'none';
+      });
+    });
+  });
+});
+
+// tool subtabs (data-subtab-group 속성으로 그룹 지정)
+document.querySelectorAll('[data-subtab-group]').forEach(function(group) {
+  var card = group.closest('div[style]') || group.parentElement;
+  var subtabs = group.querySelectorAll('.tool-subtab');
+  subtabs.forEach(function(st) {
+    st.addEventListener('click', function() {
+      var targetId = st.getAttribute('data-target');
+      subtabs.forEach(function(s) {
+        var active = s === st;
+        s.classList.toggle('is-active', active);
+        s.style.background = active ? '#fff' : 'transparent';
+        s.style.color = active ? 'var(--color-primary)' : 'var(--color-neutral-500)';
+        s.style.boxShadow = active ? '0 1px 2px rgba(26,26,34,.06)' : 'none';
+      });
+      card.querySelectorAll('.tool-sub-panel').forEach(function(p) {
+        p.style.display = p.id === targetId ? 'block' : 'none';
+      });
+    });
+  });
+  // 초기 활성 탭 스타일 적용
+  var activeTab = group.querySelector('.tool-subtab.is-active');
+  if (activeTab) {
+    activeTab.style.background = '#fff';
+    activeTab.style.color = 'var(--color-primary)';
+    activeTab.style.boxShadow = '0 1px 2px rgba(26,26,34,.06)';
+  }
+});
 </script>
 \`\`\``
 
@@ -355,7 +586,29 @@ comparison 섹션이 있거나 sourceHtml에 As-Is/To-Be 내용이 있으면:
 5. AI 단계: class="proc-step is-ai" + <span class="proc-badge ai">AI</span> + proc-save(절감량)
 6. 제거 단계: class="proc-step is-removed"
 7. proc-summary 바: 총 시간, 절감량 표시
+JSON의 steps 배열에 asIs/toBe 컬럼이 있으면 → proc-flow 두 개(As-Is / To-Be 패널) 각각 생성
 JSON의 steps 배열이 비어있으면 sourceHtml에서 순번+단계명+시간값 패턴을 직접 찾아 proc-flow를 구성하세요.
+
+## tools 섹션 — 반드시 지켜야 합니다
+tools 타입 섹션이 있으면 위 예시처럼 도구 카드 그리드를 생성합니다.
+- 각 tool의 features/strengths/weaknesses/scenes/value를 <details> 접이식으로 표현
+- subtabs가 있는 tool은 data-subtab-group + .tool-subtab 버튼으로 탭 전환 구현
+- 각 도구의 모든 텍스트(features, strengths, weaknesses, scenes, value)를 원문 그대로 포함 — 생략 금지
+- callout이 있으면 섹션 시작 부분에 표시
+
+## examples 섹션 — 반드시 지켜야 합니다
+examples 타입 섹션이 있으면 탭형 인터페이스를 생성합니다.
+- data-tabgroup 속성으로 탭 그룹 지정, .hx-tab + .hx-tab-panel 구조 사용
+- 각 탭의 method(원문 전체), accessSteps, steps, prompt, output을 모두 포함 — 생략 금지
+- prompt는 어두운 배경(#1a1a1a) 모노스페이스 블록으로 표현
+- output은 왼쪽에 빨간 border가 있는 결과 블록으로 표현
+- callout이 있으면 탭 컨테이너 위에 표시
+
+## webos-agenda 섹션 — 반드시 지켜야 합니다
+webos-agenda 타입 섹션이 있으면 위 예시처럼 2컬럼 그룹 구조로 생성합니다.
+- groups 배열의 각 그룹 → 컬럼으로 배치
+- 각 item → 클릭 가능한 카드(href가 있으면 <a>, 없으면 <div>)
+- subitems → 카드 안에 점선 구분선 이후 서브 목록으로 표시
 
 ${HTML_EXAMPLES}
 
