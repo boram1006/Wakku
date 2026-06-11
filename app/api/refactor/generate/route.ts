@@ -246,24 +246,125 @@ const HTML_EXAMPLES = `
 </section>
 \`\`\`
 
-### timeline (일정)
+### timeline (일정 · 로드맵)
 \`\`\`html
 <section class="block" id="schedule" style="background:#fff;">
   <div class="wrap">
     <div class="sec-head">
       <div class="sec-num"><span class="ln"></span>05 · 추진 일정</div>
       <h2>로드맵</h2>
+      <p>추진 일정 설명.</p>
     </div>
-    <div class="timeline-grid" style="grid-template-columns:repeat(4,1fr);">
-      <div class="timeline-cell">
-        <div class="period">Q1 2026</div>
-        <h4>마일스톤 1</h4>
-        <ul class="body" style="font-size:13px;"><li>세부 항목 1</li></ul>
+    <!-- DS 타임라인 컴포넌트: wk-timeline -->
+    <div class="wk-timeline">
+      <!-- 월 헤더: wk-tl-months + wk-tl-label-col + wk-tl-month-grid(grid-template-columns 월 수만큼 반복) -->
+      <div class="wk-tl-months" style="display:flex;">
+        <div class="wk-tl-label-col"></div>
+        <div class="wk-tl-month-grid" style="flex:1;display:grid;grid-template-columns:repeat(6,1fr);">
+          <div class="wk-tl-month">'26 <b>4월</b></div>
+          <div class="wk-tl-month">'26 <b>5월</b></div>
+          <div class="wk-tl-month">'26 <b>6월</b></div>
+          <div class="wk-tl-month">'26 <b>7월</b></div>
+          <div class="wk-tl-month">'26 <b>8월</b></div>
+          <div class="wk-tl-month">'26 <b>9월</b></div>
+        </div>
       </div>
-      <div class="timeline-cell">
-        <div class="period">Q2 2026</div>
-        <h4>마일스톤 2</h4>
-        <ul class="body" style="font-size:13px;"><li>세부 항목 1</li></ul>
+      <!-- 수영레인: 각 업무/단계 1개씩 -->
+      <div class="wk-tl-lane">
+        <div class="wk-tl-lane-label">
+          0 · 현황 진단<small>4월 중순 ~ 5월 초</small>
+        </div>
+        <div class="wk-tl-track" style="position:relative;">
+          <!-- left/width는 전체 기간 대비 % -->
+          <div class="wk-tl-bar neutral" style="left:8%;width:12%;">현업 니즈 청취</div>
+          <div class="wk-tl-bar primary" style="left:22%;width:10%;">워크플로우 분석</div>
+        </div>
+      </div>
+      <div class="wk-tl-lane">
+        <div class="wk-tl-lane-label">
+          1 · Agent 설계<small>5월 ~ 6월</small>
+        </div>
+        <div class="wk-tl-track" style="position:relative;">
+          <div class="wk-tl-bar light" style="left:33%;width:16%;">Agent 구조 설계</div>
+        </div>
+      </div>
+      <!-- 마일스톤 행 -->
+      <div class="wk-tl-milestones">
+        <div class="wk-tl-milestone" style="left:20%;">
+          <span class="pin">현황 진단</span>
+          <span class="t">4월 중순</span>
+        </div>
+        <div class="wk-tl-milestone" style="left:65%;">
+          <span class="pin">MVP 구현</span>
+          <span class="t">8월 말</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+\`\`\`
+
+### process-matrix (업무 분해 · 30개 이상 프로세스)
+\`\`\`html
+<section class="block" id="process-matrix" style="background:#F7F8F9;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="ln"></span>02 · 업무 프로세스 분석</div>
+      <h2>현행 업무 프로세스 분해</h2>
+      <p>전체 업무 흐름을 Process Chain × 역할별로 분해합니다.</p>
+    </div>
+    <div class="wk-matrix">
+      <div class="wk-matrix-inner" style="grid-template-columns: 100px 80px repeat(6, minmax(160px,1fr));">
+        <!-- 체인 헤더 행 -->
+        <div class="wk-matrix-chain label">Process<br>Chain</div>
+        <div class="wk-matrix-chain label">역할</div>
+        <div class="wk-matrix-chain">업무의뢰</div>
+        <div class="wk-matrix-chain">UX 기획</div>
+        <div class="wk-matrix-chain">GUI 디자인</div>
+        <div class="wk-matrix-chain">프로토타이핑</div>
+        <div class="wk-matrix-chain">검토·승인</div>
+        <div class="wk-matrix-chain">양산 핸드오프</div>
+
+        <!-- 역할 A 행 -->
+        <div class="wk-matrix-rl" rowspan="1">기획</div>
+        <div class="wk-matrix-rl">PM</div>
+        <div class="wk-matrix-cell">
+          <span class="wk-act focus">요구사항 수령</span>
+          <span class="wk-act">검토</span>
+          <span class="wk-act">수락</span>
+        </div>
+        <div class="wk-matrix-cell">
+          <span class="wk-act">UX 방향 설정</span>
+          <span class="wk-act focus">시나리오 작성</span>
+        </div>
+        <div class="wk-matrix-cell"></div>
+        <div class="wk-matrix-cell"></div>
+        <div class="wk-matrix-cell">
+          <span class="wk-act focus">리뷰</span>
+        </div>
+        <div class="wk-matrix-cell"></div>
+
+        <!-- 역할 B 행 -->
+        <div class="wk-matrix-rl">디자이너</div>
+        <div class="wk-matrix-rl"></div>
+        <div class="wk-matrix-cell"></div>
+        <div class="wk-matrix-cell">
+          <span class="wk-act">와이어프레임</span>
+        </div>
+        <div class="wk-matrix-cell">
+          <span class="wk-act focus">GUI 시안</span>
+          <span class="wk-act ai">AI 초안 생성</span>
+          <span class="wk-act">컴포넌트 조립</span>
+        </div>
+        <div class="wk-matrix-cell">
+          <span class="wk-act">Figma 프로토</span>
+        </div>
+        <div class="wk-matrix-cell">
+          <span class="wk-act">수정 반영</span>
+        </div>
+        <div class="wk-matrix-cell">
+          <span class="wk-act focus">핸드오프 파일</span>
+        </div>
       </div>
     </div>
   </div>
@@ -594,6 +695,11 @@ const GENERATE_PROMPT = (jsonContent: string, sourceHtml?: string) => `당신은
 - ✅ 모든 섹션: <section class="block"> + <div class="wrap">
 - ✅ 섹션 배경: #F7F8F9 / #fff 교차
 - ✅ </body> 직전에 필수 JS 포함
+- ❌ 링크 카드에 width:56px height:56px 같은 큰 아이콘 inline style 금지 → .wk-link-num 사용
+- ✅ callout(용어정의/주의사항)은 반드시 .wk-callout 클래스 사용
+- ✅ 일정/로드맵은 .wk-timeline 클래스 사용
+- ✅ 업무 분해(30+)는 .wk-matrix 클래스 사용
+- ✅ 링크 카드는 .wk-link-card + .wk-link-num + .wk-link-card-body 클래스 사용
 
 ## ⚠️ 테이블 vs 플로우 — 반드시 구분하세요
 - comparison.format === "table" → 아래 wk-table 템플릿으로 렌더링. proc-flow 절대 사용 금지.
