@@ -819,40 +819,48 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' }), { status: 500 })
   }
 
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  const completion = await client.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [{ role: 'user', content: GENERATE_PROMPT(jsonContent, sourceHtml) }],
-    temperature: 0.2,
-    max_tokens: 16000,
-    stream: false,
-  })
+  try {
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: GENERATE_PROMPT(jsonContent, sourceHtml) }],
+      temperature: 0.2,
+      max_tokens: 16000,
+      stream: false,
+    })
 
-  const raw = completion.choices[0]?.message?.content ?? ''
+    const raw = completion.choices[0]?.message?.content ?? ''
 
-  // 1. Strip markdown code fences (```html ... ```)
-  let html = raw
-    .replace(/^```(?:html)?\s*/i, '')
-    .replace(/\s*```\s*$/i, '')
+    // 1. Strip markdown code fences (```html ... ```)
+    let html = raw
+      .replace(/^```(?:html)?\s*/i, '')
+      .replace(/\s*```\s*$/i, '')
 
-  // 2. If gpt-4o still embedded markdown inside (</head>```html pattern), extract inner HTML
-  const innerMatch = html.match(/<!DOCTYPE\s+html[\s\S]*/i) ?? html.match(/<html[\s\S]*/i)
-  if (innerMatch) html = innerMatch[0]
+    // 2. If gpt-4o still embedded markdown inside (</head>```html pattern), extract inner HTML
+    const innerMatch = html.match(/<!DOCTYPE\s+html[\s\S]*/i) ?? html.match(/<html[\s\S]*/i)
+    if (innerMatch) html = innerMatch[0]
 
-  // 3. Strip any <style> blocks gpt-4o wrote despite instructions
-  html = html.replace(/<style[\s\S]*?<\/style>/gi, '')
+    // 3. Strip any <style> blocks gpt-4o wrote despite instructions
+    html = html.replace(/<style[\s\S]*?<\/style>/gi, '')
 
-  // 4. Ensure exactly one <link href="/wakku-ds.css"> in <head>
-  html = html.replace(/(<link[^>]+wakku-ds\.css[^>]*>\s*)+/gi, '')
-  html = html.replace('</head>', '<link rel="stylesheet" href="/wakku-ds.css">\n</head>')
+    // 4. Ensure exactly one <link href="/wakku-ds.css"> in <head>
+    html = html.replace(/(<link[^>]+wakku-ds\.css[^>]*>\s*)+/gi, '')
+    html = html.replace('</head>', '<link rel="stylesheet" href="/wakku-ds.css">\n</head>')
 
-  // 5. Close if truncated
-  if (!/\<\/html\>/i.test(html)) {
-    if (!/\<\/body\>/i.test(html)) html += '\n</body>'
-    html += '\n</html>'
+    // 5. Close if truncated
+    if (!/\<\/html\>/i.test(html)) {
+      if (!/\<\/body\>/i.test(html)) html += '\n</body>'
+      html += '\n</html>'
+    }
+
+    return new Response(html, {
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    })
   }
-
-  return new Response(html, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-  })
 }
