@@ -318,53 +318,59 @@ const HTML_EXAMPLES = `
       <p>설명 텍스트.</p>
     </div>
     <!-- 용어 정의 callout (있으면) -->
-    <div style="background:linear-gradient(135deg,#FFF0F0 0%,#fff 100%);border-left:4px solid var(--color-primary);padding:20px 24px;border-radius:12px;margin-bottom:32px;">
-      <p style="margin:0 0 6px;font:700 11px/1 var(--font-sans);color:var(--color-primary);letter-spacing:.4px;text-transform:uppercase;">용어 정의</p>
-      <p style="margin:0;font:400 14px/1.7 var(--font-kr);color:var(--color-neutral-700);">용어 설명 내용</p>
+    <div class="card flat" style="border-left:4px solid var(--color-primary);padding:20px 24px;margin-bottom:32px;">
+      <span class="wk-eyebrow">용어 정의</span>
+      <p class="body" style="margin:6px 0 0;">용어 설명 내용</p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
 
       <!-- 일반 도구 카드 -->
-      <div style="background:#fff;border:1px solid var(--border-subtle);border-radius:16px;padding:22px;box-shadow:var(--shadow-sm);">
-        <div style="font:600 11px/1 var(--font-sans);color:var(--color-primary);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;">AI Native UI 생성</div>
-        <div style="font:700 17px/1 var(--font-sans);color:var(--color-ink);margin-bottom:10px;">Google Stitch</div>
-        <div style="font:700 13px/1.5 var(--font-kr);color:var(--color-primary);background:var(--color-primary-bg);border-left:3px solid var(--color-primary);border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:14px;">AI 기반 UI 생성 및 프로토타이핑 도구</div>
-        <details open style="margin:0;"><summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">주요 기능</summary>
-          <ul class="body" style="margin:6px 0 10px;"><li>기능 1</li><li>기능 2</li></ul>
+      <div class="card flat" style="padding:28px 24px;display:flex;flex-direction:column;gap:0;">
+        <span class="tag tag-brand" style="margin-bottom:12px;">AI Native UI 생성</span>
+        <h3 class="h-bar" style="margin:0 0 10px;">Google Stitch</h3>
+        <p class="body" style="margin:0 0 16px;color:var(--color-primary);font-weight:600;">AI 기반 UI 생성 및 프로토타이핑 도구</p>
+        <details open style="margin:0;border-top:1px solid var(--border-subtle);">
+          <summary style="list-style:none;cursor:pointer;padding:12px 0;font:700 12px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">주요 기능</summary>
+          <ul class="body" style="margin:4px 0 12px;"><li>기능 1</li><li>기능 2</li></ul>
         </details>
-        <details style="margin:0;"><summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">잘하는 것</summary>
-          <ul class="body" style="margin:6px 0 10px;"><li>강점 1</li></ul>
+        <details style="margin:0;border-top:1px solid var(--border-subtle);">
+          <summary style="list-style:none;cursor:pointer;padding:12px 0;font:700 12px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">잘하는 것</summary>
+          <ul class="body" style="margin:4px 0 12px;"><li>강점 1</li></ul>
         </details>
-        <details style="margin:0;"><summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-500);">아쉬운 점</summary>
-          <ul class="body" style="margin:6px 0 10px;"><li>약점 1</li></ul>
+        <details style="margin:0;border-top:1px solid var(--border-subtle);">
+          <summary style="list-style:none;cursor:pointer;padding:12px 0;font:700 12px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">아쉬운 점</summary>
+          <ul class="body" style="margin:4px 0 12px;"><li>약점 1</li></ul>
         </details>
-        <details style="margin:0;"><summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">대표 장면</summary>
-          <ul class="body" style="margin:6px 0 8px;"><li>장면 1</li></ul>
+        <details style="margin:0;border-top:1px solid var(--border-subtle);">
+          <summary style="list-style:none;cursor:pointer;padding:12px 0;font:700 12px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">대표 장면</summary>
+          <ul class="body" style="margin:4px 0 8px;"><li>장면 1</li></ul>
           <div class="takeaway" style="margin-top:8px;"><b>이런 팀에 적합</b> · 설명</div>
         </details>
       </div>
 
       <!-- subtabs가 있는 도구 카드 (예: Figma / Figma Make) -->
-      <div style="background:#fff;border:1px solid var(--border-subtle);border-radius:16px;padding:22px;box-shadow:var(--shadow-sm);">
-        <!-- 서브탭 -->
-        <div style="display:flex;gap:6px;margin-bottom:14px;padding:4px;background:var(--color-neutral-30);border-radius:10px;" role="tablist" data-subtab-group="tool-figma">
-          <button type="button" class="tool-subtab is-active" data-target="tool-figma-0" style="flex:1;appearance:none;border:0;background:transparent;padding:8px 10px;font:700 12px/1 var(--font-sans);color:var(--color-neutral-500);cursor:pointer;border-radius:7px;transition:background .15s,color .15s;">Figma</button>
-          <button type="button" class="tool-subtab" data-target="tool-figma-1" style="flex:1;appearance:none;border:0;background:transparent;padding:8px 10px;font:700 12px/1 var(--font-sans);color:var(--color-neutral-500);cursor:pointer;border-radius:7px;transition:background .15s,color .15s;">Figma Make</button>
+      <div class="card flat" style="padding:0;overflow:hidden;">
+        <!-- 서브탭 헤더 -->
+        <div style="display:flex;border-bottom:1px solid var(--border-subtle);background:var(--color-neutral-10);" role="tablist" data-subtab-group="tool-figma">
+          <button type="button" class="tool-subtab is-active" data-target="tool-figma-0" style="flex:1;appearance:none;border:0;background:transparent;padding:14px 16px;font:700 13px/1 var(--font-sans);color:var(--color-neutral-400);cursor:pointer;border-bottom:3px solid transparent;transition:color .15s,border-color .15s;">Figma</button>
+          <button type="button" class="tool-subtab" data-target="tool-figma-1" style="flex:1;appearance:none;border:0;background:transparent;padding:14px 16px;font:700 13px/1 var(--font-sans);color:var(--color-neutral-400);cursor:pointer;border-bottom:3px solid transparent;transition:color .15s,border-color .15s;">Figma Make</button>
         </div>
-        <div id="tool-figma-0" class="tool-sub-panel" style="display:block;">
-          <div style="font:600 11px/1 var(--font-sans);color:var(--color-primary);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;">디자인 플랫폼 + AI</div>
-          <div style="font:700 17px/1 var(--font-sans);color:var(--color-ink);margin-bottom:10px;">Figma</div>
-          <div style="font:700 13px/1.5 var(--font-kr);color:var(--color-primary);background:var(--color-primary-bg);border-left:3px solid var(--color-primary);border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:14px;">Figma 포지션 설명</div>
-          <details open><summary style="list-style:none;cursor:pointer;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);text-transform:uppercase;color:var(--color-neutral-600);">주요 기능</summary>
-            <ul class="body" style="margin:6px 0 10px;"><li>기능 1</li></ul>
+        <div id="tool-figma-0" class="tool-sub-panel" style="display:block;padding:24px;">
+          <span class="tag tag-brand" style="margin-bottom:12px;">디자인 플랫폼 + AI</span>
+          <h3 class="h-bar" style="margin:0 0 10px;">Figma</h3>
+          <p class="body" style="margin:0 0 16px;color:var(--color-primary);font-weight:600;">Figma 포지션 설명</p>
+          <details open style="border-top:1px solid var(--border-subtle);">
+            <summary style="list-style:none;cursor:pointer;padding:12px 0;font:700 12px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">주요 기능</summary>
+            <ul class="body" style="margin:4px 0 12px;"><li>기능 1</li></ul>
           </details>
         </div>
-        <div id="tool-figma-1" class="tool-sub-panel" style="display:none;">
-          <div style="font:600 11px/1 var(--font-sans);color:var(--color-primary);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;">생성형 코드 AI</div>
-          <div style="font:700 17px/1 var(--font-sans);color:var(--color-ink);margin-bottom:10px;">Figma Make</div>
-          <div style="font:700 13px/1.5 var(--font-kr);color:var(--color-primary);background:var(--color-primary-bg);border-left:3px solid var(--color-primary);border-radius:0 6px 6px 0;padding:8px 12px;margin-bottom:14px;">Figma Make 포지션 설명</div>
-          <details open><summary style="list-style:none;cursor:pointer;padding:10px 0;border-top:1px solid var(--border-subtle);font:700 11px/1 var(--font-sans);text-transform:uppercase;color:var(--color-neutral-600);">주요 기능</summary>
-            <ul class="body" style="margin:6px 0 10px;"><li>기능 1</li></ul>
+        <div id="tool-figma-1" class="tool-sub-panel" style="display:none;padding:24px;">
+          <span class="tag tag-neutral" style="margin-bottom:12px;">생성형 코드 AI</span>
+          <h3 class="h-bar" style="margin:0 0 10px;">Figma Make</h3>
+          <p class="body" style="margin:0 0 16px;color:var(--color-primary);font-weight:600;">Figma Make 포지션 설명</p>
+          <details open style="border-top:1px solid var(--border-subtle);">
+            <summary style="list-style:none;cursor:pointer;padding:12px 0;font:700 12px/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600);">주요 기능</summary>
+            <ul class="body" style="margin:4px 0 12px;"><li>기능 1</li></ul>
           </details>
         </div>
       </div>
