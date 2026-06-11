@@ -807,10 +807,12 @@ ${sourceHtml ? `\n## 원본 HTML 텍스트 — 아래 경우에 직접 참조하
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const sourceHtml: string | undefined = body.sourceHtml
+  const sourceHtml: string | undefined = typeof body.sourceHtml === 'string'
+    ? body.sourceHtml.slice(0, 12000)
+    : undefined
   const jsonContent: string = typeof body.content === 'string'
-    ? body.content
-    : JSON.stringify(body.content, null, 2)
+    ? body.content.slice(0, 10000)
+    : JSON.stringify(body.content, null, 2).slice(0, 10000)
 
   if (!jsonContent || jsonContent === '{}') {
     return new Response(JSON.stringify({ error: '내용이 없습니다.' }), { status: 400 })
