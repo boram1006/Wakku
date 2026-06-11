@@ -67,7 +67,6 @@ export default function RefactorPage() {
   const vpWidth = VP_WIDTHS[viewport]
   const scale = containerWidth > 0 ? Math.min(1, containerWidth / vpWidth) : 1
   const iframeHeight = scale > 0 ? `${82 / scale}vh` : '82vh'
-  const iframeOffset = containerWidth > 0 ? Math.max(0, (containerWidth - vpWidth * scale) / 2) : 0
 
   const isDone = stage === 'done'
   const isWorking = stage === 'extracting' || stage === 'generating'
@@ -501,15 +500,15 @@ export default function RefactorPage() {
               </div>
               <div
                 ref={previewContainerRef}
-                style={{ overflow: 'hidden', height: '82vh', background: '#fff' }}
+                style={{ overflow: 'hidden', height: '82vh', background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}
               >
                 <iframe
                   key={viewport}
                   srcDoc={result}
                   style={{
                     width: vpWidth, height: iframeHeight, border: 'none',
-                    display: 'block', transform: `scale(${scale})`, transformOrigin: 'top left',
-                    marginLeft: iframeOffset,
+                    display: 'block', transform: `scale(${scale})`, transformOrigin: 'top center',
+                    flexShrink: 0,
                   }}
                   sandbox="allow-scripts allow-same-origin"
                   title="재구성된 HTML 보고서 미리보기"
