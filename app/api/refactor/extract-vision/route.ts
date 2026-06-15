@@ -8,6 +8,7 @@ const EXTRACT_VISION_PROMPT = `아래 보고서 슬라이드 이미지들을 순
 2. 수치·퍼센트·시간값·모델명·영문 그대로 포함. 임의 변경 금지.
 3. 원본에 없는 내용 추가 금지.
 4. 슬라이드 내 독립적 주제 블록은 별도 섹션으로 분리하세요.
+5. JSON 출력 최소화 — 값이 없는 필드는 반드시 생략하세요. 빈 문자열(""), 빈 배열([]), null 절대 금지. 해당 필드 자체를 쓰지 마세요.
 
 ## 슬라이드 읽는 법 — 반드시 따르세요
 
@@ -192,7 +193,7 @@ export async function POST(req: NextRequest) {
       ],
     }],
     temperature: 0.1,
-    max_tokens: 16000,
+    max_tokens: 16384,
     response_format: { type: 'json_object' },
   })
 
