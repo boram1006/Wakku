@@ -7,45 +7,68 @@ const EXTRACT_VISION_PROMPT = `아래 보고서 슬라이드 이미지들을 순
 1. 모든 텍스트를 원문 그대로 읽으세요. 절대 요약·생략·바꿔쓰기 금지.
 2. 수치·퍼센트·시간값·모델명·영문 그대로 포함. 임의 변경 금지.
 3. 원본에 없는 내용 추가 금지.
-4. 한 슬라이드에 여러 내용 블록이 있으면 → 하나의 섹션에 모두 담으세요. 슬라이드 하나 = 섹션 하나가 원칙. (단, 슬라이드 내용이 명백히 두 개의 독립 주제면 분리 가능)
-5. 슬라이드 상단의 큰 레이블/제목("개발 진행 과정", "PRISM 활용 모델" 등)은 반드시 섹션의 title로 추출. 카드 tag로 넣지 마세요.
-6. 카드/항목의 tag 필드는 카드 본문 안에 명시적으로 표시된 작은 라벨(예: "PRISM 1.0", "개발 과정" 뱃지)에만 사용.
+4. 슬라이드 내 독립적 주제 블록은 별도 섹션으로 분리하세요.
+
+## 슬라이드 읽는 법 — 반드시 따르세요
+
+### 슬라이드 구조
+- 맨 상단 작은 텍스트 = 이 장표의 섹션 번호/주제 (예: "2. PRISM 구축 결과")
+- 하단 큰 굵은 텍스트 = 이 장표에서 전달하는 핵심 메세지(헤드라인). hero 섹션의 subtitle로 사용.
+- 슬라이드 상단 레이블·제목 → 섹션 title로 추출. 카드 tag에 넣지 마세요.
+
+### 다중 블록 읽기 순서 (역N자)
+슬라이드에 좌우 2열 블록이 있으면 다음 순서로 읽으세요:
+1. 오른쪽 상단 블록
+2. 오른쪽 하단 블록
+3. 왼쪽 상단 블록
+4. 왼쪽 하단 블록
+→ 이 순서가 sections 배열 순서입니다.
+
+### 카드 안에 미니카드/서브박스가 있는 경우
+카드 본문 안에 별도 박스·강조 영역이 있으면 → subCard로 추출:
+- subCard.title: 박스 제목
+- subCard.items: 박스 안 항목들
+- subCard.left/right: 좌우 비교형이면 각각의 레이블과 항목
+→ 절대 삭제하지 마세요.
 
 ## 슬라이드 → 섹션 타입 매핑
 - 첫 슬라이드, 큰 제목, 조직명, KPI 수치 → "hero"
 - 목차, 오늘 보고 범위, 안건 → "agenda"
 - As-Is / To-Be, 현재/개선, 박스 플로우, 워크플로우 비교 → "comparison"
 - 카드/박스 나열, 배경/현황/문제/방안/적용범위 → "cards"
-- 행·열로 구성된 표(격자형 데이터, 비교 테이블, 모델 비교표 등) → "table"
+- 행·열로 구성된 표(격자형, 모델 비교표 등) → "table"
 - 일정, 로드맵, 마일스톤, 분기별 계획 → "timeline"
 - 조직도, R&R, 역할 분담 → "org"
 - 논의, 결론, 다음 단계, Q&A → "discussion"
 
-## comparison 슬라이드 추출
-As-Is(현재) / To-Be(개선) 비교 슬라이드에서:
-- 각 단계 박스: idx(순번 01 02...), title(단계명), hours(시간값h), detail(설명 텍스트 원문 전체)
-- 병목/빨간 강조 박스 → isBottleneck: true
-- AI/자동화/파란 강조 박스 → isAI: true
-- 제거/흐릿/취소선 박스 → isRemoved: true
-- savedHours: 해당 단계의 절감 시간
-- 총 시간합계(totalHours), 병목합계(bottleneckHours), 절감량(savedHours), 절감률(savedPct)
-- problems: As-Is 문제점 텍스트 목록 (원문 그대로), improvements: To-Be 개선효과 텍스트 목록 (원문 그대로)
-
-## table 슬라이드 추출 (행·열 표 데이터)
-행과 열로 구성된 모든 표:
-- headers: 열 제목 배열 (첫 열이 행 레이블이면 첫 원소는 "" 또는 "구분")
-- subHeaders: 헤더가 2단계인 경우 두 번째 행 헤더 배열 (없으면 생략)
+## table 슬라이드 추출 — 다단 헤더 주의
+표에 병합 헤더(colspan)가 있으면 headerGroups로 표현:
+- headerGroups[0]: 최상위 헤더 행. 병합 셀은 { label, colspan } 형태.
+- headerGroups[1]: 두 번째 헤더 행 (서브헤더). 단일 셀은 { label } 형태.
 - rows: 각 행 → { label: "행 이름", values: ["셀1", "셀2", ...] }
-- groupLabel: 행 그룹이 있으면 그룹명 (없으면 생략)
-- note: 표 아래 주석/설명 (있으면)
+  - values 개수는 headerGroups 마지막 행의 열 수와 동일하게
+- note: 표 아래 주석 (있으면)
+
+예시: "PRISM 1.0" 아래에 "4.1-mini β"와 "4.1-mini 정식" 두 열이 있으면:
+  headerGroups: [
+    [{ label: "특성" }, { label: "PRISM 1.0", colspan: 2 }, { label: "PRISM 2.0 목표", colspan: 2 }],
+    [{ label: "" }, { label: "4.1-mini β" }, { label: "4.1-mini 정식" }, { label: "5-mini" }, { label: "5.2" }]
+  ]
 
 ## cards 슬라이드 추출
 각 카드/박스마다:
 - title: 카드 제목 (원문 그대로)
 - body: 본문 설명 원문 전체 (절대 요약하지 마세요, 여러 문장 모두)
-- items: 해당 카드의 bullet point 전체 (원문 그대로, 비우지 마세요)
-- tag: 카드 안에 명시된 작은 뱃지 레이블만 (섹션 제목은 여기 넣지 마세요)
+- items: 해당 카드의 bullet point 전체 (원문 그대로)
+- tag: 카드 안에 명시된 작은 뱃지 레이블만
 - takeaway: 핵심 요약 박스 텍스트 (있으면)
+- subCard: 카드 안에 별도 박스/강조 영역이 있으면
+  { title, items?, left?: { label, items }, right?: { label, items } }
+
+## comparison 슬라이드 추출
+- 각 단계 박스: idx, title, hours, detail (원문 전체), isBottleneck, isAI, isRemoved, savedHours
+- totalHours, bottleneckHours, savedHours, savedPct
+- problems, improvements (원문 그대로)
 
 ## JSON 출력 형식 (JSON only, 설명 없이)
 {
@@ -57,59 +80,49 @@ As-Is(현재) / To-Be(개선) 비교 슬라이드에서:
       "id": "hero", "type": "hero",
       "eyebrow": "조직명 · 연도",
       "title": "과제 제목",
-      "subtitle": "배경·개요 (원문)",
+      "subtitle": "슬라이드 하단 헤드라인 메세지 (원문)",
       "kpis": [{"label": "지표명", "value": "54.5", "unit": "h 절감", "sub": "116h → 61.5h"}],
-      "items": ["항목 1", "항목 2"],
       "meta": [{"label": "항목명", "value": "값"}]
-    },
-    {
-      "id": "asis", "type": "comparison",
-      "secNum": "02", "title": "As-Is / To-Be 비교", "subtitle": "설명",
-      "asis": {
-        "flowTitle": "현재 업무 흐름",
-        "steps": [
-          {"idx": "01", "title": "단계명", "hours": "27h", "isBottleneck": false, "detail": "설명 원문"},
-          {"idx": "02", "title": "병목 단계", "hours": "130h", "isBottleneck": true, "detail": "병목 원인 원문"}
-        ],
-        "totalHours": "431h", "bottleneckHours": "290h",
-        "problems": ["문제점 1 (원문)", "문제점 2 (원문)"],
-        "takeaway": "핵심 요약"
-      },
-      "tobe": {
-        "flowTitle": "개선된 업무 흐름",
-        "steps": [
-          {"idx": "01", "title": "단계명", "hours": "27h"},
-          {"idx": "02", "title": "AI 처리", "hours": "20h", "isAI": true, "savedHours": "110h", "detail": "AI 처리 내용 원문"}
-        ],
-        "totalHours": "160h", "savedHours": "271h", "savedPct": "63%",
-        "improvements": ["개선 효과 1 (원문)", "개선 효과 2 (원문)"],
-        "takeaway": "핵심 개선 요약"
-      }
     },
     {
       "id": "prism-table", "type": "table",
       "secNum": "02", "title": "PRISM 활용 모델",
-      "subtitle": "표 설명 (있으면)",
-      "headers": ["특성", "PRISM 1.0 β", "PRISM 1.0 정식", "PRISM 2.0 5-mini", "PRISM 2.0 5.2"],
-      "subHeaders": [],
+      "headerGroups": [
+        [{"label": "특성"}, {"label": "PRISM 1.0", "colspan": 2}, {"label": "PRISM 2.0 목표", "colspan": 2}],
+        [{"label": ""}, {"label": "4.1-mini β"}, {"label": "4.1-mini 정식"}, {"label": "5-mini"}, {"label": "5.2"}]
+      ],
       "rows": [
         {"label": "분류 정확도", "values": ["65%", "94%", "96% ↑", "31%"]},
         {"label": "비용/시간", "values": ["2,445/5분", "", "4,743원/25분", "18,614원/1시간"]}
       ],
-      "note": "표 아래 주석 원문 (있으면)"
+      "note": "※ 샘플 1,000건 상세 분석"
     },
     {
-      "id": "cards-1", "type": "cards", "secNum": "03",
-      "title": "섹션 제목 (슬라이드 상단 큰 레이블)", "subtitle": "설명",
+      "id": "cards-1", "type": "cards",
+      "secNum": "02", "title": "개발 진행 과정",
       "cards": [
         {
-          "tag": "카드 안 뱃지만",
-          "title": "카드 제목 (원문)",
-          "body": "본문 설명 — 원문 전체 문장 (절대 요약 금지)",
-          "items": ["bullet 항목 1 (원문)", "항목 2", "항목 3"],
-          "takeaway": "핵심 요약"
+          "title": "1. 대규모 정성 기사 → 일관된 포맷",
+          "body": "LLM은 확률적 생성 특성으로 동일 입력에도 출력이 변동 → 대규모 집계. 대시보드용 정형 데이터로 사용하려면 출력 안정화가 필수.",
+          "items": []
+        },
+        {
+          "title": "3. LLM 수행 Task 구성의 어려움",
+          "body": "작업 복잡성 및 비용 급격히 증가. 1회 수행 내 상충하는 Task 공존의 딜레마.",
+          "subCard": {
+            "title": "1회 호출 내 상충하는 Task 공존의 딜레마",
+            "left": { "label": "낮은 창의성 필요", "items": ["카테고리 분류, 인용문, 브랜드 비율"] },
+            "right": { "label": "높은 창의성 필요", "items": ["마케팅 메시지 추출, 요약, 감성분석"] }
+          },
+          "items": []
         }
       ]
+    },
+    {
+      "id": "asis", "type": "comparison",
+      "secNum": "03", "title": "비교 제목",
+      "asis": { "steps": [], "totalHours": "", "problems": [] },
+      "tobe": { "steps": [], "totalHours": "", "improvements": [] }
     },
     {
       "id": "timeline", "type": "timeline", "secNum": "05",

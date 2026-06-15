@@ -703,8 +703,8 @@ const GENERATE_PROMPT = (jsonContent: string, sourceHtml?: string) => `당신은
 
 ## type:"table" 섹션 — 행·열 표 데이터
 type이 "table"인 섹션은 반드시 wk-table-block + wk-table로 렌더링합니다.
-- headers 배열 → <thead><tr>의 <th> 목록
-- subHeaders가 있으면 → 두 번째 <tr>로 추가 헤더 행
+- headerGroups가 있으면 → 각 그룹을 <tr>로 렌더링. colspan이 있는 셀은 <th colspan="N"> 사용.
+- headers가 있으면(단일 행) → <thead><tr>에 <th> 목록
 - rows 배열 → <tbody>의 <tr> 목록. rows[].label → <th scope="row">, rows[].values → <td> 목록
 - note가 있으면 표 아래 <p class="t-caption"> 로 표시
 
@@ -712,17 +712,20 @@ type이 "table"인 섹션은 반드시 wk-table-block + wk-table로 렌더링합
 <div class="wk-table-block">
   <div class="tb-head">
     <div class="tb-title">PRISM 활용 모델</div>
-    <div class="tb-sub">설명 (있으면)</div>
   </div>
   <div class="wk-table-wrap">
     <table class="wk-table">
       <thead>
         <tr>
-          <th>특성</th>
-          <th>PRISM 1.0 β</th>
-          <th>PRISM 1.0 정식</th>
-          <th>PRISM 2.0 5-mini</th>
-          <th>PRISM 2.0 5.2</th>
+          <th rowspan="2">특성</th>
+          <th colspan="2" style="text-align:center">PRISM 1.0</th>
+          <th colspan="2" style="text-align:center">PRISM 2.0 목표</th>
+        </tr>
+        <tr>
+          <th>4.1-mini β</th>
+          <th>4.1-mini 정식</th>
+          <th>5-mini</th>
+          <th>5.2</th>
         </tr>
       </thead>
       <tbody>
@@ -735,6 +738,28 @@ type이 "table"인 섹션은 반드시 wk-table-block + wk-table로 렌더링합
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+\`\`\`
+
+## cards 섹션 — subCard (카드 안 미니카드)
+cards[].subCard가 있으면 카드 본문 안에 인라인 박스로 렌더링:
+- subCard.title + subCard.items → .card.flat 스타일의 내부 박스
+- subCard.left / subCard.right → 좌우 2열 비교 박스 (cmp-cols 구조 활용)
+
+\`\`\`html
+<!-- subCard 좌우 비교형 -->
+<div style="margin-top:16px;background:var(--color-neutral-10);border:1px solid var(--color-neutral-100);border-radius:12px;padding:16px 20px;">
+  <div style="font:600 13px/1 var(--font-kr);color:var(--color-neutral-700);margin-bottom:12px;letter-spacing:var(--tracking-tight);">1회 호출 내 상충하는 Task 공존의 딜레마</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div style="background:#fff;border:1px solid var(--color-neutral-100);border-radius:8px;padding:12px 14px;">
+      <div style="font:600 12px/1 var(--font-sans);color:var(--color-neutral-500);margin-bottom:8px;">낮은 창의성 필요</div>
+      <ul class="body"><li>카테고리 분류, 인용문, 브랜드 비율</li></ul>
+    </div>
+    <div style="background:#fff;border:1px solid var(--color-neutral-100);border-radius:8px;padding:12px 14px;">
+      <div style="font:600 12px/1 var(--font-sans);color:var(--color-neutral-500);margin-bottom:8px;">높은 창의성 필요</div>
+      <ul class="body"><li>마케팅 메시지 추출, 요약, 감성분석</li></ul>
+    </div>
   </div>
 </div>
 \`\`\`
