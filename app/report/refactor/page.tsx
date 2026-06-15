@@ -52,12 +52,29 @@ export default function RefactorPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const abortRef = useRef<AbortController | null>(null)
 
+  function applyViewportStyle(vp: number) {
+    const doc = iframeRef.current?.contentDocument
+    if (!doc) return
+    let el = doc.getElementById('wk-vp-style') as HTMLStyleElement | null
+    if (!el) {
+      el = doc.createElement('style')
+      el.id = 'wk-vp-style'
+      doc.head.appendChild(el)
+    }
+    el.textContent = `.wrap,.nav-inner,.hero-inner{max-width:${vp}px!important}`
+  }
+
   function handleIframeLoad() {
     const iframe = iframeRef.current
     if (!iframe?.contentDocument) return
+    applyViewportStyle(VP_WIDTHS[viewport])
     const h = iframe.contentDocument.documentElement.scrollHeight
     if (h > 0) iframe.style.height = h + 'px'
   }
+
+  useEffect(() => {
+    applyViewportStyle(VP_WIDTHS[viewport])
+  }, [viewport])
 
   // Clean up slide preview URLs on unmount
   useEffect(() => {
@@ -530,16 +547,12 @@ document.addEventListener('click', function(e) {
                   {result.length.toLocaleString()}자
                 </span>
               </div>
-              <div
-                ref={previewContainerRef}
-                style={{ overflowX: 'auto', overflowY: 'visible', background: '#fff' }}
-              >
+              <div ref={previewContainerRef}>
                 <iframe
-                  key={viewport}
                   ref={iframeRef}
                   srcDoc={result}
                   onLoad={handleIframeLoad}
-                  style={{ width: vpWidth, minHeight: '80vh', height: 'auto', border: 'none', display: 'block' }}
+                  style={{ width: '100%', minHeight: '80vh', height: 'auto', border: 'none', display: 'block' }}
                   sandbox="allow-scripts allow-same-origin"
                   title="재구성된 HTML 보고서 미리보기"
                   scrolling="no"
