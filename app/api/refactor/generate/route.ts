@@ -692,6 +692,7 @@ const GENERATE_PROMPT = (jsonContent: string, sourceHtml?: string) => `당신은
 - ❌ .tag는 반드시 <span>으로, <div>나 <a>에 tag 클래스 금지. display:block/width:100% 금지.
 - ❌ flex-direction:column 컨테이너에는 반드시 align-items:flex-start 포함 (태그 full-width 방지).
 - ✅ <head>에 반드시: <link rel="stylesheet" href="/wakku-ds.css">
+- ✅ <body> 직후 첫 번째 요소는 반드시 <nav class="nav">. 절대 생략 금지.
 - ✅ 모든 섹션: <section class="block"> + <div class="wrap">
 - ✅ 섹션 배경: #F7F8F9 / #fff 교차
 - ✅ </body> 직전에 필수 JS 포함
@@ -924,11 +925,37 @@ export async function POST(req: NextRequest) {
     // 3. Strip any <style> blocks gpt-4o wrote despite instructions
     html = html.replace(/<style[\s\S]*?<\/style>/gi, '')
 
-    // 4. Ensure exactly one <link href="/wakku-ds.css"> in <head> + override hero min-height for iframe preview
+    // 4. Ensure exactly one <link href="/wakku-ds.css"> in <head>
     html = html.replace(/(<link[^>]+wakku-ds\.css[^>]*>\s*)+/gi, '')
-    html = html.replace('</head>', '<link rel="stylesheet" href="/wakku-ds.css">\n<style>.hero{min-height:0!important}</style>\n</head>')
+    html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="/wakku-ds.css">\n</head>')
 
-    // 5. Close if truncated
+    // 5. Inject hero/agenda-section min-height override at body start (more reliable than head)
+    html = html.replace(/(<body[^>]*>)/i, '$1\n<style>.hero,.agenda-section{min-height:0!important}</style>')
+
+    // 6. Inject nav if GPT omitted it
+    if (!html.includes('class="nav"')) {
+      const secTitles: {id: string; label: string}[] = []
+      const rx = /<(?:section|header)[^>]+\bid="([^"]+)"[^>]*>[\s\S]{0,400}?<h2[^>]*>([^<]+)<\/h2>/gi
+      let m: RegExpExecArray | null
+      while ((m = rx.exec(html)) !== null) secTitles.push({ id: m[1], label: m[2].trim() })
+      const links = secTitles.map(s => `<a href="#${s.id}">${s.label}</a>`).join('\n      ')
+      const nav = `<nav class="nav"><div class="nav-inner"><div class="brand"><span class="dot"></span><span class="name">보고서</span></div><div class="nav-toc" id="navToc">${links}</div></div></nav>`
+      html = html.replace(/(<body[^>]*>\s*<style[^<]*<\/style>)/i, `$1\n${nav}`)
+    }
+
+    // 7. Fix card grid columns at runtime (GPT often uses wrong column count)
+    const gridFixScript = `<script>
+(function(){document.querySelectorAll('.wrap>div[style]').forEach(function(g){
+  if(!/display\s*:\s*grid/.test(g.getAttribute('style')||''))return;
+  var cards=Array.from(g.children).filter(function(el){return el.classList.contains('card')&&el.classList.contains('flat');});
+  if(!cards.length)return;
+  var n=cards.length,cols=n===4?2:n===3?3:n<=2?2:3;
+  g.style.gridTemplateColumns='repeat('+cols+',1fr)';
+});})();
+</script>`
+    html = html.replace(/<\/body>/i, gridFixScript + '\n</body>')
+
+    // 8. Close if truncated
     if (!/\<\/html\>/i.test(html)) {
       if (!/\<\/body\>/i.test(html)) html += '\n</body>'
       html += '\n</html>'
