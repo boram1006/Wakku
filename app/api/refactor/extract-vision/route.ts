@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
     const mimeType = file.type || 'image/jpeg'
     imageContents.push({
       type: 'image_url',
-      image_url: { url: `data:${mimeType};base64,${b64}`, detail: 'high' },
+      image_url: { url: `data:${mimeType};base64,${b64}`, detail: 'auto' },
     })
   }
 
