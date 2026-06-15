@@ -46,20 +46,18 @@ export default function RefactorPage() {
   const [viewport, setViewport] = useState<Viewport>('1920')
   const [extractedJson, setExtractedJson] = useState<Record<string, unknown> | null>(null)
   const [showDebug, setShowDebug] = useState(false)
-  const [containerWidth, setContainerWidth] = useState(0)
-
   const fileRef = useRef<HTMLInputElement>(null)
   const slideInputRef = useRef<HTMLInputElement>(null)
   const previewContainerRef = useRef<HTMLDivElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const abortRef = useRef<AbortController | null>(null)
 
-  useEffect(() => {
-    const el = previewContainerRef.current
-    if (!el) return
-    const obs = new ResizeObserver(([e]) => setContainerWidth(e.contentRect.width))
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [])
+  function handleIframeLoad() {
+    const iframe = iframeRef.current
+    if (!iframe?.contentDocument) return
+    const h = iframe.contentDocument.documentElement.scrollHeight
+    if (h > 0) iframe.style.height = h + 'px'
+  }
 
   // Clean up slide preview URLs on unmount
   useEffect(() => {
@@ -67,8 +65,6 @@ export default function RefactorPage() {
   }, [slides])
 
   const vpWidth = VP_WIDTHS[viewport]
-  const scale = containerWidth > 0 ? Math.min(1, containerWidth / vpWidth) : 1
-  const iframeHeight = scale > 0 ? `${82 / scale}vh` : '82vh'
 
   const isDone = stage === 'done'
   const isWorking = stage === 'extracting' || stage === 'generating'
@@ -488,11 +484,6 @@ document.addEventListener('click', function(e) {
                     </button>
                   ))}
                 </div>
-                {scale < 1 && (
-                  <span style={{ font: '400 11px/1 var(--font-kr)', color: 'var(--color-neutral-300)' }}>
-                    {Math.round(scale * 100)}% 축소
-                  </span>
-                )}
               </div>
 
               <div style={{ display: 'flex', gap: 8 }}>
@@ -530,7 +521,7 @@ document.addEventListener('click', function(e) {
             )}
 
             {/* iframe */}
-            <div style={{ border: '1px solid var(--color-neutral-100)', borderTop: '1px solid var(--color-neutral-100)', overflow: 'hidden' }}>
+            <div style={{ borderTop: '1px solid var(--color-neutral-100)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: 'var(--color-neutral-10)', borderBottom: '1px solid var(--color-neutral-100)' }}>
                 <span style={{ font: '400 12px/1 monospace', color: 'var(--color-neutral-300)' }}>
                   {vpWidth}px 기준 미리보기
@@ -541,18 +532,17 @@ document.addEventListener('click', function(e) {
               </div>
               <div
                 ref={previewContainerRef}
-                style={{ overflow: 'hidden', height: '82vh', background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}
+                style={{ overflowX: 'auto', overflowY: 'visible', background: '#fff' }}
               >
                 <iframe
                   key={viewport}
+                  ref={iframeRef}
                   srcDoc={result}
-                  style={{
-                    width: vpWidth, height: iframeHeight, border: 'none',
-                    display: 'block', transform: `scale(${scale})`, transformOrigin: 'top center',
-                    flexShrink: 0,
-                  }}
+                  onLoad={handleIframeLoad}
+                  style={{ width: vpWidth, minHeight: '80vh', height: 'auto', border: 'none', display: 'block' }}
                   sandbox="allow-scripts allow-same-origin"
                   title="재구성된 HTML 보고서 미리보기"
+                  scrolling="no"
                 />
               </div>
             </div>
