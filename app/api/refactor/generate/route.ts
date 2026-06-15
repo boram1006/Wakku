@@ -702,6 +702,74 @@ const GENERATE_PROMPT = (jsonContent: string, sourceHtml?: string) => `당신은
 - ✅ 업무 분해(30+)는 .wk-matrix 클래스 사용
 - ✅ 링크 카드는 .wk-link-card + .wk-link-num + .wk-link-card-body 클래스 사용
 
+## type:"process" 섹션 — 개발 과정·버전 변천·최종 결과
+intro(배경 텍스트) + steps(버전/단계 표) + result(최종 결과 박스) 구조로 렌더링:
+
+\`\`\`html
+<section class="block" id="dev-process" style="background:#F7F8F9;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="ln"></span>02 · 개발 과정</div>
+      <h2>개발 과정</h2>
+      <p>목표: '경쟁사의 PR 활동 모니터링'... PoC 시도: BERTopic 모델 활용</p>
+    </div>
+    <!-- 버전 히스토리 표 -->
+    <div class="wk-table-block" style="margin-bottom:24px;">
+      <div class="wk-table-wrap">
+        <table class="wk-table">
+          <thead><tr><th>시기</th><th>버전</th><th>주요 개선</th><th>클러스터링률</th></tr></thead>
+          <tbody>
+            <tr><td>25.07</td><td>v0</td><td>BERTopic 기반 초기 프로토타입</td><td>~60%</td></tr>
+            <tr><td>25.08</td><td>v1~v5</td><td>BGE-M3 전환, 기본 파이프라인 구축</td><td>~50%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 최종 결과 박스 (초록 강조) -->
+    <div class="card flat" style="border-left:4px solid var(--color-success);background:linear-gradient(180deg,#fff 0%,#ECFDF5 100%);padding:28px 32px;">
+      <h3 class="h-bar" style="--bar-color:var(--color-success);">최종 모델: BGE-M3 + PRISM 자체 파이프라인 구축</h3>
+      <ul class="body">
+        <li>Multi-Signal Embedding: Title(60%) + Keyword(30%) + Summary(10%)</li>
+        <li>3-Step Noise Recovery: 키워드 → 임베딩 기반 복구 → 유사 클러스터링 통합</li>
+      </ul>
+    </div>
+  </div>
+</section>
+\`\`\`
+
+## type:"flow" 섹션 — 단방향 처리 파이프라인
+As-Is/To-Be 토글 없이 proc-flow 컴포넌트로 단방향 흐름 렌더링:
+
+\`\`\`html
+<section class="block" id="pr-trend-flow" style="background:#fff;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="ln"></span>02 · PR Trend 도출 과정</div>
+      <h2>PR Trend 도출 과정</h2>
+    </div>
+    <div class="proc-flow">
+      <div class="proc-step">
+        <div class="proc-idx">01</div>
+        <div class="proc-title">수집/전처리</div>
+        <div class="proc-detail">글로벌 PR 뉴스</div>
+      </div>
+      <div class="proc-arrow">→</div>
+      <div class="proc-step">
+        <div class="proc-idx">02</div>
+        <div class="proc-title">Multi-Signal Embedding</div>
+        <div class="proc-detail">Combined Vector (1,024차원)</div>
+      </div>
+      <div class="proc-arrow">→</div>
+      <div class="proc-step">
+        <div class="proc-idx">03</div>
+        <div class="proc-title">HDBSCAN</div>
+        <div class="proc-detail">원본 벡터 클러스터링</div>
+      </div>
+    </div>
+  </div>
+</section>
+\`\`\`
+
 ## type:"table" 섹션 — 행·열 표 데이터
 type이 "table"인 섹션은 반드시 wk-table-block + wk-table로 렌더링합니다.
 - headerGroups가 있으면 → 각 그룹을 <tr>로 렌더링. colspan이 있는 셀은 <th colspan="N" style="text-align:center"> 사용. headerGroups[0]의 첫 셀은 <th rowspan="N"> (행 수만큼).

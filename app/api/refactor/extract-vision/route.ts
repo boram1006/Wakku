@@ -19,11 +19,46 @@ const PROMPT_FIRST = `이 슬라이드 이미지를 분석하여 JSON으로 반�
 - 큰 제목 · KPI 수치 → "hero"
 - 목차 · 안건 → "agenda"
 - As-Is/To-Be · 플로우 비교 → "comparison"
-- 카드/박스 나열 → "cards"
+- 카드/박스 나열, 반복 구조 사례 → "cards"
 - 행·열 표 → "table"
 - 일정 · 로드맵 → "timeline"
 - 조직도 · R&R → "org"
 - 논의 · Q&A → "discussion"
+- 목표·경위·버전 변천 + 최종 결과 박스가 있는 개발/진행 과정 → "process"
+- 박스+화살표 처리 파이프라인 (As-Is/To-Be 아닌 단방향 흐름도) → "flow"
+
+## process 슬라이드 추출
+개발 과정·추진 경위·버전 히스토리 + 최종 결과가 있는 슬라이드:
+- intro: 배경·목표 텍스트 원문
+- steps: [{period, version, label, metric}] (표 형태면 행마다 한 항목)
+- result: {title, items[]} (최종 선정/결과 박스)
+
+예시:
+\`\`\`json
+{"id":"dev-process","type":"process","secNum":"02","title":"개발 과정",
+ "intro":"목표: '경쟁사의 PR 활동 모니터링'... PoC 시도: BERTopic 모델 활용",
+ "steps":[
+   {"period":"25.07","version":"v0","label":"BERTopic 기반 초기 프로토타입","metric":"~60%"},
+   {"period":"25.08","version":"v1~v5","label":"BGE-M3 전환, 기본 파이프라인 구축","metric":"~50%"}
+ ],
+ "result":{"title":"최종 모델: BGE-M3 + PRISM 자체 파이프라인 구축",
+   "items":["Multi-Signal Embedding: Title(60%) + Keyword(30%) + Summary(10%)","3-Step Noise Recovery: 키워드 → 임베딩 기반 복구 → 유사 클러스터링 통합"]}}
+\`\`\`
+
+## flow 슬라이드 추출
+박스+화살표 단방향 처리 파이프라인 (As-Is/To-Be 비교 아님):
+- steps: [{idx, title, detail}]
+
+예시:
+\`\`\`json
+{"id":"pr-trend-flow","type":"flow","secNum":"02","title":"PR Trend 도출 과정",
+ "steps":[
+   {"idx":"01","title":"수집/전처리","detail":"글로벌 PR 뉴스"},
+   {"idx":"02","title":"Multi-Signal Embedding","detail":"Combined Vector (1,024차원)"},
+   {"idx":"03","title":"HDBSCAN","detail":"원본 벡터 클러스터링"},
+   {"idx":"04","title":"노이즈 복구","detail":"Keyword→Embedding→Merge"}
+ ]}
+\`\`\`
 
 ## cards 추출
 각 카드: title(원문), body(원문 전체), items(bullet 전체), tag(뱃지), takeaway, callout(코드·규칙 블록 원문), subCard({title, items?, left?, right?})
@@ -65,11 +100,46 @@ const PROMPT_SLIDE = (slideNum: number) => `이 슬라이드(${slideNum + 1}번�
 - 큰 제목 · KPI 수치 → "hero"
 - 목차 · 안건 → "agenda"
 - As-Is/To-Be · 플로우 비교 → "comparison"
-- 카드/박스 나열 → "cards"
+- 카드/박스 나열, 반복 구조 사례 → "cards"
 - 행·열 표 → "table"
 - 일정 · 로드맵 → "timeline"
 - 조직도 · R&R → "org"
 - 논의 · Q&A → "discussion"
+- 목표·경위·버전 변천 + 최종 결과 박스가 있는 개발/진행 과정 → "process"
+- 박스+화살표 처리 파이프라인 (As-Is/To-Be 아닌 단방향 흐름도) → "flow"
+
+## process 슬라이드 추출
+개발 과정·추진 경위·버전 히스토리 + 최종 결과가 있는 슬라이드:
+- intro: 배경·목표 텍스트 원문
+- steps: [{period, version, label, metric}] (표 형태면 행마다 한 항목)
+- result: {title, items[]} (최종 선정/결과 박스)
+
+예시:
+\`\`\`json
+{"id":"dev-process","type":"process","secNum":"02","title":"개발 과정",
+ "intro":"목표: '경쟁사의 PR 활동 모니터링'... PoC 시도: BERTopic 모델 활용",
+ "steps":[
+   {"period":"25.07","version":"v0","label":"BERTopic 기반 초기 프로토타입","metric":"~60%"},
+   {"period":"25.08","version":"v1~v5","label":"BGE-M3 전환, 기본 파이프라인 구축","metric":"~50%"}
+ ],
+ "result":{"title":"최종 모델: BGE-M3 + PRISM 자체 파이프라인 구축",
+   "items":["Multi-Signal Embedding: Title(60%) + Keyword(30%) + Summary(10%)","3-Step Noise Recovery: 키워드 → 임베딩 기반 복구 → 유사 클러스터링 통합"]}}
+\`\`\`
+
+## flow 슬라이드 추출
+박스+화살표 단방향 처리 파이프라인 (As-Is/To-Be 비교 아님):
+- steps: [{idx, title, detail}]
+
+예시:
+\`\`\`json
+{"id":"pr-trend-flow","type":"flow","secNum":"02","title":"PR Trend 도출 과정",
+ "steps":[
+   {"idx":"01","title":"수집/전처리","detail":"글로벌 PR 뉴스"},
+   {"idx":"02","title":"Multi-Signal Embedding","detail":"Combined Vector (1,024차원)"},
+   {"idx":"03","title":"HDBSCAN","detail":"원본 벡터 클러스터링"},
+   {"idx":"04","title":"노이즈 복구","detail":"Keyword→Embedding→Merge"}
+ ]}
+\`\`\`
 
 ## cards 추출
 각 카드: title(원문), body(원문 전체), items(bullet 전체), tag(뱃지), takeaway, callout(코드·규칙 블록 원문), subCard({title, items?, left?, right?})
