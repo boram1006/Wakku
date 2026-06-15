@@ -178,12 +178,23 @@ export async function POST(req: NextRequest) {
       ],
     }],
     temperature: 0.1,
-    max_tokens: 12000,
+    max_tokens: 16000,
     response_format: { type: 'json_object' },
   })
 
-  const json = completion.choices[0]?.message?.content ?? '{}'
-  return new Response(json, {
+  const raw = completion.choices[0]?.message?.content ?? '{}'
+
+  // Validate JSON — if truncated, return error instead of broken JSON
+  try {
+    JSON.parse(raw)
+  } catch {
+    return new Response(JSON.stringify({ error: '슬라이드 분석 결과가 너무 큽니다. 슬라이드 수를 줄이거나 내용이 적은 이미지를 사용해 주세요.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    })
+  }
+
+  return new Response(raw, {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   })
 }
