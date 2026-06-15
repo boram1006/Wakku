@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import OpenAI from 'openai'
+import Anthropic from '@anthropic-ai/sdk'
 
 // Prompt for slide 0 (first slide) — extracts global metadata + sections
 const PROMPT_FIRST = `이 슬라이드 이미지를 분석하여 JSON으로 반환하세요. 첫 번째 슬라이드이므로 보고서 전체 제목·조직명·날짜도 추출하세요.
@@ -232,6 +233,53 @@ export async function POST(req: NextRequest) {
         s.id = `${s.type}-${++sectionIdx}`
       }
       merged.sections.push(s)
+    }
+  }
+
+  // Claude validator: review and correct the merged JSON
+  if (process.env.ANTHROPIC_API_KEY) {
+    try {
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+      const validation = await anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 8192,
+        messages: [{
+          role: 'user',
+          content: `GPT-4o가 슬라이드 이미지에서 추출한 JSON을 검토하고 수정하세요.
+
+## 검토 항목
+1. **섹션 타입 오분류 수정**
+   - flow: 박스+화살표 단방향 파이프라인 (As-Is/To-Be 비교 아님)
+   - process: 목표·경위·버전 변천 + 최종 결과 박스가 있는 개발/진행 과정
+   - comparison: As-Is/To-Be 대비 구조
+   - cards: 카드/박스 나열, 반복 구조
+   - cards로 잘못 분류된 flow/process는 반드시 수정
+2. **슬라이드 간 내용 혼재 금지** — 각 섹션은 한 슬라이드의 내용만 담아야 함
+3. **누락 필드 보완** — steps, result, cards 등 핵심 필드가 비어있으면 채울 수 있는 경우 채우기
+4. **빈 값 제거** — 빈 문자열, 빈 배열, null 필드 삭제
+5. **id 유일성 보장** — 중복 id가 있으면 수정
+
+## 원본 JSON
+${JSON.stringify(merged)}
+
+## 응답 규칙
+- 수정된 완전한 JSON만 반환 (설명, 마크다운 코드블록 없이 순수 JSON)
+- 수정 불필요 시 원본 JSON 그대로 반환`,
+        }],
+      })
+
+      const raw = validation.content[0].type === 'text' ? validation.content[0].text : ''
+      const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+      try {
+        const validated = JSON.parse(cleaned)
+        return new Response(JSON.stringify(validated), {
+          headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        })
+      } catch {
+        // Claude returned invalid JSON — fall through to return unvalidated
+      }
+    } catch {
+      // Validation failed — return unvalidated merged result
     }
   }
 
