@@ -42,17 +42,28 @@ const EXTRACT_VISION_PROMPT = `아래 보고서 슬라이드 이미지들을 순
 - 논의, 결론, 다음 단계, Q&A → "discussion"
 
 ## table 슬라이드 추출 — 다단 헤더 주의
-표에 병합 헤더(colspan)가 있으면 headerGroups로 표현:
+
+### 열 그룹 레이블 읽기 (중요!)
+- 표 위쪽/밖에 큰 텍스트로 적힌 레이블(예: "PRISM 1.0", "PRISM 2.0 목표")은 → 그 아래 열들의 그룹 헤더입니다. headerGroups[0]에 colspan으로 포함하세요.
+- 절대 "표 밖이니 제외"하지 마세요. 열 그룹 레이블은 표의 일부입니다.
+
+### headerGroups 구조
 - headerGroups[0]: 최상위 헤더 행. 병합 셀은 { label, colspan } 형태.
 - headerGroups[1]: 두 번째 헤더 행 (서브헤더). 단일 셀은 { label } 형태.
-- rows: 각 행 → { label: "행 이름", values: ["셀1", "셀2", ...] }
-  - values 개수는 headerGroups 마지막 행의 열 수와 동일하게
+- rows: 각 행 → { label: "행 이름", values: [...] }
+  - values 항목은 문자열이거나, 셀 병합이 있으면 { text: "내용", colspan: N } 형태
+  - 예: 4개 열 중 2개가 병합된 셀이면 → { text: "2,445/5분", colspan: 2 }
+  - values 개수(colspan 합산)는 headerGroups 마지막 행의 열 수와 같아야 함
 - note: 표 아래 주석 (있으면)
 
-예시: "PRISM 1.0" 아래에 "4.1-mini β"와 "4.1-mini 정식" 두 열이 있으면:
+예시: 표 위에 "PRISM 1.0" / "PRISM 2.0 목표" 레이블이 있고, 그 아래 "4.1-mini"가 β/정식 두 열로 쪼개짐:
   headerGroups: [
     [{ label: "특성" }, { label: "PRISM 1.0", colspan: 2 }, { label: "PRISM 2.0 목표", colspan: 2 }],
     [{ label: "" }, { label: "4.1-mini β" }, { label: "4.1-mini 정식" }, { label: "5-mini" }, { label: "5.2" }]
+  ]
+  rows: [
+    { "label": "분류 정확도", "values": ["65%", "94%", "96% ↑", "31%"] },
+    { "label": "비용/시간", "values": [{ "text": "2,445/5분", "colspan": 2 }, { "text": "4,743원/25분", "colspan": 2 }] }
   ]
 
 ## cards 슬라이드 추출
@@ -62,8 +73,11 @@ const EXTRACT_VISION_PROMPT = `아래 보고서 슬라이드 이미지들을 순
 - items: 해당 카드의 bullet point 전체 (원문 그대로)
 - tag: 카드 안에 명시된 작은 뱃지 레이블만
 - takeaway: 핵심 요약 박스 텍스트 (있으면)
+- callout: 카드 안의 코드 블록·규칙 상자·예시 텍스트 원문 전체 (있으면, 예: "If any rule is violated...", "THESIS-FIRST:", "ALLOWED CAT4:")
 - subCard: 카드 안에 별도 박스/강조 영역이 있으면
   { title, items?, left?: { label, items }, right?: { label, items } }
+
+⚠️ 카드 안에 들여쓴 설명·예시·규칙 텍스트가 있으면 절대 빼지 마세요. callout 또는 items에 원문 전체를 담으세요.
 
 ## comparison 슬라이드 추출
 - 각 단계 박스: idx, title, hours, detail (원문 전체), isBottleneck, isAI, isRemoved, savedHours
@@ -160,7 +174,7 @@ export async function POST(req: NextRequest) {
     const mimeType = file.type || 'image/jpeg'
     imageContents.push({
       type: 'image_url',
-      image_url: { url: `data:${mimeType};base64,${b64}`, detail: 'auto' },
+      image_url: { url: `data:${mimeType};base64,${b64}`, detail: 'high' },
     })
   }
 

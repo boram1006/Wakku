@@ -703,9 +703,11 @@ const GENERATE_PROMPT = (jsonContent: string, sourceHtml?: string) => `당신은
 
 ## type:"table" 섹션 — 행·열 표 데이터
 type이 "table"인 섹션은 반드시 wk-table-block + wk-table로 렌더링합니다.
-- headerGroups가 있으면 → 각 그룹을 <tr>로 렌더링. colspan이 있는 셀은 <th colspan="N"> 사용.
+- headerGroups가 있으면 → 각 그룹을 <tr>로 렌더링. colspan이 있는 셀은 <th colspan="N" style="text-align:center"> 사용. headerGroups[0]의 첫 셀은 <th rowspan="N"> (행 수만큼).
 - headers가 있으면(단일 행) → <thead><tr>에 <th> 목록
 - rows 배열 → <tbody>의 <tr> 목록. rows[].label → <th scope="row">, rows[].values → <td> 목록
+  - values 항목이 문자열이면 → <td>텍스트</td>
+  - values 항목이 { text, colspan } 객체이면 → <td colspan="N">텍스트</td>
 - note가 있으면 표 아래 <p class="t-caption"> 로 표시
 
 \`\`\`html
@@ -740,6 +742,19 @@ type이 "table"인 섹션은 반드시 wk-table-block + wk-table로 렌더링합
     </table>
   </div>
 </div>
+\`\`\`
+
+## cards 섹션 — 카드 수에 따른 그리드 열 수 규칙
+- 카드 수 = 1 또는 2 → repeat(2, 1fr)
+- 카드 수 = 3 → repeat(3, 1fr)
+- 카드 수 = 4 → repeat(2, 1fr)  ← 4개를 3열로 하면 마지막 카드가 혼자 남아 배치가 어색함
+- 카드 수 = 5 또는 6 → repeat(3, 1fr)
+- 카드 수 ≥ 7 → repeat(3, 1fr)
+
+## cards 섹션 — callout (카드 안 규칙·예시 블록)
+cards[].callout이 있으면 카드 본문 안에 모노스페이스 블록으로 렌더링:
+\`\`\`html
+<div style="background:#1a1a1a;color:#e5e5e5;border-radius:8px;padding:12px 16px;font:400 13px/1.6 'SF Mono','Consolas',monospace;margin-top:12px;white-space:pre-wrap;word-break:break-word;">[callout 원문]</div>
 \`\`\`
 
 ## cards 섹션 — subCard (카드 안 미니카드)
@@ -908,9 +923,9 @@ export async function POST(req: NextRequest) {
     // 3. Strip any <style> blocks gpt-4o wrote despite instructions
     html = html.replace(/<style[\s\S]*?<\/style>/gi, '')
 
-    // 4. Ensure exactly one <link href="/wakku-ds.css"> in <head>
+    // 4. Ensure exactly one <link href="/wakku-ds.css"> in <head> + override hero min-height for iframe preview
     html = html.replace(/(<link[^>]+wakku-ds\.css[^>]*>\s*)+/gi, '')
-    html = html.replace('</head>', '<link rel="stylesheet" href="/wakku-ds.css">\n</head>')
+    html = html.replace('</head>', '<link rel="stylesheet" href="/wakku-ds.css">\n<style>.hero{min-height:0!important}</style>\n</head>')
 
     // 5. Close if truncated
     if (!/\<\/html\>/i.test(html)) {
