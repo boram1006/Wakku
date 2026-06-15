@@ -701,6 +701,44 @@ const GENERATE_PROMPT = (jsonContent: string, sourceHtml?: string) => `당신은
 - ✅ 업무 분해(30+)는 .wk-matrix 클래스 사용
 - ✅ 링크 카드는 .wk-link-card + .wk-link-num + .wk-link-card-body 클래스 사용
 
+## type:"table" 섹션 — 행·열 표 데이터
+type이 "table"인 섹션은 반드시 wk-table-block + wk-table로 렌더링합니다.
+- headers 배열 → <thead><tr>의 <th> 목록
+- subHeaders가 있으면 → 두 번째 <tr>로 추가 헤더 행
+- rows 배열 → <tbody>의 <tr> 목록. rows[].label → <th scope="row">, rows[].values → <td> 목록
+- note가 있으면 표 아래 <p class="t-caption"> 로 표시
+
+\`\`\`html
+<div class="wk-table-block">
+  <div class="tb-head">
+    <div class="tb-title">PRISM 활용 모델</div>
+    <div class="tb-sub">설명 (있으면)</div>
+  </div>
+  <div class="wk-table-wrap">
+    <table class="wk-table">
+      <thead>
+        <tr>
+          <th>특성</th>
+          <th>PRISM 1.0 β</th>
+          <th>PRISM 1.0 정식</th>
+          <th>PRISM 2.0 5-mini</th>
+          <th>PRISM 2.0 5.2</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">분류 정확도</th>
+          <td>65%</td>
+          <td>94%</td>
+          <td>96% ↑</td>
+          <td>31%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+\`\`\`
+
 ## ⚠️ 테이블 vs 플로우 — 반드시 구분하세요
 - comparison.format === "table" → 아래 wk-table 템플릿으로 렌더링. proc-flow 절대 사용 금지.
 - comparison.format === "flow" → 아래 proc-flow 템플릿으로 렌더링. wk-table 절대 사용 금지.
