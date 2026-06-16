@@ -2,6 +2,20 @@ import { NextRequest } from 'next/server'
 import OpenAI from 'openai'
 import Anthropic from '@anthropic-ai/sdk'
 
+const ABSOLUTE_RULES = `⚠️ 절대 원칙
+1. 모든 텍스트를 원문 그대로. 요약·생략·바꿔쓰기 금지.
+2. 수치·퍼센트·시간값·모델명·영문 그대로. 임의 변경 금지.
+3. 원본에 없는 내용 추가 금지.
+4. 값이 없는 필드는 생략 (빈 문자열·빈 배열·null 금지).
+5. ⛔ 슬라이드에 보이는 모든 박스·경계·구역의 내용을 빠짐없이 추출. 단 하나도 누락 금지.
+   특히 우측·하단·우하단 박스는 읽기 어려워도 반드시 포함.`
+
+const READING_ORDER = `## 슬라이드 읽기 규칙
+- 맨 상단 작은 텍스트 = 섹션 번호/주제 → secNum
+- 슬라이드 전체를 N자(왼쪽 상단 → 왼쪽 하단 → 오른쪽 상단 → 오른쪽 하단) 순으로 읽음
+- 2열 레이아웃: 왼쪽 열 전체를 먼저, 그 다음 오른쪽 열 전체
+- ⛔ 우측/하단/우하단 내용 누락은 절대 금지 — 끝까지 읽을 것`
+
 const SECTION_TYPE_RULES = `## 섹션 타입 — 반드시 내용 구조로 판단 (제목 무시)
 
 ⚠️ 슬라이드 제목/섹션명이 '과정', '진행', '단계'라도 내용이 번호 항목이면 cards다.
@@ -21,7 +35,7 @@ const SECTION_TYPE_RULES = `## 섹션 타입 — 반드시 내용 구조로 판�
 10. 논의·Q&A → "discussion"`
 
 const PROCESS_SPEC = `## process 추출 (조건: 시기+버전+결과 박스 모두 있어야 함)
-- intro: 배경·목표 텍스트 원문
+- intro: 배경·목표 텍스트 원문 (슬라이드 상단 설명문 전체)
 - steps: [{period, version, label, metric}]
 - result: {title, items[]}
 
@@ -51,10 +65,23 @@ const FLOW_SPEC = `## flow 추출 (박스+화살표 단방향 처리 파이프�
  ]}
 \`\`\``
 
-const CARDS_SPEC = `## cards 추출
-각 카드: title(원문), body(원문 전체), items(bullet 전체), tag(뱃지), takeaway, callout(코드·규칙 블록 원문), subCard({title, items?, left?, right?})
-⚠️ 카드 안 들여쓴 설명·규칙 텍스트 절대 생략 금지 — callout 또는 items에 원문 전체.
-⚠️ 번호 붙은 항목(1. 제목 + 설명)은 카드 하나하나로 추출. 줄글로 합치지 말 것.`
+const CARDS_SPEC = `## cards 추출 — 박스 경계가 카드 단위
+- 슬라이드에서 박스/경계로 구분된 영역 하나 = 카드 하나
+- 번호 붙은 항목(1. 제목 + 설명)은 카드 하나하나로 추출. 절대 줄글로 합치지 말 것.
+- ⛔ 우하단 카드 포함 모든 카드 누락 금지
+
+각 카드 필드:
+- title: 카드 제목 원문
+- body: 본문 텍스트 원문 전체 (단락)
+- items: bullet 목록 원문 전체
+- tag: 뱃지 텍스트
+- takeaway: 강조 박스 텍스트
+- callout: 코드·규칙 블록 원문 (들여쓰기된 텍스트, 규칙 목록 등)
+- subCard: 카드 안에 VS·비교·미니박스가 있을 때
+  ⚠️ 카드 내부에 "A vs B", "낮은 X vs 높은 X", "Left | Right" 형태의 비교 박스가 있으면
+     반드시 subCard로 추출:
+     {"title":"비교박스제목", "left":{"label":"왼쪽제목","items":["내용1","내용2"]}, "right":{"label":"오른쪽제목","items":["내용1"]}}
+⚠️ 카드 안 들여쓴 설명·규칙 텍스트 절대 생략 금지 — callout 또는 items에 원문 전체.`
 
 const TABLE_SPEC = `## table 추출
 - 표 위 그룹 레이블(예: "PRISM 1.0") → headerGroups[0]에 colspan으로 포함 (표 밖이라도 생략 금지)
@@ -65,16 +92,9 @@ const TABLE_SPEC = `## table 추출
 // Prompt for slide 0 (first slide) — extracts global metadata + sections
 const PROMPT_FIRST = `이 슬라이드 이미지를 분석하여 JSON으로 반환하세요. 첫 번째 슬라이드이므로 보고서 전체 제목·조직명·날짜도 추출하세요.
 
-⚠️ 절대 원칙
-1. 모든 텍스트를 원문 그대로. 요약·생략·바꿔쓰기 금지.
-2. 수치·퍼센트·시간값·모델명·영문 그대로. 임의 변경 금지.
-3. 원본에 없는 내용 추가 금지.
-4. 값이 없는 필드는 생략 (빈 문자열·빈 배열·null 금지).
+${ABSOLUTE_RULES}
 
-## 슬라이드 읽기 규칙
-- 맨 상단 작은 텍스트 = 섹션 번호/주제 → sections[].title (secNum)
-- 하단 큰 굵은 텍스트 = 헤드라인 → hero.subtitle
-- 좌우 2열 블록이 있으면 N자 순서: 왼쪽 상단 → 왼쪽 하단 → 오른쪽 상단 → 오른쪽 하단
+${READING_ORDER}
 
 ${SECTION_TYPE_RULES}
 
@@ -101,16 +121,9 @@ ${TABLE_SPEC}
 // Prompt for slides 1+ — sections only, no global metadata
 const PROMPT_SLIDE = (slideNum: number) => `이 슬라이드(${slideNum + 1}번째)를 분석하여 sections 배열만 JSON으로 반환하세요.
 
-⚠️ 절대 원칙
-1. 모든 텍스트를 원문 그대로. 요약·생략·바꿔쓰기 금지.
-2. 수치·퍼센트·시간값·모델명·영문 그대로. 임의 변경 금지.
-3. 원본에 없는 내용 추가 금지.
-4. 값이 없는 필드는 생략 (빈 문자열·빈 배열·null 금지).
+${ABSOLUTE_RULES}
 
-## 슬라이드 읽기 규칙
-- 맨 상단 작은 텍스트 = 섹션 번호/주제 → sections[].title (secNum)
-- 하단 큰 굵은 텍스트 = 헤드라인 → hero.subtitle
-- 좌우 2열 블록이 있으면 N자 순서: 왼쪽 상단 → 왼쪽 하단 → 오른쪽 상단 → 오른쪽 하단
+${READING_ORDER}
 
 ${SECTION_TYPE_RULES}
 
@@ -218,27 +231,18 @@ export async function POST(req: NextRequest) {
           role: 'user',
           content: `GPT-4o가 슬라이드 이미지에서 추출한 JSON을 검토하고 수정하세요.
 
-## 핵심 규칙: 섹션 타입은 제목이 아니라 내용 구조로 판단
+## ⛔ 절대 금지
+- 섹션 삭제 금지 — 원본 섹션 수를 유지. 내용 수정만 허용.
+- cards 배열에서 카드 삭제 금지 — 카드 수는 원본 그대로.
 
-### process 조건 (셋 다 있어야만 process)
-1. 시기(날짜/월) 컬럼
-2. 버전(v0, v1… 또는 단계명) 컬럼
-3. 최종 결과·선정 박스
-→ 위 조건 미충족이면 cards로 변환
-
-### cards 조건
-- 번호(1. 2. 3. …) 또는 굵은 소제목으로 구분된 항목들
-- 섹션 제목이 '과정', '진행', '개발'이어도 내용이 번호 항목이면 cards
-- process로 분류됐지만 시기/버전 컬럼 없으면 → cards로 변환
-  변환 시 각 항목을 cards[].title + cards[].body + cards[].items 로 분리
-
-### flow 조건
-- 박스+화살표 단방향 파이프라인 (As-Is/To-Be 비교 아님)
-
-## 추가 검토 항목
-- 슬라이드 간 내용 혼재 금지 — 각 섹션은 한 슬라이드의 내용만
-- 빈 문자열, 빈 배열, null 필드 삭제
-- 중복 id 수정
+## 수정 허용 항목 (내용 변경만)
+1. **섹션 타입 오분류 수정**
+   - process 조건: ①시기 컬럼 ②버전 컬럼 ③결과 박스 — 셋 다 있어야만 process
+   - 조건 미충족이면 cards로 변환 (각 항목 → cards[].title + body + items)
+   - flow: 박스+화살표 단방향 파이프라인
+2. **subCard 누락 보완** — 카드 내부에 VS/비교/미니박스가 있는데 subCard가 없으면 추가
+3. **빈 값 제거** — 빈 문자열, 빈 배열, null 필드 삭제
+4. **중복 id 수정**
 
 ## 원본 JSON
 ${JSON.stringify(merged)}
