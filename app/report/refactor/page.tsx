@@ -102,6 +102,126 @@ export default function RefactorPage() {
     }, 50)
   }
 
+  function injectEditToolbar(doc: Document) {
+    doc.getElementById('wk-edit-tb')?.remove()
+    const tb = doc.createElement('div')
+    tb.id = 'wk-edit-tb'
+    tb.style.cssText = 'position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:99999;background:#111827;color:#fff;border-radius:10px;padding:5px 8px;display:none;align-items:center;gap:3px;box-shadow:0 4px 20px rgba(0,0,0,.4);font-family:Inter,sans-serif;pointer-events:auto;'
+
+    let currentEl: HTMLElement | null = null
+
+    const tags = ['H1','H2','H3','H4','P']
+    const tagBtns: HTMLButtonElement[] = []
+    tags.forEach((tag) => {
+      const btn = doc.createElement('button')
+      btn.textContent = tag
+      btn.dataset.tag = tag
+      btn.style.cssText = 'padding:4px 9px;border:none;border-radius:6px;cursor:pointer;font:700 11px/1 Inter,sans-serif;background:transparent;color:#9CA3AF;transition:background .1s,color .1s;'
+      btn.onmouseenter = () => { btn.style.background = '#1F2937' }
+      btn.onmouseleave = () => updateTagHighlight()
+      btn.onclick = () => {
+        if (!currentEl) return
+        const newEl = doc.createElement(tag) as HTMLElement
+        // Preserve h-bar class for headings inside cards
+        if (['H3','H4'].includes(tag) && currentEl.classList.contains('h-bar')) newEl.className = 'h-bar'
+        else if (['H1','H2'].includes(tag)) newEl.className = ''
+        newEl.innerHTML = currentEl.innerHTML
+        newEl.contentEditable = 'true'
+        newEl.style.cssText = currentEl.style.cssText
+        currentEl.parentNode?.replaceChild(newEl, currentEl)
+        currentEl = newEl
+        newEl.focus()
+        updateTagHighlight()
+      }
+      tagBtns.push(btn)
+      tb.appendChild(btn)
+    })
+
+    const sep = doc.createElement('div')
+    sep.style.cssText = 'width:1px;height:16px;background:#374151;margin:0 4px;'
+    tb.appendChild(sep)
+
+    // Move element to prev/next section
+    const mvBtns: {label:string; dir:number}[] = [{label:'↑ 섹션', dir:-1},{label:'섹션 ↓', dir:1}]
+    mvBtns.forEach(({label, dir}) => {
+      const btn = doc.createElement('button')
+      btn.textContent = label
+      btn.style.cssText = 'padding:4px 9px;border:none;border-radius:6px;cursor:pointer;font:600 11px/1 Inter,sans-serif;background:transparent;color:#9CA3AF;white-space:nowrap;transition:background .1s;'
+      btn.onmouseenter = () => { btn.style.background = '#1F2937'; btn.style.color = '#fff' }
+      btn.onmouseleave = () => { btn.style.background = 'transparent'; btn.style.color = '#9CA3AF' }
+      btn.onclick = () => {
+        if (!currentEl) return
+        // Find closest movable block: card, proc-step, or direct block child
+        const movable = (currentEl.closest('.card') || currentEl.closest('.proc-step') || currentEl.closest('.wrap > *:not(.sec-head)') || currentEl) as HTMLElement
+        const section = movable.closest('section, header') as HTMLElement | null
+        if (!section) return
+        let adj = (dir === -1 ? section.previousElementSibling : section.nextElementSibling) as HTMLElement | null
+        while (adj && adj.tagName === 'NAV') adj = (dir === -1 ? adj.previousElementSibling : adj.nextElementSibling) as HTMLElement | null
+        if (!adj) return
+        const adjWrap = adj.querySelector('.wrap') as HTMLElement | null
+        if (!adjWrap) return
+        adjWrap.appendChild(movable)
+        setTimeout(() => {
+          const h = doc.documentElement.scrollHeight
+          if (iframeRef.current) iframeRef.current.style.height = h + 'px'
+          parseSections()
+        }, 50)
+      }
+      tb.appendChild(btn)
+    })
+
+    // Add heading button
+    const sep2 = doc.createElement('div')
+    sep2.style.cssText = 'width:1px;height:16px;background:#374151;margin:0 4px;'
+    tb.appendChild(sep2)
+    const addBtn = doc.createElement('button')
+    addBtn.textContent = '+ 제목 추가'
+    addBtn.style.cssText = 'padding:4px 9px;border:none;border-radius:6px;cursor:pointer;font:600 11px/1 Inter,sans-serif;background:transparent;color:#6EE7B7;white-space:nowrap;'
+    addBtn.onmouseenter = () => { addBtn.style.background = '#1F2937' }
+    addBtn.onmouseleave = () => { addBtn.style.background = 'transparent' }
+    addBtn.onclick = () => {
+      if (!currentEl) return
+      const section = currentEl.closest('section, header') as HTMLElement | null
+      const target = section?.querySelector('.wrap') || section || currentEl.parentElement
+      if (!target) return
+      const newH2 = doc.createElement('h2')
+      newH2.textContent = '제목을 입력하세요'
+      newH2.contentEditable = 'true'
+      newH2.style.cssText = 'outline:2px dashed rgba(253,49,46,0.4);outline-offset:2px;border-radius:3px;cursor:text;margin:0 0 12px;font:700 36px/44px Inter,sans-serif;color:#111111;'
+      const secHead = target.querySelector('.sec-head')
+      if (secHead) secHead.insertAdjacentElement('afterend', newH2)
+      else target.insertAdjacentElement('afterbegin', newH2)
+      newH2.focus()
+      currentEl = newH2
+      updateTagHighlight()
+    }
+    tb.appendChild(addBtn)
+
+    function updateTagHighlight() {
+      const tag = currentEl?.tagName || ''
+      tagBtns.forEach((b) => {
+        const active = b.dataset.tag === tag
+        b.style.background = active ? '#374151' : 'transparent'
+        b.style.color = active ? '#fff' : '#9CA3AF'
+      })
+    }
+
+    doc.addEventListener('focusin', (e) => {
+      const el = e.target as HTMLElement
+      if (el.contentEditable !== 'true') { tb.style.display = 'none'; return }
+      currentEl = el
+      tb.style.display = 'flex'
+      updateTagHighlight()
+    })
+    doc.addEventListener('focusout', () => {
+      setTimeout(() => {
+        if (!tb.contains(doc.activeElement)) tb.style.display = 'none'
+      }, 200)
+    })
+
+    doc.body.appendChild(tb)
+  }
+
   function applyEditMode(on: boolean) {
     const doc = iframeRef.current?.contentDocument
     if (!doc) return
@@ -121,6 +241,8 @@ export default function RefactorPage() {
         e.style.cursor = ''
       }
     })
+    if (on) injectEditToolbar(doc)
+    else doc.getElementById('wk-edit-tb')?.remove()
     setEditMode(on)
   }
 
@@ -633,6 +755,7 @@ document.addEventListener('click', function(e) {
                 }}>
                   <div style={{ padding: '14px 16px 10px', font: '700 11px/1 var(--font-kr)', color: 'var(--color-neutral-400)', letterSpacing: '.06em', textTransform: 'uppercase', borderBottom: '1px solid var(--color-neutral-100)' }}>
                     섹션 구조
+                    <div style={{ font: '400 10px/1.4 var(--font-kr)', color: 'var(--color-neutral-300)', textTransform: 'none', letterSpacing: 0, marginTop: 6 }}>텍스트 클릭 시 플로팅 툴바로 편집</div>
                   </div>
                   {iframeSections.length === 0 && (
                     <div style={{ padding: '16px', font: '400 13px/1.4 var(--font-kr)', color: 'var(--color-neutral-300)' }}>섹션 없음</div>
@@ -659,6 +782,26 @@ document.addEventListener('click', function(e) {
                           disabled={idx === iframeSections.length - 1}
                           style={{ width: 22, height: 22, border: 'none', background: 'transparent', cursor: idx === iframeSections.length - 1 ? 'default' : 'pointer', color: idx === iframeSections.length - 1 ? 'var(--color-neutral-200)' : 'var(--color-neutral-400)', fontSize: 12, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >↓</button>
+                        <button
+                          onClick={e => {
+                            e.stopPropagation()
+                            // Add H2 heading to section
+                            const doc = iframeRef.current?.contentDocument
+                            const section = doc?.getElementById(sec.id)
+                            const wrap = section?.querySelector('.wrap') as HTMLElement | null
+                            if (!wrap) return
+                            const newH2 = doc!.createElement('h2')
+                            newH2.textContent = '제목을 입력하세요'
+                            newH2.contentEditable = 'true'
+                            newH2.style.cssText = 'outline:2px dashed rgba(253,49,46,0.4);outline-offset:2px;border-radius:3px;cursor:text;margin:0 0 12px;font:700 36px/44px Inter,sans-serif;color:#111111;'
+                            const secHead = wrap.querySelector('.sec-head')
+                            if (secHead) secHead.insertAdjacentElement('afterend', newH2)
+                            else wrap.insertAdjacentElement('afterbegin', newH2)
+                            newH2.focus()
+                          }}
+                          title="제목 추가"
+                          style={{ width: 22, height: 22, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-neutral-400)', fontSize: 14, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >+</button>
                         <button
                           onClick={e => { e.stopPropagation(); if (confirm(`"${sec.title}" 섹션을 삭제할까요?`)) deleteSectionInIframe(sec.id) }}
                           style={{ width: 22, height: 22, border: 'none', background: 'transparent', cursor: 'pointer', color: '#EF4444', fontSize: 12, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
