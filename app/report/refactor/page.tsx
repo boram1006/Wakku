@@ -176,6 +176,30 @@ export default function RefactorPage() {
     const sep2 = doc.createElement('div')
     sep2.style.cssText = 'width:1px;height:16px;background:#374151;margin:0 4px;'
     tb.appendChild(sep2)
+
+    // Delete focused element
+    const delBtn = doc.createElement('button')
+    delBtn.textContent = '삭제'
+    delBtn.style.cssText = 'padding:4px 9px;border:none;border-radius:6px;cursor:pointer;font:600 11px/1 Inter,sans-serif;background:transparent;color:#F87171;white-space:nowrap;'
+    delBtn.onmouseenter = () => { delBtn.style.background = '#1F2937' }
+    delBtn.onmouseleave = () => { delBtn.style.background = 'transparent' }
+    delBtn.onmousedown = (e) => e.preventDefault()
+    delBtn.onclick = () => {
+      if (!currentEl) return
+      currentEl.remove()
+      currentEl = null
+      tb.style.display = 'none'
+      setTimeout(() => {
+        const h = doc.documentElement.scrollHeight
+        if (iframeRef.current) iframeRef.current.style.height = h + 'px'
+      }, 50)
+    }
+    tb.appendChild(delBtn)
+
+    const sep3 = doc.createElement('div')
+    sep3.style.cssText = 'width:1px;height:16px;background:#374151;margin:0 4px;'
+    tb.appendChild(sep3)
+
     const addBtn = doc.createElement('button')
     addBtn.textContent = '+ 제목 추가'
     addBtn.style.cssText = 'padding:4px 9px;border:none;border-radius:6px;cursor:pointer;font:600 11px/1 Inter,sans-serif;background:transparent;color:#6EE7B7;white-space:nowrap;'
