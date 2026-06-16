@@ -119,6 +119,7 @@ export default function RefactorPage() {
       btn.style.cssText = 'padding:4px 9px;border:none;border-radius:6px;cursor:pointer;font:700 11px/1 Inter,sans-serif;background:transparent;color:#9CA3AF;transition:background .1s,color .1s;'
       btn.onmouseenter = () => { btn.style.background = '#1F2937' }
       btn.onmouseleave = () => updateTagHighlight()
+      btn.onmousedown = (e) => e.preventDefault() // prevent focus loss on click
       btn.onclick = () => {
         if (!currentEl) return
         const newEl = doc.createElement(tag) as HTMLElement
@@ -149,6 +150,7 @@ export default function RefactorPage() {
       btn.style.cssText = 'padding:4px 9px;border:none;border-radius:6px;cursor:pointer;font:600 11px/1 Inter,sans-serif;background:transparent;color:#9CA3AF;white-space:nowrap;transition:background .1s;'
       btn.onmouseenter = () => { btn.style.background = '#1F2937'; btn.style.color = '#fff' }
       btn.onmouseleave = () => { btn.style.background = 'transparent'; btn.style.color = '#9CA3AF' }
+      btn.onmousedown = (e) => e.preventDefault()
       btn.onclick = () => {
         if (!currentEl) return
         // Find closest movable block: card, proc-step, or direct block child
@@ -179,6 +181,7 @@ export default function RefactorPage() {
     addBtn.style.cssText = 'padding:4px 9px;border:none;border-radius:6px;cursor:pointer;font:600 11px/1 Inter,sans-serif;background:transparent;color:#6EE7B7;white-space:nowrap;'
     addBtn.onmouseenter = () => { addBtn.style.background = '#1F2937' }
     addBtn.onmouseleave = () => { addBtn.style.background = 'transparent' }
+    addBtn.onmousedown = (e) => e.preventDefault()
     addBtn.onclick = () => {
       if (!currentEl) return
       const section = currentEl.closest('section, header') as HTMLElement | null
