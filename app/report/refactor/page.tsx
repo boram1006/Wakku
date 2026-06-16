@@ -102,6 +102,70 @@ export default function RefactorPage() {
     }, 50)
   }
 
+  function injectCardMoveHandles(doc: Document) {
+    doc.querySelectorAll('.wk-move-handle').forEach((el) => el.remove())
+    const cards = Array.from(doc.querySelectorAll('.card.flat')) as HTMLElement[]
+    const sections = Array.from(doc.querySelectorAll('section[id], header[id]')) as HTMLElement[]
+
+    cards.forEach((card) => {
+      if (getComputedStyle(card).position === 'static') card.style.position = 'relative'
+
+      const handle = doc.createElement('div')
+      handle.className = 'wk-move-handle'
+      handle.style.cssText = 'position:absolute;top:8px;right:8px;z-index:200;background:#111827;color:#fff;border-radius:6px;padding:4px 10px;font:600 11px/1 Inter,sans-serif;cursor:pointer;opacity:0;transition:opacity .15s;user-select:none;'
+      handle.textContent = '이동 ▾'
+
+      card.addEventListener('mouseenter', () => { handle.style.opacity = '1' })
+      card.addEventListener('mouseleave', () => { handle.style.opacity = '0' })
+
+      handle.addEventListener('mousedown', (e) => e.preventDefault())
+      handle.addEventListener('click', (e) => {
+        e.stopPropagation()
+        doc.getElementById('wk-sec-picker')?.remove()
+
+        const picker = doc.createElement('div')
+        picker.id = 'wk-sec-picker'
+        picker.style.cssText = 'position:absolute;top:100%;right:0;margin-top:4px;z-index:9999;background:#fff;border:1px solid #E5E7EB;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:6px;min-width:200px;font-family:Inter,sans-serif;'
+
+        const lbl = doc.createElement('div')
+        lbl.style.cssText = 'padding:5px 8px 8px;font:700 10px/1 Inter,sans-serif;color:#9CA3AF;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #F3F4F6;margin-bottom:4px;'
+        lbl.textContent = '이동할 섹션'
+        picker.appendChild(lbl)
+
+        sections.forEach((sec) => {
+          if (sec.contains(card)) return // skip current section
+          const title = sec.querySelector('h2')?.textContent?.trim() || sec.querySelector('h1')?.textContent?.trim() || sec.id
+          const item = doc.createElement('div')
+          item.style.cssText = 'padding:8px 10px;border-radius:6px;cursor:pointer;font:500 13px/1.4 Inter,sans-serif;color:#374151;'
+          item.textContent = title
+          item.addEventListener('mouseenter', () => { item.style.background = '#F9FAFB' })
+          item.addEventListener('mouseleave', () => { item.style.background = 'transparent' })
+          item.addEventListener('mousedown', (ev) => ev.preventDefault())
+          item.addEventListener('click', () => {
+            const targetWrap = sec.querySelector('.wrap') as HTMLElement | null
+            ;(targetWrap || sec).appendChild(card)
+            picker.remove()
+            setTimeout(() => {
+              injectCardMoveHandles(doc)
+              const h = doc.documentElement.scrollHeight
+              if (iframeRef.current) iframeRef.current.style.height = h + 'px'
+              parseSections()
+            }, 50)
+          })
+          picker.appendChild(item)
+        })
+
+        handle.style.position = 'relative'
+        handle.appendChild(picker)
+
+        const closeOnClick = () => picker.remove()
+        setTimeout(() => doc.addEventListener('click', closeOnClick, { once: true }), 0)
+      })
+
+      card.appendChild(handle)
+    })
+  }
+
   function injectEditToolbar(doc: Document) {
     doc.getElementById('wk-edit-tb')?.remove()
     const tb = doc.createElement('div')
@@ -268,8 +332,13 @@ export default function RefactorPage() {
         e.style.cursor = ''
       }
     })
-    if (on) injectEditToolbar(doc)
-    else doc.getElementById('wk-edit-tb')?.remove()
+    if (on) {
+      injectEditToolbar(doc)
+      injectCardMoveHandles(doc)
+    } else {
+      doc.getElementById('wk-edit-tb')?.remove()
+      doc.querySelectorAll('.wk-move-handle').forEach((el) => el.remove())
+    }
     setEditMode(on)
   }
 
