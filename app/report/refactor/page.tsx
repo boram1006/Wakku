@@ -46,6 +46,8 @@ export default function RefactorPage() {
   const [viewport, setViewport] = useState<Viewport>('1920')
   const [extractedJson, setExtractedJson] = useState<Record<string, unknown> | null>(null)
   const [showDebug, setShowDebug] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [iframeSections, setIframeSections] = useState<{id: string; title: string}[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
   const slideInputRef = useRef<HTMLInputElement>(null)
   const previewContainerRef = useRef<HTMLDivElement>(null)
@@ -64,12 +66,87 @@ export default function RefactorPage() {
     el.textContent = `.wrap,.nav-inner,.hero-inner{max-width:${vp}px!important}`
   }
 
+  function parseSections() {
+    const doc = iframeRef.current?.contentDocument
+    if (!doc) return
+    const els = doc.querySelectorAll('section[id], header[id]')
+    setIframeSections(Array.from(els).map(el => ({
+      id: el.id,
+      title: el.querySelector('h2')?.textContent?.trim() || el.querySelector('h1')?.textContent?.trim() || el.id,
+    })))
+  }
+
+  function moveSectionInIframe(id: string, dir: 'up' | 'down') {
+    const doc = iframeRef.current?.contentDocument
+    if (!doc) return
+    const el = doc.getElementById(id)
+    if (!el) return
+    if (dir === 'up') { const prev = el.previousElementSibling; if (prev) prev.before(el) }
+    else { const next = el.nextElementSibling; if (next) next.after(el) }
+    parseSections()
+    setTimeout(() => {
+      const h = doc.documentElement.scrollHeight
+      if (iframeRef.current) iframeRef.current.style.height = h + 'px'
+    }, 50)
+  }
+
+  function deleteSectionInIframe(id: string) {
+    const doc = iframeRef.current?.contentDocument
+    if (!doc) return
+    doc.querySelector(`.nav-toc a[href="#${id}"]`)?.remove()
+    doc.getElementById(id)?.remove()
+    parseSections()
+    setTimeout(() => {
+      const h = doc.documentElement.scrollHeight
+      if (iframeRef.current) iframeRef.current.style.height = h + 'px'
+    }, 50)
+  }
+
+  function applyEditMode(on: boolean) {
+    const doc = iframeRef.current?.contentDocument
+    if (!doc) return
+    const sel = 'h1, h2, h3, h4, h5, p, li, .kpi .value, .kpi .label, .kpi .sub, .proc-title, .proc-detail, td, th, .h-bar, .sec-head p'
+    doc.querySelectorAll(sel).forEach((el) => {
+      const e = el as HTMLElement
+      e.contentEditable = on ? 'true' : 'false'
+      if (on) {
+        e.style.outline = '2px dashed rgba(253,49,46,0.25)'
+        e.style.outlineOffset = '2px'
+        e.style.borderRadius = '3px'
+        e.style.cursor = 'text'
+      } else {
+        e.style.outline = ''
+        e.style.outlineOffset = ''
+        e.style.borderRadius = ''
+        e.style.cursor = ''
+      }
+    })
+    setEditMode(on)
+  }
+
+  function getIframeHtml() {
+    const doc = iframeRef.current?.contentDocument
+    if (!doc) return result
+    // clone and strip contenteditable before export
+    const clone = doc.documentElement.cloneNode(true) as HTMLElement
+    clone.querySelectorAll('[contenteditable]').forEach((el) => {
+      el.removeAttribute('contenteditable')
+      const e = el as HTMLElement
+      e.style.outline = ''
+      e.style.outlineOffset = ''
+      e.style.cursor = ''
+      e.style.borderRadius = ''
+    })
+    return '<!DOCTYPE html>\n' + clone.outerHTML
+  }
+
   function handleIframeLoad() {
     const iframe = iframeRef.current
     if (!iframe?.contentDocument) return
     applyViewportStyle(VP_WIDTHS[viewport])
     const h = iframe.contentDocument.documentElement.scrollHeight
     if (h > 0) iframe.style.height = h + 'px'
+    parseSections()
   }
 
   useEffect(() => {
@@ -228,7 +305,7 @@ document.addEventListener('click', function(e) {
   }
 
   async function handleDownload() {
-    let downloadHtml = result
+    let downloadHtml = getIframeHtml()
     try {
       const cssText = await fetch('/wakku-ds.css').then((r) => r.text())
       downloadHtml = downloadHtml.replace(
@@ -248,7 +325,7 @@ document.addEventListener('click', function(e) {
   }
 
   function handleCopy() {
-    navigator.clipboard.writeText(result)
+    navigator.clipboard.writeText(getIframeHtml())
   }
 
   const canRun = inputMode === 'image' ? slides.length > 0 : (html.trim().length > 0 && html.length <= 200_000)
@@ -516,6 +593,13 @@ document.addEventListener('click', function(e) {
                     추출 JSON {(extractedJson as { sections?: unknown[] }).sections?.length ?? 0}섹션
                   </button>
                 )}
+                <button
+                  className="wk-btn wk-btn-ghost"
+                  style={{ height: 34, padding: '0 14px', fontSize: 13, color: editMode ? 'var(--color-primary)' : undefined, background: editMode ? 'var(--color-primary-bg)' : undefined }}
+                  onClick={() => applyEditMode(!editMode)}
+                >
+                  {editMode ? '편집 중 ✓' : '편집 모드'}
+                </button>
                 <button className="wk-btn wk-btn-ghost" style={{ height: 34, padding: '0 14px', fontSize: 13 }} onClick={handleCopy}>
                   HTML 복사
                 </button>
@@ -538,16 +622,62 @@ document.addEventListener('click', function(e) {
             )}
 
             {/* iframe */}
-            <div style={{ borderTop: '1px solid var(--color-neutral-100)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: 'var(--color-neutral-10)', borderBottom: '1px solid var(--color-neutral-100)' }}>
-                <span style={{ font: '400 12px/1 monospace', color: 'var(--color-neutral-300)' }}>
-                  {vpWidth}px 기준 미리보기
-                </span>
-                <span style={{ font: '400 11px/1 var(--font-kr)', color: 'var(--color-neutral-300)' }}>
-                  {result.length.toLocaleString()}자
-                </span>
-              </div>
-              <div ref={previewContainerRef}>
+            <div style={{ borderTop: '1px solid var(--color-neutral-100)', display: 'flex' }}>
+              {/* Sidebar */}
+              {editMode && (
+                <div style={{
+                  width: 240, flexShrink: 0, background: '#fff',
+                  borderRight: '1px solid var(--color-neutral-100)',
+                  display: 'flex', flexDirection: 'column',
+                  position: 'sticky', top: 0, maxHeight: '100vh', overflowY: 'auto',
+                }}>
+                  <div style={{ padding: '14px 16px 10px', font: '700 11px/1 var(--font-kr)', color: 'var(--color-neutral-400)', letterSpacing: '.06em', textTransform: 'uppercase', borderBottom: '1px solid var(--color-neutral-100)' }}>
+                    섹션 구조
+                  </div>
+                  {iframeSections.length === 0 && (
+                    <div style={{ padding: '16px', font: '400 13px/1.4 var(--font-kr)', color: 'var(--color-neutral-300)' }}>섹션 없음</div>
+                  )}
+                  {iframeSections.map((sec, idx) => (
+                    <div
+                      key={sec.id}
+                      onClick={() => { iframeRef.current?.contentDocument?.getElementById(sec.id)?.scrollIntoView({ behavior: 'smooth' }) }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 10px 10px 14px', borderBottom: '1px solid var(--color-neutral-50)', cursor: 'pointer' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-neutral-10)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = '')}
+                    >
+                      <span style={{ flex: 1, font: '500 13px/1.4 var(--font-kr)', color: 'var(--color-neutral-700)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+                        {sec.title}
+                      </span>
+                      <div style={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+                        <button
+                          onClick={e => { e.stopPropagation(); moveSectionInIframe(sec.id, 'up') }}
+                          disabled={idx === 0}
+                          style={{ width: 22, height: 22, border: 'none', background: 'transparent', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? 'var(--color-neutral-200)' : 'var(--color-neutral-400)', fontSize: 12, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >↑</button>
+                        <button
+                          onClick={e => { e.stopPropagation(); moveSectionInIframe(sec.id, 'down') }}
+                          disabled={idx === iframeSections.length - 1}
+                          style={{ width: 22, height: 22, border: 'none', background: 'transparent', cursor: idx === iframeSections.length - 1 ? 'default' : 'pointer', color: idx === iframeSections.length - 1 ? 'var(--color-neutral-200)' : 'var(--color-neutral-400)', fontSize: 12, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >↓</button>
+                        <button
+                          onClick={e => { e.stopPropagation(); if (confirm(`"${sec.title}" 섹션을 삭제할까요?`)) deleteSectionInIframe(sec.id) }}
+                          style={{ width: 22, height: 22, border: 'none', background: 'transparent', cursor: 'pointer', color: '#EF4444', fontSize: 12, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >✕</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* iframe */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: 'var(--color-neutral-10)', borderBottom: '1px solid var(--color-neutral-100)' }}>
+                  <span style={{ font: '400 12px/1 monospace', color: 'var(--color-neutral-300)' }}>
+                    {vpWidth}px 기준 미리보기
+                  </span>
+                  <span style={{ font: '400 11px/1 var(--font-kr)', color: 'var(--color-neutral-300)' }}>
+                    {result.length.toLocaleString()}자
+                  </span>
+                </div>
                 <iframe
                   ref={iframeRef}
                   srcDoc={result}
