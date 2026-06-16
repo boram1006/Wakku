@@ -4,7 +4,8 @@ import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useReportStore } from '@/store/reportStore'
 import type { LayoutType } from '@/types/report'
-import { createDefaultPage, LAYOUT_LABELS, ADDABLE_LAYOUTS, ALL_LAYOUTS } from '@/lib/pageDefaults'
+import { LAYOUT_LABELS, ALL_LAYOUTS } from '@/lib/pageDefaults'
+import { PagePatternExplorer } from '@/components/patterns/PagePatternExplorer'
 
 export function PageStructurePanel() {
   const pages = useReportStore((s) => s.pages)
@@ -16,20 +17,11 @@ export function PageStructurePanel() {
   const updatePage = useReportStore((s) => s.updatePage)
   const selectPage = useReportStore((s) => s.selectPage)
 
-  const [showAddMenu, setShowAddMenu] = useState(false)
+  const [showPatternExplorer, setShowPatternExplorer] = useState(false)
 
   const handleSelectPage = (pageId: string) => {
     selectPage(pageId)
     document.getElementById(pageId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  const handleAdd = (layoutType: LayoutType) => {
-    const newPage = createDefaultPage(layoutType, pages)
-    addPage(newPage)
-    setShowAddMenu(false)
-    setTimeout(() => {
-      document.getElementById(newPage.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 50)
   }
 
   const handleDelete = (e: React.MouseEvent, pageId: string) => {
@@ -76,36 +68,9 @@ export function PageStructurePanel() {
           페이지 구조
         </span>
         <div style={{ position: 'relative' }}>
-          <button onClick={() => setShowAddMenu((v) => !v)} style={addBtnStyle}>
+          <button onClick={() => setShowPatternExplorer(true)} style={addBtnStyle}>
             + 추가
           </button>
-
-          {showAddMenu && (
-            <>
-              <div
-                style={{ position: 'fixed', inset: 0, zIndex: 299 }}
-                onClick={() => setShowAddMenu(false)}
-              />
-              <div style={addMenuStyle}>
-                {ADDABLE_LAYOUTS.map((lt) => (
-                  <button
-                    key={lt}
-                    onClick={() => handleAdd(lt)}
-                    style={addMenuItemStyle}
-                    onMouseEnter={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.background =
-                        'var(--report-bg-muted)'
-                    }}
-                    onMouseLeave={(e) => {
-                      ;(e.currentTarget as HTMLButtonElement).style.background = 'transparent'
-                    }}
-                  >
-                    {LAYOUT_LABELS[lt]}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
         </div>
       </div>
 
@@ -204,6 +169,11 @@ export function PageStructurePanel() {
           {pages.length}개 페이지
         </span>
       </div>
+
+      {/* Pattern Explorer modal */}
+      {showPatternExplorer && (
+        <PagePatternExplorer onClose={() => setShowPatternExplorer(false)} />
+      )}
     </div>
   )
 }
