@@ -5,10 +5,10 @@ import type { ActivityItem } from '@/data/patternData'
 
 interface Props {
   items: ActivityItem[]
-  title?: string
+  headline?: string
 }
 
-export function ActivityReductionPattern({ items }: Props) {
+export function ActivityReductionPattern({ items, headline }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
 
@@ -22,6 +22,18 @@ export function ActivityReductionPattern({ items }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* 핵심 메시지 */}
+      {headline && (
+        <div style={{
+          padding: '10px 16px',
+          background: 'linear-gradient(90deg, #FFF0F0 0%, #fff 100%)',
+          borderLeft: '3px solid #FD312E',
+          borderRadius: '0 8px 8px 0',
+          font: '500 13px/1.5 var(--font-kr,Inter,sans-serif)',
+          color: '#374151',
+        }}>{headline}</div>
+      )}
 
       {/* Hero summary */}
       <div style={{

@@ -5,19 +5,31 @@ import type { AsIsToBeItem } from '@/data/patternData'
 
 interface Props {
   items: AsIsToBeItem[]
-  title?: string
+  headline?: string
 }
 
 const IMPACT_COLOR: Record<AsIsToBeItem['impact'], string> = { high: '#FD312E', medium: '#F59E0B', low: '#10B981' }
 const IMPACT_LABEL: Record<AsIsToBeItem['impact'], string> = { high: 'High', medium: 'Mid', low: 'Low' }
 
-export function AsIsToBePattern({ items }: Props) {
+export function AsIsToBePattern({ items, headline }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [view, setView] = useState<'compare' | 'split'>('compare')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      {/* 핵심 메시지 */}
+      {headline && (
+        <div style={{
+          padding: '10px 16px',
+          background: 'linear-gradient(90deg, #FFF0F0 0%, #fff 100%)',
+          borderLeft: '3px solid #FD312E',
+          borderRadius: '0 8px 8px 0',
+          font: '500 13px/1.5 var(--font-kr,Inter,sans-serif)',
+          color: '#374151',
+        }}>{headline}</div>
+      )}
 
       {/* View toggle — subtle, not dominant */}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

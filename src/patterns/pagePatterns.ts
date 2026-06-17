@@ -1,6 +1,13 @@
 import type { LayoutType } from '@/types/report'
 import { createDefaultPage } from '@/lib/pageDefaults'
 import type { ReportPage } from '@/types/report'
+import { ACTIVITY_VARIANTS, ASIS_TOBE_VARIANTS } from '@/data/patternData'
+
+export interface PatternVariantMeta {
+  id: string
+  label: string
+  headline: string
+}
 
 export interface PagePattern {
   id: string
@@ -10,7 +17,9 @@ export interface PagePattern {
   layoutType: LayoutType
   /** Short hint lines shown in the preview card */
   previewLines: string[]
-  createPage: (existingPages: ReportPage[]) => ReportPage
+  /** Available data variants — if present, Explorer shows variant picker */
+  variants?: PatternVariantMeta[]
+  createPage: (existingPages: ReportPage[], variantId?: string) => ReportPage
 }
 
 export const PAGE_PATTERNS: PagePattern[] = [
@@ -102,7 +111,12 @@ export const PAGE_PATTERNS: PagePattern[] = [
     category: '효과/결과',
     layoutType: 'activity-reduction',
     previewLines: ['절감 효과  -68%  · 525분 → 167분', '수동입력 ████▌  -92%  자동화 가능'],
-    createPage: (pages) => createDefaultPage('activity-reduction', pages),
+    variants: ACTIVITY_VARIANTS.map((v) => ({ id: v.id, label: v.label, headline: v.headline })),
+    createPage: (pages, variantId) => {
+      const variant = ACTIVITY_VARIANTS.find((v) => v.id === variantId) ?? ACTIVITY_VARIANTS[0]
+      const page = createDefaultPage('activity-reduction', pages)
+      return { ...page, patternVariantId: variant.id, subtitle: variant.headline }
+    },
   },
   {
     id: 'pat-asis-tobe',
@@ -111,7 +125,12 @@ export const PAGE_PATTERNS: PagePattern[] = [
     category: '효과/결과',
     layoutType: 'asis-tobe-transformation',
     previewLines: ['AS-IS  ⚡AI⚡  TO-BE', '3일 처리 → 당일 완료  ·  오류 95% 감소'],
-    createPage: (pages) => createDefaultPage('asis-tobe-transformation', pages),
+    variants: ASIS_TOBE_VARIANTS.map((v) => ({ id: v.id, label: v.label, headline: v.headline })),
+    createPage: (pages, variantId) => {
+      const variant = ASIS_TOBE_VARIANTS.find((v) => v.id === variantId) ?? ASIS_TOBE_VARIANTS[0]
+      const page = createDefaultPage('asis-tobe-transformation', pages)
+      return { ...page, patternVariantId: variant.id, subtitle: variant.headline }
+    },
   },
 ]
 

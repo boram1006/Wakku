@@ -30,6 +30,8 @@ export interface ReportPage {
   subtitle?: string
   layoutType: LayoutType
   blocks: ReportBlock[]
+  /** For interactive pattern pages — identifies which data variant is loaded */
+  patternVariantId?: string
 }
 
 export interface ReportData {
