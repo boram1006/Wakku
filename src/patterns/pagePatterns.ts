@@ -98,19 +98,19 @@ export const PAGE_PATTERNS: PagePattern[] = [
   {
     id: 'pat-activity-reduction',
     name: 'Activity Reduction',
-    description: '업무별 소요시간 절감 효과를 바 차트로 비교. hover로 상세 보기.',
+    description: 'AI 적용 후 업무 활동이 얼마나 줄었는지 보여줄 때 — 절감률·자동화 가능 여부를 바로 확인. hover 시 개선 전/후가 전환됨.',
     category: '효과/결과',
     layoutType: 'activity-reduction',
-    previewLines: ['[ 현재 ████░░░░ ]  -67%', '[ 개선 ██░░░░░░ ]  절감'],
+    previewLines: ['절감 효과  -68%  · 525분 → 167분', '수동입력 ████▌  -92%  자동화 가능'],
     createPage: (pages) => createDefaultPage('activity-reduction', pages),
   },
   {
     id: 'pat-asis-tobe',
     name: 'As-Is → To-Be',
-    description: '현황과 개선안을 항목별로 비교. 토글 뷰 전환 가능.',
+    description: '기존 업무 흐름과 AI 개선 후 흐름을 비교할 때 — 처리속도·오류율·업무량 등 차원별 변화를 좌우 대비로 제시.',
     category: '효과/결과',
     layoutType: 'asis-tobe-transformation',
-    previewLines: ['AS-IS          →   TO-BE', '수동 3일 처리  →  당일 자동화'],
+    previewLines: ['AS-IS  ⚡AI⚡  TO-BE', '3일 처리 → 당일 완료  ·  오류 95% 감소'],
     createPage: (pages) => createDefaultPage('asis-tobe-transformation', pages),
   },
 ]

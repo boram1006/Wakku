@@ -8,141 +8,171 @@ interface Props {
   title?: string
 }
 
-export function ActivityReductionPattern({ items, title }: Props) {
+export function ActivityReductionPattern({ items }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
 
-  const categories = Array.from(new Set(items.map((i) => i.category)))
   const totalCurrent = items.reduce((s, i) => s + i.currentTime, 0)
   const totalReduced = items.reduce((s, i) => s + i.reducedTime, 0)
-  const savedPct = Math.round(((totalCurrent - totalReduced) / totalCurrent) * 100)
+  const savedMin = totalCurrent - totalReduced
+  const savedPct = Math.round((savedMin / totalCurrent) * 100)
+  const autoCount = items.filter((i) => i.automatable).length
+  const categories = Array.from(new Set(items.map((i) => i.category)))
+  const barMax = Math.max(...items.map((i) => i.currentTime))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Summary bar */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* Hero summary */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-        border: '1px solid var(--report-border, #E5E7EB)',
-        borderRadius: 14, overflow: 'hidden', background: '#fff',
-        boxShadow: '0 1px 3px rgba(0,0,0,.06)',
+        display: 'grid', gridTemplateColumns: '1fr auto 1fr',
+        gap: 0, border: '1px solid #E5E7EB',
+        borderRadius: 16, overflow: 'hidden', background: '#fff',
+        boxShadow: '0 2px 8px rgba(0,0,0,.06)',
       }}>
-        {[
-          { label: '현재 총 소요시간', value: `${totalCurrent}분`, sub: `${Math.floor(totalCurrent/60)}시간 ${totalCurrent%60}분` },
-          { label: '개선 후 소요시간', value: `${totalReduced}분`, sub: `${Math.floor(totalReduced/60)}시간 ${totalReduced%60}분` },
-          { label: '절감 효과', value: `${savedPct}%`, sub: `${totalCurrent - totalReduced}분 단축`, highlight: true },
-        ].map((stat, i) => (
-          <div key={i} style={{
-            padding: '20px 24px',
-            borderRight: i < 2 ? '1px solid var(--report-border, #E5E7EB)' : undefined,
-            background: stat.highlight ? 'linear-gradient(135deg,#FFF0F0 0%,#fff 100%)' : '#fff',
-          }}>
-            <div style={{ font: '500 12px/1 Inter,sans-serif', color: '#9CA3AF', marginBottom: 8, letterSpacing: '.02em' }}>{stat.label}</div>
-            <div style={{ font: `700 28px/1 Inter,sans-serif`, color: stat.highlight ? '#FD312E' : '#111827', letterSpacing: '-1px', marginBottom: 4 }}>{stat.value}</div>
-            <div style={{ font: '400 12px/1 Inter,sans-serif', color: '#9CA3AF' }}>{stat.sub}</div>
-          </div>
-        ))}
+        <div style={{ padding: '22px 28px' }}>
+          <div style={{ font: '500 11px/1 Inter,sans-serif', color: '#9CA3AF', marginBottom: 10, letterSpacing: '.05em', textTransform: 'uppercase' }}>현재 총 업무시간</div>
+          <div style={{ font: '700 32px/1 Inter,sans-serif', color: '#6B7280', letterSpacing: '-1.5px' }}>{totalCurrent}<span style={{ font: '500 14px/1 Inter,sans-serif', marginLeft: 4 }}>분</span></div>
+          <div style={{ font: '400 12px/1 Inter,sans-serif', color: '#D1D5DB', marginTop: 8 }}>{Math.floor(totalCurrent / 60)}시간 {totalCurrent % 60}분</div>
+        </div>
+
+        {/* Center: big savings number */}
+        <div style={{
+          padding: '22px 36px', background: 'linear-gradient(135deg,#FFF0F0,#FFF8F8)',
+          borderLeft: '1px solid #FFE0E0', borderRight: '1px solid #FFE0E0',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{ font: '500 11px/1 Inter,sans-serif', color: '#FCA5A5', marginBottom: 8, letterSpacing: '.05em', textTransform: 'uppercase' }}>절감 효과</div>
+          <div style={{ font: '800 48px/1 Inter,sans-serif', color: '#FD312E', letterSpacing: '-2px' }}>-{savedPct}%</div>
+          <div style={{ font: '500 12px/1 Inter,sans-serif', color: '#F87171', marginTop: 8 }}>{savedMin}분 단축</div>
+        </div>
+
+        <div style={{ padding: '22px 28px', textAlign: 'right' }}>
+          <div style={{ font: '500 11px/1 Inter,sans-serif', color: '#9CA3AF', marginBottom: 10, letterSpacing: '.05em', textTransform: 'uppercase' }}>개선 후 업무시간</div>
+          <div style={{ font: '700 32px/1 Inter,sans-serif', color: '#111827', letterSpacing: '-1.5px' }}>{totalReduced}<span style={{ font: '500 14px/1 Inter,sans-serif', marginLeft: 4 }}>분</span></div>
+          <div style={{ font: '400 12px/1 Inter,sans-serif', color: '#10B981', marginTop: 8 }}>자동화 가능 {autoCount}건 포함</div>
+        </div>
       </div>
 
-      {/* Activity rows grouped by category */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Activity rows: hover reveals improvement */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {categories.map((cat) => (
-          <div key={cat}>
-            <div style={{ font: '700 11px/1 Inter,sans-serif', color: '#9CA3AF', letterSpacing: '.06em', textTransform: 'uppercase', padding: '0 4px 8px' }}>{cat}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {items.filter((item) => item.category === cat).map((item) => {
-                const isExpanded = expandedId === item.id
-                const isHovered = hoveredId === item.id
-                const reductionPct = Math.round(((item.currentTime - item.reducedTime) / item.currentTime) * 100)
-                const barMax = Math.max(...items.map((i) => i.currentTime))
+          <div key={cat} style={{ marginBottom: 4 }}>
+            <div style={{
+              font: '700 10px/1 Inter,sans-serif', color: '#C4C9D4',
+              letterSpacing: '.08em', textTransform: 'uppercase',
+              padding: '0 4px 6px',
+            }}>{cat}</div>
 
-                return (
+            {items.filter((i) => i.category === cat).map((item) => {
+              const isExpanded = expandedId === item.id
+              const isHovered = hoveredId === item.id
+              const reductionPct = Math.round(((item.currentTime - item.reducedTime) / item.currentTime) * 100)
+              const currentWidth = (item.currentTime / barMax) * 100
+              const reducedWidth = (item.reducedTime / barMax) * 100
+              // On hover/expand, show reduced bar; otherwise show current bar
+              const barWidth = (isHovered || isExpanded) ? reducedWidth : currentWidth
+              const barColor = (isHovered || isExpanded) ? '#FD312E' : '#D1D5DB'
+              const timeDisplay = (isHovered || isExpanded) ? item.reducedTime : item.currentTime
+
+              return (
+                <div key={item.id}>
                   <div
-                    key={item.id}
                     onMouseEnter={() => setHoveredId(item.id)}
                     onMouseLeave={() => setHoveredId(null)}
                     onClick={() => setExpandedId(isExpanded ? null : item.id)}
                     style={{
-                      background: isExpanded ? '#FFF8F8' : isHovered ? '#F9FAFB' : '#fff',
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '12px 14px',
+                      background: isExpanded ? '#FFF8F8' : isHovered ? '#FAFAFA' : '#fff',
                       border: `1px solid ${isExpanded ? '#FCA5A5' : isHovered ? '#E5E7EB' : '#F3F4F6'}`,
-                      borderRadius: 10, padding: '14px 16px',
-                      cursor: 'pointer', transition: 'all .15s',
+                      borderRadius: 10, cursor: 'pointer',
+                      transition: 'background .15s, border-color .15s',
                     }}
                   >
-                    {/* Row */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      {/* Automatable badge */}
+                    {/* Automatable dot */}
+                    <div style={{
+                      width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+                      background: item.automatable ? '#10B981' : '#F59E0B',
+                    }} />
+
+                    {/* Activity name */}
+                    <span style={{
+                      flex: '0 0 148px', font: '500 13px/1.3 var(--font-kr,Inter,sans-serif)',
+                      color: '#111827',
+                    }}>
+                      {item.activity}
+                    </span>
+
+                    {/* Single bar that transitions on hover */}
+                    <div style={{ flex: 1, position: 'relative', height: 10, background: '#F3F4F6', borderRadius: 5, overflow: 'hidden' }}>
                       <div style={{
-                        width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                        background: item.automatable ? '#10B981' : '#F59E0B',
-                      }} title={item.automatable ? '자동화 가능' : '부분 자동화'} />
-
-                      {/* Activity name */}
-                      <span style={{ flex: '0 0 160px', font: '500 14px/1.3 var(--font-kr,Inter,sans-serif)', color: '#111827' }}>
-                        {item.activity}
-                      </span>
-
-                      {/* Bar comparison */}
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        {/* Current bar */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{ width: 32, font: '400 11px/1 Inter,sans-serif', color: '#9CA3AF', textAlign: 'right', flexShrink: 0 }}>현재</div>
-                          <div style={{ flex: 1, height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
-                            <div style={{ width: `${(item.currentTime / barMax) * 100}%`, height: '100%', background: '#D1D5DB', borderRadius: 4, transition: 'width .3s' }} />
-                          </div>
-                          <div style={{ width: 40, font: '600 12px/1 Inter,sans-serif', color: '#6B7280', textAlign: 'right', flexShrink: 0 }}>{item.currentTime}분</div>
-                        </div>
-                        {/* Improved bar */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{ width: 32, font: '400 11px/1 Inter,sans-serif', color: '#9CA3AF', textAlign: 'right', flexShrink: 0 }}>개선</div>
-                          <div style={{ flex: 1, height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
-                            <div style={{ width: `${(item.reducedTime / barMax) * 100}%`, height: '100%', background: '#FD312E', borderRadius: 4, transition: 'width .3s' }} />
-                          </div>
-                          <div style={{ width: 40, font: '600 12px/1 Inter,sans-serif', color: '#FD312E', textAlign: 'right', flexShrink: 0 }}>{item.reducedTime}분</div>
-                        </div>
-                      </div>
-
-                      {/* Reduction badge */}
-                      <div style={{
-                        flexShrink: 0, width: 52, textAlign: 'center',
-                        padding: '4px 0', borderRadius: 8,
-                        background: '#FFF0F0', color: '#FD312E',
-                        font: '700 13px/1 Inter,sans-serif',
-                      }}>
-                        -{reductionPct}%
-                      </div>
-
-                      {/* Expand chevron */}
-                      {item.detail && (
-                        <div style={{ color: '#D1D5DB', fontSize: 12, transition: 'transform .15s', transform: isExpanded ? 'rotate(180deg)' : 'none' }}>▼</div>
-                      )}
+                        position: 'absolute', left: 0, top: 0, height: '100%',
+                        width: `${barWidth}%`,
+                        background: barColor,
+                        borderRadius: 5,
+                        transition: 'width .35s cubic-bezier(.4,0,.2,1), background .2s',
+                      }} />
                     </div>
 
-                    {/* Expanded detail */}
-                    {isExpanded && item.detail && (
+                    {/* Time display */}
+                    <div style={{
+                      width: 44, textAlign: 'right', flexShrink: 0,
+                      font: '600 12px/1 Inter,sans-serif',
+                      color: (isHovered || isExpanded) ? '#FD312E' : '#6B7280',
+                      transition: 'color .15s',
+                    }}>{timeDisplay}분</div>
+
+                    {/* Reduction badge — always visible */}
+                    <div style={{
+                      flexShrink: 0, padding: '3px 8px', borderRadius: 8,
+                      background: (isHovered || isExpanded) ? '#FEE2E2' : '#F3F4F6',
+                      color: (isHovered || isExpanded) ? '#FD312E' : '#9CA3AF',
+                      font: '700 11px/1 Inter,sans-serif',
+                      transition: 'background .15s, color .15s',
+                      minWidth: 42, textAlign: 'center',
+                    }}>
+                      -{reductionPct}%
+                    </div>
+
+                    {/* Chevron */}
+                    {item.detail && (
                       <div style={{
-                        marginTop: 12, padding: '10px 14px',
-                        background: '#fff', borderRadius: 8,
-                        border: '1px solid #FFE0E0',
-                        font: '400 13px/1.6 var(--font-kr,Inter,sans-serif)',
-                        color: '#374151',
-                      }}>
-                        {item.detail}
-                      </div>
+                        color: '#D1D5DB', fontSize: 10, flexShrink: 0,
+                        transition: 'transform .15s',
+                        transform: isExpanded ? 'rotate(180deg)' : 'none',
+                      }}>▼</div>
                     )}
                   </div>
-                )
-              })}
-            </div>
+
+                  {/* Expanded detail */}
+                  {isExpanded && item.detail && (
+                    <div style={{
+                      margin: '2px 0 4px 28px', padding: '10px 14px',
+                      background: '#fff', border: '1px solid #FFE4E4', borderRadius: 8,
+                      font: '400 13px/1.6 var(--font-kr,Inter,sans-serif)', color: '#374151',
+                    }}>
+                      {item.detail}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         ))}
       </div>
 
       {/* Legend */}
-      <div style={{ display: 'flex', gap: 20, paddingTop: 4 }}>
-        {[{ color: '#10B981', label: '자동화 가능' }, { color: '#F59E0B', label: '부분 자동화' }].map(({ color, label }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
-            <span style={{ font: '400 12px/1 Inter,sans-serif', color: '#9CA3AF' }}>{label}</span>
+      <div style={{ display: 'flex', gap: 20, paddingTop: 2 }}>
+        {[
+          { color: '#10B981', label: '자동화 가능' },
+          { color: '#F59E0B', label: '부분 자동화' },
+          { color: '#D1D5DB', label: '현재 시간', fill: true },
+          { color: '#FD312E', label: 'hover 시 개선 후 시간', fill: true },
+        ].map(({ color, label }) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ width: label.includes('시간') ? 16 : 7, height: label.includes('시간') ? 6 : 7, borderRadius: label.includes('시간') ? 3 : '50%', background: color, flexShrink: 0 }} />
+            <span style={{ font: '400 11px/1 Inter,sans-serif', color: '#B0B7C3' }}>{label}</span>
           </div>
         ))}
       </div>
