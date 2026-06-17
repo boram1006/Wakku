@@ -9,6 +9,8 @@ export type LayoutType =
   | 'timeline'
   | 'discussion-cards'
   | 'rr'
+  | 'activity-reduction'
+  | 'asis-tobe-transformation'
 
 export interface ReportBlock {
   id: string

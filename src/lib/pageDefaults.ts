@@ -61,6 +61,9 @@ export function defaultBlocks(layoutType: LayoutType): ReportBlock[] {
         { id: uid(), type: 'card', meta: '역할 01', title: '역할/책임 항목 1', body: '내용을 입력하세요.' },
         { id: uid(), type: 'card', meta: '역할 02', title: '역할/책임 항목 2', body: '내용을 입력하세요.' },
       ]
+    case 'activity-reduction':
+    case 'asis-tobe-transformation':
+      return []
   }
 }
 
@@ -82,6 +85,8 @@ const SECTION_LABEL_MAP: Record<LayoutType, string> = {
   timeline: '추진 일정',
   'discussion-cards': '논의 사항',
   rr: '역할/책임',
+  'activity-reduction': '업무 절감',
+  'asis-tobe-transformation': 'As-Is / To-Be',
 }
 
 export const LAYOUT_LABELS: Record<LayoutType, string> = {
@@ -95,6 +100,8 @@ export const LAYOUT_LABELS: Record<LayoutType, string> = {
   timeline: 'Timeline',
   'discussion-cards': 'Discussion Cards',
   rr: 'R&R',
+  'activity-reduction': 'Activity Reduction',
+  'asis-tobe-transformation': 'As-Is → To-Be',
 }
 
 export const ADDABLE_LAYOUTS: LayoutType[] = [
@@ -107,6 +114,8 @@ export const ADDABLE_LAYOUTS: LayoutType[] = [
   'timeline',
   'discussion-cards',
   'rr',
+  'activity-reduction',
+  'asis-tobe-transformation',
 ]
 
 export const ALL_LAYOUTS: LayoutType[] = [

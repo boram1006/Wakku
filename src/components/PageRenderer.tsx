@@ -6,6 +6,8 @@ import {
   ScopePageTemplate,
   TimelinePageTemplate,
   ToBeFlowPageTemplate,
+  ActivityReductionPageTemplate,
+  AsIsToBePageTemplate,
 } from '@/components/sections'
 
 interface PageRendererProps {
@@ -27,6 +29,10 @@ export function PageRenderer({ page, pageIndex }: PageRendererProps) {
       return <ToBeFlowPageTemplate page={page} pageIndex={pageIndex} />
     case 'effect-split':
       return <EffectSplitPageTemplate page={page} pageIndex={pageIndex} />
+    case 'activity-reduction':
+      return <ActivityReductionPageTemplate page={page} pageIndex={pageIndex} />
+    case 'asis-tobe-transformation':
+      return <AsIsToBePageTemplate page={page} pageIndex={pageIndex} />
     default:
       return null
   }

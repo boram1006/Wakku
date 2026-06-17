@@ -95,6 +95,24 @@ export const PAGE_PATTERNS: PagePattern[] = [
     previewLines: ['[ 역할 01 ]    [ 역할 02 ]', '역할·책임 내용 기술'],
     createPage: (pages) => createDefaultPage('rr', pages),
   },
+  {
+    id: 'pat-activity-reduction',
+    name: 'Activity Reduction',
+    description: '업무별 소요시간 절감 효과를 바 차트로 비교. hover로 상세 보기.',
+    category: '효과/결과',
+    layoutType: 'activity-reduction',
+    previewLines: ['[ 현재 ████░░░░ ]  -67%', '[ 개선 ██░░░░░░ ]  절감'],
+    createPage: (pages) => createDefaultPage('activity-reduction', pages),
+  },
+  {
+    id: 'pat-asis-tobe',
+    name: 'As-Is → To-Be',
+    description: '현황과 개선안을 항목별로 비교. 토글 뷰 전환 가능.',
+    category: '효과/결과',
+    layoutType: 'asis-tobe-transformation',
+    previewLines: ['AS-IS          →   TO-BE', '수동 3일 처리  →  당일 자동화'],
+    createPage: (pages) => createDefaultPage('asis-tobe-transformation', pages),
+  },
 ]
 
 export const PATTERN_CATEGORIES = ['개요', '문제/현황', '실행/계획', '효과/결과', '기타'] as const
